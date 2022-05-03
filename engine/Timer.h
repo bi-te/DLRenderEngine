@@ -3,13 +3,13 @@
 
 using uint = unsigned int;
 
-class timer
+class Timer
 {
 	std::chrono::steady_clock::time_point previous, current;
 	double dt, frame_time;
 
 public:
-	timer(double frame_time): frame_time(frame_time)
+	Timer(double frame_time): frame_time(frame_time)
 	{
 	}
 
