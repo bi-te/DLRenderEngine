@@ -18,6 +18,15 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="engine\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\Controller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\math\math.h">
@@ -44,19 +53,10 @@
     <ClInclude Include="engine\Screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="engine\InputState.h">
+    <ClInclude Include="engine\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="engine\RenderObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\SphereObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\RenderList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\RayTracer.h">
+    <ClInclude Include="engine\Controller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

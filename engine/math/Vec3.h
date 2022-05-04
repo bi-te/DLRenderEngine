@@ -5,11 +5,11 @@
 class Vec3
 {
 public:
-	double x, y, z;
+	float x, y, z;
 
 	Vec3() = default;
 
-	Vec3(double x, double y, double z)
+	Vec3(float x, float y, float z)
 		: x(x),
 		  y(y),
 		  z(z)
@@ -38,17 +38,17 @@ public:
 		return { lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z };
 	}
 
-	friend double operator*(const Vec3& lhs, const Vec3& rhs)
+	friend float operator*(const Vec3& lhs, const Vec3& rhs)
 	{
 		return  lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; 
 	}
 
-	friend Vec3 operator*(const Vec3& lhs, double k)
+	friend Vec3 operator*(const Vec3& lhs, float k)
 	{
 		return  { lhs.x * k,lhs.y * k, lhs.z * k };
 	}
 
-	friend Vec3 operator/(const Vec3& lhs, double k)
+	friend Vec3 operator/(const Vec3& lhs, float k)
 	{
 		return  {lhs.x / k,lhs.y / k, lhs.z / k};
 	}
@@ -68,14 +68,14 @@ public:
 	}
 
 
-	void operator*=(double k)
+	void operator*=(float k)
 	{
 		x *= k;
 		y *= k;
 		z *= k;
 	}
 
-	void operator/=(double k)
+	void operator/=(float k)
 	{
 		x /= k;
 		y /= k;

@@ -145,20 +145,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="engine\Controller.cpp" />
+    <ClCompile Include="engine\Scene.cpp" />
+    <ClCompile Include="engine\Window.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="engine\Controller.h" />
     <ClInclude Include="engine\Engine.h" />
-    <ClInclude Include="engine\InputState.h" />
     <ClInclude Include="engine\math\math.h" />
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\Vec3.h" />
-    <ClInclude Include="engine\RayTracer.h" />
-    <ClInclude Include="engine\RenderList.h" />
-    <ClInclude Include="engine\RenderObject.h" />
+    <ClInclude Include="engine\Scene.h" />
     <ClInclude Include="engine\Screen.h" />
-    <ClInclude Include="engine\SphereObject.h" />
     <ClInclude Include="engine\Timer.h" />
     <ClInclude Include="engine\Window.h" />
   </ItemGroup>

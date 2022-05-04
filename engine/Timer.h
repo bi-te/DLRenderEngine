@@ -6,10 +6,10 @@ using uint = unsigned int;
 class Timer
 {
 	std::chrono::steady_clock::time_point previous, current;
-	double dt, frame_time;
+	float dt, frame_time;
 
 public:
-	Timer(double frame_time): frame_time(frame_time)
+	Timer(float frame_time): frame_time(frame_time)
 	{
 	}
 
@@ -19,12 +19,12 @@ public:
 		dt = 0;
 	}
 
-	double get_dt() const
+	float get_dt() const
 	{
 		return dt;
 	}
 
-	double get_frame_time() const
+	float get_frame_time() const
 	{
 		return frame_time;
 	}
@@ -32,7 +32,7 @@ public:
 	bool frame_time_check()
 	{
 		current = std::chrono::steady_clock::now();
-		dt += std::chrono::duration<double>(current - previous).count();
+		dt += std::chrono::duration<float>(current - previous).count();
 		previous = current;
 		if(dt > frame_time)
 		{
@@ -42,10 +42,10 @@ public:
 		return false;
 	}
 
-	double time_passed()
+	float time_passed()
 	{
 		current = std::chrono::steady_clock::now();
-		return std::chrono::duration<double>(current - previous).count();;
+		return std::chrono::duration<float>(current - previous).count();;
 	}
 
 	void restart()

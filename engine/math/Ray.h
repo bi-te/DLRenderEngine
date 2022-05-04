@@ -1,9 +1,15 @@
 #pragma once
 #include "math.h"
 
+struct hit_record
+{
+	float t;
+	Point3d point;
+	Vec3 norm;
+};
+
 class Ray
 {
-private:
 	Point3d origin;
 	Vec3 direction;
 public:
@@ -38,7 +44,7 @@ public:
 		return direction;
 	}
 
-	Point3d position(double k) const
+	Point3d position(float k) const
 	{
 		return origin + direction * k;
 	}
