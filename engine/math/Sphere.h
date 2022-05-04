@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Ray.h"
 
 class Sphere
 {
@@ -14,5 +14,7 @@ public:
 		  radius(radius)
 	{
 	}
+
+	bool intersection(const Ray& ray, float t_min, hit_record& record) const;
 	
 };

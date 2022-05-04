@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="engine\Controller.cpp" />
+    <ClCompile Include="engine\math\Sphere.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
     <ClCompile Include="engine\Window.cpp" />
     <ClCompile Include="Main.cpp" />

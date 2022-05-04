@@ -59,4 +59,14 @@ public:
 
     void process_input(float dt);
 
+    void init_scene()
+    {
+        Sphere sphere{ {50, 50, 50}, 40 };
+
+        scene.objects.push_back(sphere);
+        sphere = { {150, 150, 50}, 40 };
+
+        scene.objects.push_back(sphere);
+    }
+
 };

@@ -10,11 +10,7 @@
 #include "engine/Engine.h"
 #include "engine/Window.h"
 
-void generate_world();
 void render(HWND hwnd);
-void process_input(double dt);
-
-
 
 int WINAPI WinMain(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
@@ -31,8 +27,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     window.show_window(nShowCmd);
 
     Controller controller{engine.scene};
-
-    generate_world();
+    controller.init_scene();
 
     MSG msg;
 
@@ -69,11 +64,3 @@ void render(HWND hwnd)
     screen.update(hwnd);   
 }
 
-void generate_world()
-{
-    Engine& engine = Engine::instance();
-
-    Sphere sphere{{50, 50, 50}, 40};
-
-    engine.scene.objects.push_back(sphere);
-}

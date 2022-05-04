@@ -3,32 +3,16 @@
 bool Scene::ray_collision(const Ray& ray, float t_min, hit_record& record) const
 {
 	hit_record result{};
-	float prev_z = DBL_MAX;
+	float prev_z = std::numeric_limits<float>::infinity();
 	bool hit = false;
 
 	for (const Sphere& sphere : objects)
 	{
-		Vec3 oc = ray.get_origin() - sphere.center;
-		float b = 2 * (ray.get_direction() * oc);
-		float c = oc * oc - pow(sphere.radius, 2);
-
-		float D = b * b - 4 * c;
-		if (D > 0)
-		{
-			float t = (-b - sqrt(D)) / 2;
-			if (t > t_min)
-			{
-				result.t = t;
-				result.point = ray.position(t);
-				result.norm = (record.point - sphere.center) / sphere.radius;
-				hit = true;
-			}
-		}
-
-		if (result.point.z < prev_z)
+		if (sphere.intersection(ray, t_min, result) && result.point.z < prev_z)
 		{
 			prev_z = result.point.z;
 			record = result;
+			hit = true;
 		}
 	}
 
