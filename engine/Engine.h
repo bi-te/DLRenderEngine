@@ -5,7 +5,8 @@
 
 class Engine
 {
-public:	
+public:
+	Camera camera;
 	Scene scene;
 	Screen screen;
 

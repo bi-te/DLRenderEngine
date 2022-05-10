@@ -2,7 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <windows.h>    
-#include <windowsx.h>  
+#include <windowsx.h>
 
 #include "engine/Controller.h"
 #include "engine/math/Vec3.h"
@@ -26,7 +26,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
     window.create_window(L"Test21", screen.width(), screen.height());
     window.show_window(nShowCmd);
 
-    Controller controller{engine.scene};
+    engine.camera.set_perspective(to_radians(30), float(screen.width()) / screen.height(), 1, 100);
+
+    Controller controller{engine.scene, engine.camera};
     controller.init_scene();
 
     MSG msg;
@@ -59,8 +61,9 @@ void render(HWND hwnd)
 {
     Engine& engine = Engine::instance();
     Screen& screen = engine.screen;
+    screen.resize();
 
-    engine.scene.draw(screen);
+    engine.scene.draw(screen,engine.camera);
     screen.update(hwnd);   
 }
 

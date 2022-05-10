@@ -145,6 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="engine\Camera.cpp" />
     <ClCompile Include="engine\Controller.cpp" />
     <ClCompile Include="engine\math\Sphere.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
@@ -152,14 +153,20 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="engine\Camera.h" />
     <ClInclude Include="engine\Controller.h" />
     <ClInclude Include="engine\Engine.h" />
+    <ClInclude Include="engine\Intersection.h" />
+    <ClInclude Include="engine\Lighting.h" />
+    <ClInclude Include="engine\Material.h" />
+    <ClInclude Include="engine\math\Lighting.h" />
     <ClInclude Include="engine\math\math.h" />
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\Vec3.h" />
     <ClInclude Include="engine\Scene.h" />
     <ClInclude Include="engine\Screen.h" />
+    <ClInclude Include="engine\SphereObject.h" />
     <ClInclude Include="engine\Timer.h" />
     <ClInclude Include="engine\Window.h" />
   </ItemGroup>

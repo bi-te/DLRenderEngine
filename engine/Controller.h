@@ -37,9 +37,10 @@ struct InputState
 class  Controller
 {
     Scene& scene;
+    Camera& camera;
 public:
 
-    explicit Controller(Scene& rscene): scene(rscene)
+    explicit Controller(Scene& rscene, Camera& camera): scene(rscene), camera(camera)
     {
     }
 
@@ -51,22 +52,16 @@ public:
 
     void move_scene(float dx, float dy, float dz)
     {
-        for (Sphere& sphere : scene.objects)
+        for (SphereObject& object : scene.spheres)
         {
-            sphere.center += Vec3{ dx, dy, dz };
+            object.sphere.center += Vec3{ dx, dy, dz };
         }
     }
 
+    
+
     void process_input(float dt);
 
-    void init_scene()
-    {
-        Sphere sphere{ {50, 50, 50}, 40 };
-
-        scene.objects.push_back(sphere);
-        sphere = { {150, 150, 50}, 40 };
-
-        scene.objects.push_back(sphere);
-    }
+    void init_scene();
 
 };

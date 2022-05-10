@@ -89,6 +89,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     case WM_SIZE:
         Engine::instance().screen.init_resize(LOWORD(lParam), HIWORD(lParam));
+        Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));
         break;
 
     case WM_DESTROY:

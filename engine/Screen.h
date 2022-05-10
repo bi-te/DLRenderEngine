@@ -6,6 +6,12 @@
 struct rgb
 {
 	uint8_t b, g, r, a;
+
+	rgb() = default;
+
+	rgb(uint8_t r, uint8_t g, uint8_t b): r(r), g(g), b(b)
+	{
+	}
 };
 
 class Screen
@@ -63,7 +69,7 @@ public:
 		HDC hdc = GetDC(hwnd);
 
 		bmi.bmiHeader.biWidth = width_;
-		bmi.bmiHeader.biHeight = -height_;
+		bmi.bmiHeader.biHeight = height_;
 
 		SetDIBitsToDevice(hdc, 0, 0, width_, height_, 0, 0, 0, height_,
 			buffer_.data(), &bmi, DIB_RGB_COLORS);

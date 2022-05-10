@@ -15,6 +15,6 @@ public:
 	{
 	}
 
-	bool intersection(const Ray& ray, float t_min, hit_record& record) const;
+	bool intersection(const Ray& ray, float& t) const;
 	
 };
