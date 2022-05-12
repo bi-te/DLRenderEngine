@@ -21,9 +21,9 @@ void Controller::init_scene()
     SphereObject spo{ sphere, 0 };
     scene.spheres.push_back(spo);
 
-    sphere = { {400, 250, 40}, 5 };
+    sphere = { { 10, 10, 0 }, 1 };
     spo = { sphere, 1 };
-    //scene.spheres.push_back(spo);
+    scene.spheres.push_back(spo);
 
     //direct light
     scene.sunlight.direction = normalize({ 0.f, -1.f, 0.25f });
@@ -38,15 +38,14 @@ void Controller::init_scene()
 
     //spot lights
     Spotlight sp{};
-    sp.position = { 0, 0, 0 };
+    sp.position = { 0, 0, 100 };
     sp.light = { 5, 5, 155 };
     sp.light_distance = 100;
-    sp.direction = normalize({ 0.f, 0.f, 1.f });
-    sp.cutOff = cosf(to_radians(12));
-    sp.outerCutOff = cosf(to_radians(15));
+    sp.direction = normalize({ 0.f, 0.f, -1.f });
+    sp.cutOff = cosf(to_radians(7));
+    sp.outerCutOff = cosf(to_radians(12));
     scene.spotlights.push_back(sp);
 
-    //spot lights
 }
 
 void Controller::process_input(float dt)
@@ -60,12 +59,38 @@ void Controller::process_input(float dt)
 
     float dist = 50 * dt;
 
-    if (is.keyboard.up) move_scene(0, dist, 0);
-    if (is.keyboard.left) move_scene(-dist, 0, 0);
-    if (is.keyboard.down) move_scene(0, -dist, 0);
-    if (is.keyboard.right) move_scene(dist, 0, 0);
+    vec3 move{0, 0, 0};
+    Angles rot{};
+
+    if (is.keyboard.forward) move.z() += dist;
+    if (is.keyboard.backward) move.z() -= dist;
+    if (is.keyboard.right) move.x() += dist;
+    if (is.keyboard.left) move.x() -= dist;
+    if (is.keyboard.up) move.y() += dist;
+    if (is.keyboard.down) move.y() -= dist;
+
+    float dspeed = 0.01f;
+    if (is.keyboard.rroll) rot.roll += dspeed;
+    if (is.keyboard.lroll) rot.roll -= dspeed;
 
     float speed = 3 * dt;
+
+    switch (is.mouse.lmb)
+    {
+    case PRESSED:
+        is.mouse.lmb = DOWN;
+        break;
+    case DOWN:
+        rot.yaw += dspeed * -(is.mouse.x - is.mouse.prev_x) / 5;
+        rot.pitch += dspeed * -(is.mouse.y - is.mouse.prev_y)  /5;
+
+        break;
+    case RELEASED:
+        is.mouse.lmb = UP;
+    case UP:
+        break;
+    }
+
     switch (is.mouse.rmb)
     {
     case PRESSED:
@@ -85,4 +110,5 @@ void Controller::process_input(float dt)
     is.mouse.prev_x = is.mouse.x;
     is.mouse.prev_y = is.mouse.y;
 
+    move_camera(move, rot);
 }

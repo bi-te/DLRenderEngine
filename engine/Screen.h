@@ -16,6 +16,7 @@ struct rgb
 
 class Screen
 {
+	uint16_t bwidth_, bheight_;
 	uint16_t width_, height_;
 	std::vector<rgb> buffer_;
 	bool wresize;
@@ -23,9 +24,10 @@ class Screen
 
 public:
 
-	Screen(uint16_t width = 800, uint16_t height = 600) : width_(width), height_(height), wresize(false)
+	Screen(uint16_t width = 800, uint16_t height = 600) : width_(width), height_(height),
+	bwidth_(width / 2), bheight_(height / 2), wresize(false)
 	{
-		buffer_.resize(width * height);
+		buffer_.resize(bwidth_ * bheight_);
 		ZeroMemory(&bmi, sizeof(BITMAPINFO));
 
 		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -48,10 +50,22 @@ public:
 		return height_;
 	}
 
+	uint16_t buffer_width() const
+	{
+		return bwidth_;
+	}
+
+	uint16_t buffer_height() const
+	{
+		return bheight_;
+	}
+
 	void init_resize(int16_t w, int16_t h)
 	{
 		width_ = w ;
 		height_ = h;
+		bwidth_ = w / 2;
+		bheight_ = h / 2;
 		wresize = true;
 	}
 
@@ -59,7 +73,7 @@ public:
 	{
 		if (wresize)
 		{
-			buffer_.resize(width_ * height_);
+			buffer_.resize(bwidth_ * bheight_);
 			wresize = false;
 		}
 	}
@@ -68,10 +82,15 @@ public:
 	{
 		HDC hdc = GetDC(hwnd);
 
-		bmi.bmiHeader.biWidth = width_;
-		bmi.bmiHeader.biHeight = height_;
+		bmi.bmiHeader.biWidth = bwidth_;
+		bmi.bmiHeader.biHeight = bheight_;
 
-		SetDIBitsToDevice(hdc, 0, 0, width_, height_, 0, 0, 0, height_,
-			buffer_.data(), &bmi, DIB_RGB_COLORS);
+		//SetDIBitsToDevice(hdc, 0, 0, width_, height_, 0, 0, 0, height_,
+		//	buffer_.data(), &bmi, DIB_RGB_COLORS);
+
+		StretchDIBits(hdc, 0, 0, width_, height_, 0, 0,
+			bwidth_, bheight_, buffer_.data(), &bmi, DIB_RGB_COLORS, SRCCOPY);
 	}
+
+
 };

@@ -3,6 +3,11 @@
 
 #include "Vec3.h"
 
+struct Angles
+{
+	float roll, pitch, yaw;
+};
+
 inline float to_radians(float degrees)
 {
 	return degrees * PI / 180.f;

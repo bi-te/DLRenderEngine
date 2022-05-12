@@ -36,7 +36,6 @@ public:
 		previous = current;
 		if(dt > frame_time)
 		{
-			dt -= frame_time;
 			return true;
 		}
 		return false;

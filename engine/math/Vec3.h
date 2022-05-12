@@ -7,6 +7,7 @@
 
 using mat4 = Eigen::Matrix<float, 4, 4, Eigen::RowMajor>;
 using vec4 = Eigen::RowVector4f;
+using vec3 = Eigen::RowVector3f;
 using quat = Eigen::Quaternionf;
 
 class Vec3

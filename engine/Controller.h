@@ -3,7 +3,7 @@
 
 #include "Scene.h"
 #include "Window.h"
-#include "math/Ray.h"
+#include "math/math.h"
 #include "math/Sphere.h"
 
 enum BUTTON { PRESSED, DOWN, RELEASED, UP };
@@ -20,10 +20,14 @@ struct Mouse
 
 struct Keyboard
 {
-	bool up, down, left, right;
+	bool forward, backward, left, right, up, down;
+    bool lroll, rroll;
+    bool ar_up, ar_down, ar_left, ar_right;
 	bool exit;
 
-	Keyboard() : up(false), down(false), left(false), right(false), exit(false)
+	Keyboard() : forward(false), backward(false), left(false), right(false),
+	up(false), down(false), lroll(false), rroll(false), exit(false)
+    ,ar_up(false), ar_down(false), ar_left(false), ar_right(false)
 	{
 	}
 };
@@ -58,7 +62,12 @@ public:
         }
     }
 
-    
+    void move_camera(const vec3& offset, const Angles& angles)
+    {
+        camera.add_relative_angles(angles);
+        camera.add_relative_offset(offset);
+        camera.update_matrices();
+    }
 
     void process_input(float dt);
 

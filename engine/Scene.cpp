@@ -16,18 +16,24 @@ bool Scene::ray_collision(const Ray& ray, float t_min, float t_max, Intersection
 
 void Scene::draw(Screen& screen, const Camera& camera)
 {
-	uint16_t screen_width = screen.width();
-	uint16_t screen_height = screen.height();
+	uint16_t screen_width = screen.buffer_width();
+	uint16_t screen_height = screen.buffer_height();
 	Intersection record;
 
 	vec4 blpoint = vec4{ -1, -1, 1, 1} * camera.proj_inv;
 	blpoint /= blpoint.w();
+	blpoint.w() = 0;
+	blpoint *= camera.view_inv;
 
 	vec4 tlpoint = vec4{ -1, 1, 1, 1 } * camera.proj_inv;
 	tlpoint /= tlpoint.w();
+	tlpoint.w() = 0;
+	tlpoint *= camera.view_inv;
 
 	vec4 brpoint = vec4{ 1, -1, 1, 1 } * camera.proj_inv;
 	brpoint /= brpoint.w();
+	brpoint.w() = 0;
+	brpoint *= camera.view_inv;
 
 	vec4 up = tlpoint - blpoint;
 	vec4 right = brpoint - blpoint;
@@ -36,24 +42,21 @@ void Scene::draw(Screen& screen, const Camera& camera)
 
 	Ray ray;
 	ray.origin = {0, 0, 0};
+	ray.origin.x += camera.view_inv.row(3).x();
+	ray.origin.y += camera.view_inv.row(3).y();
+	ray.origin.z += camera.view_inv.row(3).z();
 
 	for (int i = 0; i < screen_width; ++i)
 	{
 		dx = float(i) / screen_width;
-		vec4 ddir = blpoint + right * dx;
 		for (int k = 0; k < screen_height; ++k)
 		{
 			dy = float(k) / screen_height;
 			
-			vec4 dir = ddir + up * dy;
+			vec4 dir = blpoint + right * dx + up * dy;
 			dir.w() = 0;
 			ray.direction = dir;
 			ray.direction = normalize(ray.direction);
-
-			if(i == 400 && k == 300)
-			{
-				dir *= 1;
-			}
 
 			if (ray_collision(ray, 0, std::numeric_limits<float>::infinity(), record))
 			{
