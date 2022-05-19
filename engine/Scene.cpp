@@ -1,17 +1,99 @@
 #include "Scene.h"
 
-bool Scene::ray_collision(const Ray& ray, float t_min, float t_max, Intersection& record) const
+#include "moving/ObjectMover.h"
+#include "moving/PointLightMover.h"
+#include "moving/SphereMover.h"
+#include "moving/SpotlightMover.h"
+#include "moving/TransformMover.h"
+#include "render/Lighting.h"
+
+std::unique_ptr<ObjectMover> Scene::select_object(const Ray& ray, float t_min, float t_max, Intersection& record)
 {
-	Intersection nearest = Intersection::infinite();
+	record = Intersection::infinite();
+	std::unique_ptr<ObjectMover> mover;
+
+	for(PointLightObject& plobject: point_lights)
+	{
+		if(plobject.sphere.intersection(ray, t_min, t_max, record))
+		{
+			mover = std::make_unique<PointLightMover>(PointLightMover{plobject});
+		}
+	}
+
+	for (SpotlightObject& slobject : spotlights)
+	{
+		if (slobject.sphere.intersection(ray, t_min, t_max, record))
+		{
+			mover = std::make_unique<SpotlightMover>(SpotlightMover{ slobject });
+		}
+	}
+
+	for (SphereObject& object : spheres)
+	{
+		if (object.sphere.intersection(ray, t_min, t_max, record))
+		{
+			mover = std::make_unique<SphereMover>(SphereMover{ object.sphere });
+		}
+	}
+
+	for (MeshInstance& mesh : meshes)
+	{
+		if (mesh.intersection(ray, t_min, t_max, record))
+		{
+			mover = std::make_unique<TransformMover>(TransformMover{ mesh.transform });
+		}
+	}
+
+	return mover;
+}
+
+bool Scene::ray_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint& material_index) const
+{
+	Intersection record = Intersection::infinite();
 	bool hit = false;
+
+	for (const PointLightObject& plobject : point_lights)
+	{
+		hit |= plobject.intersection(ray, t_min, t_max, record, material_index);
+	}
+
+	for (const SpotlightObject& slobject : spotlights)
+	{
+		hit |= slobject.intersection(ray, t_min, t_max, record, material_index);
+	}
 
 	for (const SphereObject& object : spheres)
 	{
-		hit |= object.intersection(ray, t_min, t_max, nearest);
+		hit |= object.intersection(ray, t_min, t_max, record, material_index);
 	}
-	record = nearest;
+
+	for (const MeshInstance & mesh : meshes)
+	{
+		hit |= mesh.intersection(ray, t_min, t_max, record, material_index);
+	}
+
+	hit |= floor.intersection(ray, t_min, t_max, record, material_index);;
+
+	nearest = record;
 
 	return hit;
+}
+
+bool Scene::shadow_test(const Ray& ray, float t_min, float t_max) const
+{
+	Intersection record = Intersection::infinite();
+
+	for (const SphereObject& object : spheres)
+	{
+		if( object.sphere.intersection(ray, t_min, t_max, record)) return true;
+	}
+
+	for (const MeshInstance& mesh : meshes)
+	{
+		if (mesh.intersection(ray, t_min, t_max, record)) return true;
+	}
+
+	return false;
 }
 
 void Scene::draw(Screen& screen, const Camera& camera)
@@ -20,31 +102,19 @@ void Scene::draw(Screen& screen, const Camera& camera)
 	uint16_t screen_height = screen.buffer_height();
 	Intersection record;
 
-	vec4 blpoint = vec4{ -1, -1, 1, 1} * camera.proj_inv;
-	blpoint /= blpoint.w();
-	blpoint.w() = 0;
-	blpoint *= camera.view_inv;
-
-	vec4 tlpoint = vec4{ -1, 1, 1, 1 } * camera.proj_inv;
-	tlpoint /= tlpoint.w();
-	tlpoint.w() = 0;
-	tlpoint *= camera.view_inv;
-
-	vec4 brpoint = vec4{ 1, -1, 1, 1 } * camera.proj_inv;
-	brpoint /= brpoint.w();
-	brpoint.w() = 0;
-	brpoint *= camera.view_inv;
+	vec4 blpoint = camera.blnear_fpoint;
+	vec4 tlpoint = camera.tlnear_fpoint;
+	vec4 brpoint = camera.brnear_fpoint;
 
 	vec4 up = tlpoint - blpoint;
 	vec4 right = brpoint - blpoint;
 
-	float dx, dy;
-
 	Ray ray;
-	ray.origin = {0, 0, 0};
-	ray.origin.x += camera.view_inv.row(3).x();
-	ray.origin.y += camera.view_inv.row(3).y();
-	ray.origin.z += camera.view_inv.row(3).z();
+	ray.origin = camera.position();
+
+	float dx, dy;
+	vec3 color;
+	uint material;
 
 	for (int i = 0; i < screen_width; ++i)
 	{
@@ -52,86 +122,102 @@ void Scene::draw(Screen& screen, const Camera& camera)
 		for (int k = 0; k < screen_height; ++k)
 		{
 			dy = float(k) / screen_height;
-			
-			vec4 dir = blpoint + right * dx + up * dy;
-			dir.w() = 0;
-			ray.direction = dir;
-			ray.direction = normalize(ray.direction);
 
-			if (ray_collision(ray, 0, std::numeric_limits<float>::infinity(), record))
+			ray.direction = ((blpoint + right * dx + up * dy).head<3>() - ray.origin).normalized();
+
+			if (ray_collision(ray, camera.zn, camera.zf, record,material))
 			{
-				Vec3 color = materials.at(record.material).emission + AMBIENT * materials.at(record.material).albedo;
+				Material& m = materials.at(material);
+				color = m.emission;
 
-				calc_direct_light(color, record);
-				calc_point_lights(color, record);
-				calc_spotlights(color, record);
+				if (m.type == SURFACE)
+				{
+					color += AMBIENT.cwiseProduct(m.albedo);
 
-				if (color.x > 255) color.x = 255;
-				if (color.y > 255) color.y = 255;
-				if (color.z > 255) color.z = 255;
-
-				screen[k * screen_width + i] = {
-					static_cast<unsigned char>(color.x),
-					static_cast<unsigned char>(color.y),
-					static_cast<unsigned char>(color.z)};
+					calc_direct_light(color, record, ray.origin, m);
+					calc_point_lights(color, record, ray.origin, m);
+					calc_spotlights(color, record, ray.origin, m);
+				} 			
 			}
 			else
 			{
-				screen[k * screen_width + i] = { 0, 15, 30 };
+				color = { 0, 15, 30 };
 			}
+			if (color.x() > 255) color.x() = 255;
+			if (color.y() > 255) color.y() = 255;
+			if (color.z() > 255) color.z() = 255;
+
+			screen[k * screen_width + i] = {
+				static_cast<unsigned char>(color.x()),
+				static_cast<unsigned char>(color.y()),
+				static_cast<unsigned char>(color.z()) };
 		}
 
 
 	}
 }
 
-void Scene::calc_direct_light(Vec3& color, Intersection& record) const
+void Scene::calc_direct_light(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const
 {
-	Vec3 albedo = materials.at(record.material).albedo;
-	float glossiness = materials.at(record.material).glossiness;
-	float specular = materials.at(record.material).specular;
+	Ray visible;
+	visible.direction = -sunlight.direction;
+	visible.origin = record.point + visible.direction * 0.01;
 
-	Vec3 h = normalize(Vec3{ 0.f, 0.f, -1.f } - sunlight.direction);
-	color += sunlight.light * max(dot(record.norm, -sunlight.direction), 0) * albedo +
-		sunlight.light * pow(max(dot(h, record.norm), 0), glossiness) * specular;
+	if(shadow_test(visible, 0.f, std::numeric_limits<float>::infinity())) return;
+
+	vec3 cameravec = (camera_pos - record.point).normalized();
+	vec3 h = ( cameravec - sunlight.direction).normalized();
+	
+	color += sunlight.light.cwiseProduct(max(record.norm.dot(-sunlight.direction), 0) * m.albedo) +
+		sunlight.light * pow(max(h.dot(record.norm), 0), m.glossiness) * m.specular;
 }
 
-void Scene::calc_point_lights(Vec3& color, Intersection& record) const
+void Scene::calc_point_lights(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const
 {
-	Vec3 albedo = materials.at(record.material).albedo;
-	float glossiness = materials.at(record.material).glossiness;
-	float specular = materials.at(record.material).specular;
-	
-	for (const PointLight& plight : point_lights)
+	Ray visible;
+	for (const PointLightObject& plobject : point_lights)
 	{
-		Vec3 light_dir = plight.position - record.point;
-		float light_dist = length(light_dir);
-		light_dir = normalize(light_dir);
+		PointLight plight = plobject.plight;
+		visible.direction = (plight.position - record.point).normalized();
+		visible.origin = record.point + visible.direction * 0.01;
 
+		float max_dist = (plight.position - record.point).norm() - 1.f;
 
-		Vec3 h = normalize(Vec3{ 0.f, 0.f, -1.f } + light_dir);
+		if (shadow_test(visible, 0.f, max_dist)) continue;
 
-		color += plight.light * max(dot(record.norm, light_dir), 0) * albedo / pow(light_dist / plight.light_distance, 2)
-			+ plight.light * pow(max(dot(h, record.norm), 0), glossiness) * specular;
+		vec3 light_dir = plight.position - record.point;
+		float light_dist = light_dir.norm();
+		light_dir.normalize();
+
+		vec3 cameravec = (camera_pos - record.point).normalized();
+		vec3 h = (cameravec + light_dir).normalized();
+
+		color += plight.light.cwiseProduct(max(record.norm.dot(light_dir), 0) * m.albedo) / pow(light_dist / plight.light_distance, 2)
+			+ plight.light * pow(max(h.dot(record.norm), 0), m.glossiness) * m.specular;
 	}
 }
 
-void Scene::calc_spotlights(Vec3& color, Intersection& record) const
+void Scene::calc_spotlights(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const
 {
-	Vec3 albedo = materials.at(record.material).albedo;
-	float glossiness = materials.at(record.material).glossiness;
-	float specular = materials.at(record.material).specular;
-
-	for (const Spotlight& spotlight : spotlights)
+	Ray visible;
+	for (const SpotlightObject& slobject : spotlights)
 	{
-		Vec3 light_dir = spotlight.position - record.point;
-		float light_dist = length(light_dir);
-		light_dir = normalize(light_dir);
+		Spotlight spotlight = slobject.spotlight;
+		visible.direction = (spotlight.position - record.point).normalized();
+		visible.origin = record.point + visible.direction * 0.01;
 
+		float max_dist = (spotlight.position - record.point).norm() - 1.f;
 
-		Vec3 h = normalize(Vec3{ 0.f, 0.f, -1.f } + light_dir);
+		if (shadow_test(visible, 0.f, max_dist)) continue;
 
-		float cos = dot(spotlight.direction, -light_dir);
+		vec3 light_dir = spotlight.position - record.point;
+		float light_dist = light_dir.norm();
+		light_dir.normalize();
+
+		vec3 cameravec = (camera_pos - record.point).normalized();
+		vec3 h = (cameravec  + light_dir).normalized();
+
+		float cos = spotlight.direction.dot(-light_dir);
 		float intensity;
 		if (cos > spotlight.cutOff)
 		{
@@ -140,15 +226,15 @@ void Scene::calc_spotlights(Vec3& color, Intersection& record) const
 		else if (cos > spotlight.outerCutOff)
 		{
 			intensity = (cos - spotlight.outerCutOff) / (spotlight.cutOff - spotlight.outerCutOff);
-			intensity = 3 * pow(intensity, 2) - 2 * pow(intensity, 3);
+			intensity = 3.f * powf(intensity, 2) - 2.f * powf(intensity, 3);
 		}
 		else
 		{
 			intensity = 0;
 		}
 
-		color += intensity * (spotlight.light * max(dot(record.norm, light_dir), 0) * albedo / pow(light_dist / spotlight.light_distance, 2)
-			+ spotlight.light * pow(max(dot(h, record.norm), 0), glossiness) * specular);
+		color += intensity * (spotlight.light.cwiseProduct(max(record.norm.dot(light_dir), 0) * m.albedo) / pow(light_dist / spotlight.light_distance, 2)
+			+ spotlight.light * pow(max(h.dot(record.norm), 0), m.glossiness) * m.specular);
 
 	}
 }

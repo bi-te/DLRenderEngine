@@ -4,21 +4,21 @@
 class Ray
 {
 public:
-	Point3d origin;
-	Vec3 direction;
+	vec3 origin;
+	vec3 direction;
 
 	Ray(): origin(0, 0, 0), direction(0, 0, 0)
 	{
 		
 	}
 
-	Ray(const Point3d& origin, const Vec3& direction)
+	Ray(const vec3& origin, const vec3& direction)
 		: origin(origin), direction(direction)
 	{
-		this->direction = normalize(this->direction);
+		this->direction.normalize();
 	}
 
-	Point3d position(float k) const
+	vec3 position(float k) const
 	{
 		return origin + direction * k;
 	}

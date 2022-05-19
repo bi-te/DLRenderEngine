@@ -1,7 +1,16 @@
 #pragma once
 #define PI 3.14159265
 
-#include "Vec3.h"
+#include "Eigen/Core"
+#include "Eigen/Geometry"
+
+using mat4 = Eigen::Matrix<float, 4, 4, Eigen::RowMajor>;
+using mat3 = Eigen::Matrix<float, 3, 3, Eigen::RowMajor>;
+using vec4 = Eigen::RowVector4f;
+using vec3 = Eigen::RowVector3f;
+using quat = Eigen::Quaternionf;
+
+using uint = unsigned int;
 
 struct Angles
 {
@@ -12,29 +21,12 @@ inline float to_radians(float degrees)
 {
 	return degrees * PI / 180.f;
 }
-
-inline float dot(const Vec3& rv, const Vec3& lv)
+	
+inline Angles rotation_from_degrees(float roll, float pitch, float yaw)
 {
-	return rv.x * lv.x + rv.y * lv.y + rv.z * lv.z;
-}
+	float r = to_radians(roll);
+	float p = to_radians(pitch);
+	float y = to_radians(yaw);
 
-inline float length_squared(const Vec3& vec)
-{
-	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
-}
-
-inline float length(const Vec3& vec)
-{
-	return sqrt(length_squared(vec));
-}
-
-inline Vec3 normalize(const Vec3& vec)
-{
-	Vec3 norm{};
-	float l = length(vec);
-	norm.x = vec.x / l;
-	norm.y = vec.y / l;
-	norm.z = vec.z / l;
-
-	return norm;
+	return { r, p, y };
 }

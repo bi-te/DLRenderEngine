@@ -1,20 +1,21 @@
 #pragma once
 
+#include "Intersection.h"
 #include "Ray.h"
 
 class Sphere
 {
 public:
 
-	Point3d center;
+	vec3 center;
 	float radius;
 
-	Sphere(const Point3d& origin = { 0, 0, 0 }, float radius = 0)
+	Sphere(const vec3& origin = { 0, 0, 0 }, float radius = 0)
 		: center(origin),
 		  radius(radius)
 	{
 	}
 
-	bool intersection(const Ray& ray, float& t) const;
+	bool intersection(const Ray& ray, float t_min, float t_max, Intersection& record) const;
 	
 };

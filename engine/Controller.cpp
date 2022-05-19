@@ -1,55 +1,176 @@
 #include "Controller.h"
-#include "Material.h"
+
+#include <iostream>
+
+#include "Engine.h"
+#include "render/Material.h"
+
+void init_cube(Mesh& mesh)
+{
+    //y+
+    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
+    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
+    mesh.add_vertex(0.5f, 0.5f, 0.5f);
+
+    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
+    mesh.add_vertex(0.5f, 0.5f, 0.5f);
+    mesh.add_vertex(0.5f, 0.5f, -0.5f);
+
+    //z-
+    mesh.add_vertex(-0.5f, -0.5f, -0.5f);
+    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
+    mesh.add_vertex(0.5f, 0.5f, -0.5f);
+
+    mesh.add_vertex(-0.5f, -0.5f, -0.5f);
+    mesh.add_vertex(0.5f, 0.5f, -0.5f);
+    mesh.add_vertex(0.5f, -0.5f, -0.5f);
+
+
+    //z+
+    mesh.add_vertex(0.5f, -0.5f, 0.5f);
+    mesh.add_vertex(0.5f, 0.5f, 0.5f);
+    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
+
+    mesh.add_vertex(0.5f, -0.5f, 0.5f);
+    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
+    mesh.add_vertex(-0.5f, -0.5f, 0.5f);
+
+
+    //x-
+    mesh.add_vertex(-0.5f, -0.5f, 0.5f);
+    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
+    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
+
+    mesh.add_vertex(-0.5f, -0.5f, 0.5f);
+    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
+    mesh.add_vertex(-0.5f, -0.5f, -0.5f);
+
+
+    //x+
+    mesh.add_vertex(0.5f, -0.5f, -0.5f);
+    mesh.add_vertex(0.5f, 0.5f, -0.5f);
+    mesh.add_vertex(0.5f, 0.5f, 0.5f);
+
+    mesh.add_vertex(0.5f, -0.5f, -0.5f);
+    mesh.add_vertex(0.5f, 0.5f, 0.5f);
+    mesh.add_vertex(0.5f, -0.5f, 0.5f);
+
+    //y-
+    mesh.add_vertex(0.5f, -0.5f, -0.5f);
+    mesh.add_vertex(0.5f, -0.5f, 0.5f);
+    mesh.add_vertex( -0.5f, -0.5f, 0.5f);
+
+    mesh.add_vertex(0.5f, -0.5f, -0.5f);
+    mesh.add_vertex( -0.5f, -0.5f,  0.5f);
+    mesh.add_vertex( -0.5f, -0.5f, -0.5f);
+
+
+
+
+}
+
 void Controller::init_scene()
 {
     //materials
     Material material;
+    material.type = SURFACE;
     material.albedo = { 0.1f, 0.5f, 0.3f };
     material.emission = { 0.f, 0.f, 0.f };
     material.specular = 0.7f;
     material.glossiness = 64.f;
-    scene.materials.push_back(material);// 0 - green sphere
+    scene.materials.push_back(material);// 0 - green 
 
+    material.type = LIGHT_SOURCE;
     material.albedo = { 0.f, 0.f, 0.f };
     material.emission = { 255.f, 0.f, 0.f };
     material.specular = 0.f;
     material.glossiness = 0.f;
     scene.materials.push_back(material);// 1 - red light
 
-    // spheres
-    Sphere sphere{ {2, 2, 50}, 5 };
-    SphereObject spo{ sphere, 0 };
-    scene.spheres.push_back(spo);
+    material.type = SURFACE;
+    material.albedo = { 0.3f, 0.3f, 0.7f };
+    material.emission = { 0.f, 0.f, 0.f };
+    material.specular = 0.5f;
+    material.glossiness = 16.f;
+    scene.materials.push_back(material);// 2 - bluish
 
-    sphere = { { 10, 10, 0 }, 1 };
-    spo = { sphere, 1 };
-    scene.spheres.push_back(spo);
+    material.type = SURFACE;
+    material.albedo = { 0.45f, 0.25f, 0.45f };
+    material.emission = { 0.f, 0.f, 0.f };
+    material.specular = 0.5f;
+    material.glossiness = 16.f;
+    scene.materials.push_back(material);// 3 - dark purple
+
+    material.type = LIGHT_SOURCE;
+    material.albedo = { 0.f, 0.f, 0.f };
+    material.emission = { 0.f, 0.f, 255.f };
+    material.specular = 0.f;
+    material.glossiness = 0.f;
+    scene.materials.push_back(material);// 4 - blue light
+
+    // spheres
+    Sphere sphere{ {0, 3, 30}, 5.f };
+    SphereObject spo{ sphere, 0 };
+    scene.spheres.push_back(spo); // green sphere
 
     //direct light
-    scene.sunlight.direction = normalize({ 0.f, -1.f, 0.25f });
-    scene.sunlight.light = {100, 100, 100};
+    scene.sunlight.direction = vec3{ 0.f, -1.f, 0.25f }.normalized();
+    scene.sunlight.light = {100, 100, 100}; // white direct light
 
     //point lights
-    PointLight pl{};
-    pl.position = { 10, 10, 0 };
-    pl.light = { 105, 5, 5 };
-    pl.light_distance = 100;
-    scene.point_lights.push_back(pl);
+    PointLightObject pl;
+    pl.plight.position = { 10, 20, 0 };
+    pl.plight.light = { 105, 5, 5 };
+    pl.plight.light_distance = 100;
+    pl.sphere.center = pl.plight.position;
+    pl.sphere.radius = 0.5f;
+    pl.material = 1;
+    scene.point_lights.push_back(pl); // red point light
 
     //spot lights
-    Spotlight sp{};
-    sp.position = { 0, 0, 100 };
-    sp.light = { 5, 5, 155 };
-    sp.light_distance = 100;
-    sp.direction = normalize({ 0.f, 0.f, -1.f });
-    sp.cutOff = cosf(to_radians(7));
-    sp.outerCutOff = cosf(to_radians(12));
-    scene.spotlights.push_back(sp);
+    SpotlightObject sp{};
+    sp.spotlight.position = { 0, 0, 100 };
+    sp.spotlight.light = { 5, 5, 155 };
+    sp.spotlight.light_distance = 100;
+    sp.spotlight.direction = vec3{ 0.f, 0.f, -1.f }.normalized();
+    sp.spotlight.cutOff = cosf(to_radians(7));
+    sp.spotlight.outerCutOff = cosf(to_radians(12));
+    sp.sphere.center = sp.spotlight.position;
+    sp.sphere.radius = 0.5f;
+    sp.material = 4;
+    scene.spotlights.push_back(sp); // blue spotlight
 
+    //floor
+    scene.floor.plane = { vec3{0, 1, 0}, {0, -40, 0}};
+    scene.floor.material = 2;
+
+    //cube
+    init_cube(scene.cube);
+
+    //cubes
+    MeshInstance instance;
+    instance.mesh = &scene.cube;
+    instance.transform.set_world_offset({10, -10, 5});
+    instance.transform.set_scale({5, 5, 5});
+    instance.transform.set_world_rotation({0, 0, 60});
+    instance.transform.update();
+    instance.material = 0;
+    scene.meshes.push_back(instance);
+
+    instance.mesh = &scene.cube;
+    instance.transform.set_world_offset({ -10, 8, 0 });
+    instance.transform.set_scale({10, 10, 10});
+    instance.transform.set_world_rotation({45, 0, 0});
+    instance.transform.update();
+    instance.material = 3;
+    scene.meshes.push_back(instance);
+
+    camera.set_world_offset({ 0, 0, -100 });
 }
 
 void Controller::process_input(float dt)
 {
+    Screen& screen = Engine::instance().screen;
     InputState& is = input_state();
 
     if (is.keyboard.exit) {
@@ -69,11 +190,14 @@ void Controller::process_input(float dt)
     if (is.keyboard.up) move.y() += dist;
     if (is.keyboard.down) move.y() -= dist;
 
-    float dspeed = 0.01f;
+    float dspeed = 1.f * dt;
     if (is.keyboard.rroll) rot.roll += dspeed;
     if (is.keyboard.lroll) rot.roll -= dspeed;
 
-    float speed = 3 * dt;
+    if (is.keyboard.yawleft) rot.yaw += dspeed;
+    if (is.keyboard.yawright) rot.yaw -= dspeed;
+    if (is.keyboard.pitchup) rot.pitch += dspeed;
+    if (is.keyboard.pitchdown) rot.pitch -= dspeed;
 
     switch (is.mouse.lmb)
     {
@@ -81,8 +205,8 @@ void Controller::process_input(float dt)
         is.mouse.lmb = DOWN;
         break;
     case DOWN:
-        rot.yaw += dspeed * -(is.mouse.x - is.mouse.prev_x) / 5;
-        rot.pitch += dspeed * -(is.mouse.y - is.mouse.prev_y)  /5;
+        rot.yaw += 0.1f * dspeed * (is.mouse.lmb_x - is.mouse.x) / 2.f;
+        rot.pitch += 0.1f * dspeed * (is.mouse.lmb_y - is.mouse.y) / 2.f;
 
         break;
     case RELEASED:
@@ -91,14 +215,60 @@ void Controller::process_input(float dt)
         break;
     }
 
+    static std::unique_ptr<ObjectMover> object;
+    static Intersection record;
+
+    bool camera_update = true;
+    float dx, dy, h, w, prop;
+    vec4 up, right;
+    vec3 offset, view, tview, trans;
+    Ray mouse_ray;
+    quat rotation;
+
     switch (is.mouse.rmb)
     {
     case PRESSED:
+        up = camera.tlnear_fpoint - camera.blnear_fpoint;
+        right = camera.brnear_fpoint - camera.blnear_fpoint;
+
+        dx = float(is.mouse.x) / screen.width();
+        dy = 1.f - float(is.mouse.y)/ screen.height();
+
+        mouse_ray.origin = camera.position();
+        mouse_ray.direction = ((camera.blnear_fpoint + right * dx + up * dy).head<3>() - mouse_ray.origin).normalized();
+
+        object = scene.select_object(mouse_ray, 0, std::numeric_limits<float>::infinity(), record);
+
         is.mouse.rmb = DOWN;
-        break;
+
     case DOWN:
-        move_scene(speed * (is.mouse.x - is.mouse.prev_x),
-            speed * (is.mouse.prev_y - is.mouse.y), 0);
+        if (object.get())
+        {
+            h = 2 * camera.zn / camera.proj(1, 1);
+            w = camera.aspect * h;
+
+            prop = fabs((record.point * camera.view.col(2).head<3>() + camera.view(3, 2)) / camera.zn);
+
+            rotation = quat{ Eigen::AngleAxisf{rot.roll, vec3{0.f, 0.f,1.f}} };
+            rotation *= quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
+            rotation *= quat{ Eigen::AngleAxisf{rot.yaw, vec3{0.f, 1.f,0.f}} };
+            
+            view = record.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();            
+            tview = view * rotation.toRotationMatrix();
+            trans = tview - view;
+            trans *= camera.view_inv.topLeftCorner<3, 3>();
+
+            move_camera(move, rot);
+            camera_update = false;
+
+            offset = trans;
+            offset += move.x() * camera.right() + move.y() * camera.up() + move.z() * camera.forward();
+            offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen.width() * camera.right();
+            offset += (is.mouse.prev_y - is.mouse.y) * h * prop / screen.height() * camera.up();
+
+            record.point += offset;
+            object->move(offset);
+        }
 
         break;
     case RELEASED:
@@ -107,8 +277,11 @@ void Controller::process_input(float dt)
         break;
     }
 
+    if(camera_update)
+    {
+        move_camera(move, rot);
+    }
+
     is.mouse.prev_x = is.mouse.x;
     is.mouse.prev_y = is.mouse.y;
-
-    move_camera(move, rot);
 }

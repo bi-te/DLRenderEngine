@@ -2,14 +2,13 @@
 #include <cstdint>
 
 #include "Scene.h"
-#include "Window.h"
 #include "math/math.h"
-#include "math/Sphere.h"
 
 enum BUTTON { PRESSED, DOWN, RELEASED, UP };
 
 struct Mouse
 {
+    int16_t lmb_x, lmb_y;
 	int16_t prev_x, prev_y;
 	int16_t x, y;
 
@@ -21,13 +20,12 @@ struct Mouse
 struct Keyboard
 {
 	bool forward, backward, left, right, up, down;
+    bool yawleft, yawright, pitchup, pitchdown;
     bool lroll, rroll;
-    bool ar_up, ar_down, ar_left, ar_right;
 	bool exit;
 
 	Keyboard() : forward(false), backward(false), left(false), right(false),
 	up(false), down(false), lroll(false), rroll(false), exit(false)
-    ,ar_up(false), ar_down(false), ar_left(false), ar_right(false)
 	{
 	}
 };
@@ -54,13 +52,7 @@ public:
         return is;
     }
 
-    void move_scene(float dx, float dy, float dz)
-    {
-        for (SphereObject& object : scene.spheres)
-        {
-            object.sphere.center += Vec3{ dx, dy, dz };
-        }
-    }
+
 
     void move_camera(const vec3& offset, const Angles& angles)
     {

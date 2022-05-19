@@ -1,24 +1,24 @@
 #pragma once
-#include "math/Vec3.h"
+#include "../math/math.h"
 
 struct DirectLight
 {
-	Vec3 light;
-	Vec3 direction;
+	vec3 light;
+	vec3 direction;
 };
 
 struct PointLight
 {
-	Vec3 light;
-	Vec3 position;
+	vec3 light;
+	vec3 position;
 	float light_distance;
 };
 
 struct Spotlight 
 {
-	Vec3 light;
-	Vec3 position;
-	Vec3 direction;
+	vec3 light;
+	vec3 position;
+	vec3 direction;
 
 	float light_distance;
 	float cutOff, outerCutOff;

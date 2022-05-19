@@ -5,10 +5,16 @@
 #include <windowsx.h>
 
 #include "engine/Controller.h"
-#include "engine/math/Vec3.h"
 #include "engine/Timer.h"
 #include "engine/Engine.h"
 #include "engine/Window.h"
+
+void initConsole()
+{
+    AllocConsole();
+    FILE* dummy;
+    auto s = freopen_s(&dummy, "CONOUT$", "w", stdout); // stdout will print to the newly created console
+}
 
 void render(HWND hwnd);
 
@@ -17,7 +23,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    Timer timer(1./60);
+    //initConsole();
+
+    Timer timer(1.f/60);
 
     Engine& engine = Engine::instance();
     Screen& screen = engine.screen;
@@ -27,7 +35,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     window.create_window(L"Test21", screen.width(), screen.height());
     window.show_window(nShowCmd);
 
-    engine.camera.set_perspective(to_radians(30), float(screen.width()) / screen.height(), 1, 100);
+    engine.camera.set_perspective(to_radians(30), float(screen.width()) / screen.height(), 1, 300);
 
     Controller controller{engine.scene, engine.camera};
     controller.init_scene();
@@ -44,13 +52,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
             if (msg.message == WM_QUIT) break;
 	    }
         if (msg.message == WM_QUIT) break;
-
-
+        
         if(timer.frame_time_check())
         {
             controller.process_input(timer.get_dt());
-            render(window.handle());
             timer.restart();
+            render(window.handle());
         }
 
         std::this_thread::yield();
@@ -78,9 +85,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     {
     case WM_RBUTTONDOWN:
         is.mouse.rmb = PRESSED;
+        is.mouse.x = x;
+        is.mouse.y = y;
         break;
     case WM_LBUTTONDOWN:
         is.mouse.lmb = PRESSED;
+        is.mouse.lmb_x = x;
+        is.mouse.lmb_y = y;
         break;
 
     case WM_MOUSEMOVE:
@@ -125,18 +136,21 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         case VK_ESCAPE:
             is.keyboard.exit = true;
             break;
-
-        case VK_LEFT:
-            is.keyboard.ar_left = true;
+	    case VK_CONTROL:
+            is.keyboard.down = true;
             break;
-        case VK_RIGHT:
-            is.keyboard.ar_right = true;
+
+		case VK_LEFT:
+            is.keyboard.yawleft = true;
+            break;
+		case VK_RIGHT:
+			is.keyboard.yawright = true;
             break;
         case VK_UP:
-            is.keyboard.ar_up = true;
+            is.keyboard.pitchup = true;
             break;
         case VK_DOWN:
-            is.keyboard.ar_down = true;
+            is.keyboard.pitchdown = true;
             break;
         }
         break;
@@ -168,18 +182,21 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         case BUTTON_E:
             is.keyboard.rroll = false;
             break;
+	    case VK_CONTROL:
+            is.keyboard.down = false;
+	        break;
 
         case VK_LEFT:
-            is.keyboard.ar_left = false;
+            is.keyboard.yawleft = false;
             break;
         case VK_RIGHT:
-            is.keyboard.ar_right = false;
+            is.keyboard.yawright = false;
             break;
         case VK_UP:
-            is.keyboard.ar_up = false;
+            is.keyboard.pitchup = false;
             break;
         case VK_DOWN:
-            is.keyboard.ar_down = false;
+            is.keyboard.pitchdown = false;
             break;
         }
         break;

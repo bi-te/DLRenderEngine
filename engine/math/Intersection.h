@@ -1,14 +1,13 @@
 #pragma once
 #include <limits>
 
-#include "math/Vec3.h"
+#include "math.h"
 
 struct Intersection
 {
 	float t;
-	Point3d point;
-	Vec3 norm;
-	unsigned int material;
+	vec3 point;
+	vec3 norm;
 
 	Intersection() = default;
 

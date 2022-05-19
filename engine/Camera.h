@@ -2,6 +2,8 @@
 
 #include "math/math.h"
 
+mat4 invert_to_view(mat4& src);
+
 class Camera
 {
 public:
@@ -17,86 +19,40 @@ public:
 	mat4 view_proj = mat4::Identity();
 	mat4 view_proj_inv = mat4::Identity();
 
+	vec4 blnear_fpoint = {-1, -1, 1, 1};
+	vec4 tlnear_fpoint = {-1,  1, 1, 1};
+	vec4 brnear_fpoint = { 1, -1, 1, 1 };
+
 	quat rotation = quat::Identity();
+
+	bool matrices_update = false, basis_update = false;
 
 	auto right() { return view_inv.row(0).head<3>(); }
 	auto up() { return view_inv.row(1).head<3>(); }
 	auto forward() { return view_inv.row(2).head<3>(); }
 	auto position() { return view_inv.row(3).head<3>(); }
 
+	const auto position() const{ return view_inv.row(3).head<3>(); }
 
+	void set_perspective(float fov, float aspect, float zn, float zf);
 
-	void set_perspective(float fov, float aspect, float zn, float zf)
-	{
-		this->fov = fov;
-		this->aspect = aspect;
-		this->zn = zn;
-		this->zf = zf;
-
-		proj(1, 1) = 1.f / tanf(fov / 2);
-		proj(0, 0) = proj(1, 1) / aspect;
-		proj(2, 2) = zn / (zn - zf);
-		proj(2, 3) = 1;
-		proj(3, 2) = -zf * proj(2, 2);
-		proj(3, 3) = 0;
-
-		float a = proj(2, 2);
-
-		proj_inv = proj.inverse();
+	void set_world_offset(const vec3& offset) { position() = offset;  matrices_update = true; }
+	void add_world_offset(const vec3& offset) { position() += offset; matrices_update = true;  }
+	void add_relative_offset(const vec3& offset){
+		update_basis(); matrices_update = true;
+		position() += right() * offset.x() + up() * offset.y() + forward() * offset.z();	
 	}
 
+	void set_world_angles(const Angles& angles);
+	void add_world_angles(const Angles& angles);
+	void add_relative_angles(const Angles& angles);
 
+	void update_basis();
+	void update_matrices();
+	void update_frustum_points();
 
-	void add_relative_offset(const vec3& offset)
-	{
-		position() +=
-			right() * offset.x() +
-			up() * offset.y() +
-			forward() * offset.z();
-	}
-
-	void add_relative_angles(const Angles& angles)
-	{
-		update_basis();
-
-		rotation *= quat{ Eigen::AngleAxisf{angles.roll, forward()}};
-		rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()}};
-		rotation *= quat{ Eigen::AngleAxisf{angles.yaw, up()}};
-
-		rotation.normalize();
-	}
-
-	void update_basis()
-	{
-		view_inv.block<3, 3>(0, 0) = rotation.toRotationMatrix();
-	}
-
-	void update_matrices()
-	{
-		update_basis();
-		view = view_inv.inverse();
-
-		view_proj = view * proj;
-		view_proj_inv = proj_inv * view_inv;
-	}
-
-	void change_aspect(float asp)
-	{
-		aspect = asp;
-		proj(1, 1) = 1.f / tanf(fov / 2);
-		proj(0, 0) = proj(1, 1) / asp;
-
-		proj_inv = proj.inverse();
-	}
-
-	void change_fov(float fovy)
-	{
-		fov = fovy;
-		proj(1, 1) = 1.f / tanf(fovy / 2);
-		proj(0, 0) = proj(1, 1) / aspect;
-
-		proj_inv = proj.inverse();
-	}
+	void change_aspect(float asp);
+	void change_fov(float fovy);
 
 };
 

@@ -25,7 +25,7 @@ class Screen
 public:
 
 	Screen(uint16_t width = 800, uint16_t height = 600) : width_(width), height_(height),
-	bwidth_(width / 2), bheight_(height / 2), wresize(false)
+	bwidth_(width / 4), bheight_(height / 4), wresize(false)
 	{
 		buffer_.resize(bwidth_ * bheight_);
 		ZeroMemory(&bmi, sizeof(BITMAPINFO));
@@ -64,8 +64,8 @@ public:
 	{
 		width_ = w ;
 		height_ = h;
-		bwidth_ = w / 2;
-		bheight_ = h / 2;
+		bwidth_ = w / 4;
+		bheight_ = h / 4;
 		wresize = true;
 	}
 
