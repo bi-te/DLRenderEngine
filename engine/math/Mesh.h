@@ -2,21 +2,27 @@
 
 #include <vector>
 
+#include "math.h"
+
 class Mesh
 {
-	std::vector<float> vertices_;
+protected:
+
+	std::vector<vec3> vertices_;
 
 public:
 
 	void add_vertex(float x, float y, float z)
 	{
-		vertices_.push_back(x);
-		vertices_.push_back(y);
-		vertices_.push_back(z);
+		vertices_.push_back({ x, y, z });
 	}
-	
 
-	const std::vector<float>& vertices()
+	void add_vertex(const vec3& coordinate)
+	{
+		vertices_.push_back(coordinate);
+	}
+
+	const std::vector<vec3>& vertices()
 	{
 		return vertices_;
 	}

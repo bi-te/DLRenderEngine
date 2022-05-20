@@ -11,7 +11,7 @@ struct PointLight
 {
 	vec3 light;
 	vec3 position;
-	float light_distance;
+	float light_range;
 };
 
 struct Spotlight 
@@ -20,6 +20,6 @@ struct Spotlight
 	vec3 position;
 	vec3 direction;
 
-	float light_distance;
+	float light_range;
 	float cutOff, outerCutOff;
 };

@@ -1,73 +1,7 @@
 #include "Controller.h"
 
-#include <iostream>
-
 #include "Engine.h"
 #include "render/Material.h"
-
-void init_cube(Mesh& mesh)
-{
-    //y+
-    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
-    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
-    mesh.add_vertex(0.5f, 0.5f, 0.5f);
-
-    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
-    mesh.add_vertex(0.5f, 0.5f, 0.5f);
-    mesh.add_vertex(0.5f, 0.5f, -0.5f);
-
-    //z-
-    mesh.add_vertex(-0.5f, -0.5f, -0.5f);
-    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
-    mesh.add_vertex(0.5f, 0.5f, -0.5f);
-
-    mesh.add_vertex(-0.5f, -0.5f, -0.5f);
-    mesh.add_vertex(0.5f, 0.5f, -0.5f);
-    mesh.add_vertex(0.5f, -0.5f, -0.5f);
-
-
-    //z+
-    mesh.add_vertex(0.5f, -0.5f, 0.5f);
-    mesh.add_vertex(0.5f, 0.5f, 0.5f);
-    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
-
-    mesh.add_vertex(0.5f, -0.5f, 0.5f);
-    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
-    mesh.add_vertex(-0.5f, -0.5f, 0.5f);
-
-
-    //x-
-    mesh.add_vertex(-0.5f, -0.5f, 0.5f);
-    mesh.add_vertex(-0.5f, 0.5f, 0.5f);
-    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
-
-    mesh.add_vertex(-0.5f, -0.5f, 0.5f);
-    mesh.add_vertex(-0.5f, 0.5f, -0.5f);
-    mesh.add_vertex(-0.5f, -0.5f, -0.5f);
-
-
-    //x+
-    mesh.add_vertex(0.5f, -0.5f, -0.5f);
-    mesh.add_vertex(0.5f, 0.5f, -0.5f);
-    mesh.add_vertex(0.5f, 0.5f, 0.5f);
-
-    mesh.add_vertex(0.5f, -0.5f, -0.5f);
-    mesh.add_vertex(0.5f, 0.5f, 0.5f);
-    mesh.add_vertex(0.5f, -0.5f, 0.5f);
-
-    //y-
-    mesh.add_vertex(0.5f, -0.5f, -0.5f);
-    mesh.add_vertex(0.5f, -0.5f, 0.5f);
-    mesh.add_vertex( -0.5f, -0.5f, 0.5f);
-
-    mesh.add_vertex(0.5f, -0.5f, -0.5f);
-    mesh.add_vertex( -0.5f, -0.5f,  0.5f);
-    mesh.add_vertex( -0.5f, -0.5f, -0.5f);
-
-
-
-
-}
 
 void Controller::init_scene()
 {
@@ -121,7 +55,7 @@ void Controller::init_scene()
     PointLightObject pl;
     pl.plight.position = { 10, 20, 0 };
     pl.plight.light = { 105, 5, 5 };
-    pl.plight.light_distance = 100;
+    pl.plight.light_range = 100;
     pl.sphere.center = pl.plight.position;
     pl.sphere.radius = 0.5f;
     pl.material = 1;
@@ -131,7 +65,7 @@ void Controller::init_scene()
     SpotlightObject sp{};
     sp.spotlight.position = { 0, 0, 100 };
     sp.spotlight.light = { 5, 5, 155 };
-    sp.spotlight.light_distance = 100;
+    sp.spotlight.light_range = 100;
     sp.spotlight.direction = vec3{ 0.f, 0.f, -1.f }.normalized();
     sp.spotlight.cutOff = cosf(to_radians(7));
     sp.spotlight.outerCutOff = cosf(to_radians(12));
@@ -145,7 +79,6 @@ void Controller::init_scene()
     scene.floor.material = 2;
 
     //cube
-    init_cube(scene.cube);
 
     //cubes
     MeshInstance instance;

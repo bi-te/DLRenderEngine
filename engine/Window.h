@@ -22,7 +22,7 @@ class Window
     WNDCLASSEX wc;
     HWND window;
 public:
-    Window(LPCWSTR class_name, HINSTANCE hInstance, WNDPROC WindowProc);
+    Window(LPCWSTR class_name, HINSTANCE hInstance);
 
     HWND handle() const
     {

@@ -51,6 +51,9 @@
     <ClCompile Include="engine\math\Transform.cpp">
       <Filter>Header Files\math</Filter>
     </ClCompile>
+    <ClCompile Include="engine\render\light_render.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
@@ -129,6 +132,12 @@
       <Filter>Header Files\moving</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Mesh.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\light_render.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\CubeMesh.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
   </ItemGroup>

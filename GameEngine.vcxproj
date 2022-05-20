@@ -152,6 +152,7 @@
     <ClCompile Include="engine\math\Sphere.cpp" />
     <ClCompile Include="engine\math\Transform.cpp" />
     <ClCompile Include="engine\objects\MeshInstance.cpp" />
+    <ClCompile Include="engine\render\light_render.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
     <ClCompile Include="engine\Window.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="engine\Camera.h" />
     <ClInclude Include="engine\Controller.h" />
     <ClInclude Include="engine\Engine.h" />
+    <ClInclude Include="engine\math\CubeMesh.h" />
     <ClInclude Include="engine\math\Intersection.h" />
     <ClInclude Include="engine\math\math.h" />
     <ClInclude Include="engine\math\Mesh.h" />
@@ -178,6 +180,7 @@
     <ClInclude Include="engine\objects\LightObjects.h" />
     <ClInclude Include="engine\Objects\SphereObject.h" />
     <ClInclude Include="engine\render\Lighting.h" />
+    <ClInclude Include="engine\render\light_render.h" />
     <ClInclude Include="engine\render\Material.h" />
     <ClInclude Include="engine\Scene.h" />
     <ClInclude Include="engine\Screen.h" />

@@ -1,5 +1,6 @@
 #pragma once
-#include "math/math.h"
+
+#include "../math/math.h"
 
 enum MaterialType{LIGHT_SOURCE, SURFACE};
 

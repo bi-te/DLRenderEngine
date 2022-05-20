@@ -18,19 +18,19 @@ bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Inters
 	bool intersected = false;
 
 	Ray transformed_ray;
-	transformed_ray.origin = (vec4{ ray.origin.x(), ray.origin.y(), ray.origin.z(), 1.f } *transform.mtransform_inv).head<3>();
-	transformed_ray.direction = ray.direction * transform.mtransform_inv.block<3, 3>(0, 0);
+	transformed_ray.origin = (vec4{ ray.origin.x(), ray.origin.y(), ray.origin.z(), 1.f } * transform.mtransform_inv).head<3>();
+	transformed_ray.direction = ray.direction * transform.mtransform_inv.topLeftCorner<3, 3>();
 
 	vec3 a, b, c;
 
 	vec3 ab, ac, ao;
 	vec3 norm;
 
-	for (int i = 0; i < mesh->vertices().size(); i += 9)
+	for (int i = 0; i < mesh->vertices().size(); i += 3)
 	{
-		a = { mesh->vertices()[i], mesh->vertices()[i + 1], mesh->vertices()[i + 2] };
-		b = { mesh->vertices()[i + 3], mesh->vertices()[i + 4], mesh->vertices()[i + 5] };
-		c = { mesh->vertices()[i + 6], mesh->vertices()[i + 7], mesh->vertices()[i + 8] };
+		a = mesh->vertices()[i];
+		b = mesh->vertices()[i + 1];
+		c = mesh->vertices()[i + 2];
 
 		ab = b - a;
 		ac = c - a;
@@ -53,7 +53,10 @@ bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Inters
 			intersected = true;
 			record.t = t;
 			record.point = ray.position(t);
-			record.norm = (norm * transform.rotation().toRotationMatrix()).normalized();
+			record.norm = 
+				(ab * transform.mtransform.topLeftCorner<3, 3>())
+			.cross(ac * transform.mtransform.topLeftCorner<3, 3>())
+			.normalized();
 		}
 	}
 
