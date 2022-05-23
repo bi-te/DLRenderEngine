@@ -161,6 +161,7 @@
     <ClInclude Include="engine\Camera.h" />
     <ClInclude Include="engine\Controller.h" />
     <ClInclude Include="engine\Engine.h" />
+    <ClInclude Include="engine\IntersectionQuery.h" />
     <ClInclude Include="engine\math\CubeMesh.h" />
     <ClInclude Include="engine\math\Intersection.h" />
     <ClInclude Include="engine\math\math.h" />

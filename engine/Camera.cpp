@@ -52,12 +52,19 @@ void Camera::add_world_angles(const Angles& angles)
 	rotation.normalize();
 }
 
+
 void Camera::add_relative_angles(const Angles& angles)
 {
 	basis_update = true;
+
+	//spaceship
 	rotation *= quat{ Eigen::AngleAxisf{angles.roll, forward()} };
 	rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
 	rotation *= quat{ Eigen::AngleAxisf{angles.yaw, up()} };
+
+	////FPS
+	//rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
+	//rotation *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}}};
 
 	rotation.normalize();
 }

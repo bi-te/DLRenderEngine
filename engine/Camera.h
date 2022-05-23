@@ -2,6 +2,8 @@
 
 #include "math/math.h"
 
+
+
 mat4 invert_to_view(mat4& src);
 
 class Camera

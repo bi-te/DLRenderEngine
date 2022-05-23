@@ -78,8 +78,6 @@ void Controller::init_scene()
     scene.floor.plane = { vec3{0, 1, 0}, {0, -40, 0}};
     scene.floor.material = 2;
 
-    //cube
-
     //cubes
     MeshInstance instance;
     instance.mesh = &scene.cube;
@@ -147,9 +145,8 @@ void Controller::process_input(float dt)
     case UP:
         break;
     }
-
-    static std::unique_ptr<ObjectMover> object;
-    static Intersection record;
+    
+    static IntersectionQuery record;
 
     bool camera_update = true;
     float dx, dy, h, w, prop;
@@ -170,23 +167,23 @@ void Controller::process_input(float dt)
         mouse_ray.origin = camera.position();
         mouse_ray.direction = ((camera.blnear_fpoint + right * dx + up * dy).head<3>() - mouse_ray.origin).normalized();
 
-        object = scene.select_object(mouse_ray, 0, std::numeric_limits<float>::infinity(), record);
+        scene.select_object(mouse_ray, camera.zn, camera.zf, record);
 
         is.mouse.rmb = DOWN;
 
     case DOWN:
-        if (object.get())
+        if (record.mover.get())
         {
             h = 2 * camera.zn / camera.proj(1, 1);
             w = camera.aspect * h;
 
-            prop = fabs((record.point * camera.view.col(2).head<3>() + camera.view(3, 2)) / camera.zn);
+            prop = fabs((record.intersection.point * camera.view.col(2).head<3>() + camera.view(3, 2)) / camera.zn);
 
             rotation = quat{ Eigen::AngleAxisf{rot.roll, vec3{0.f, 0.f,1.f}} };
             rotation *= quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
             rotation *= quat{ Eigen::AngleAxisf{rot.yaw, vec3{0.f, 1.f,0.f}} };
             
-            view = record.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();            
+            view = record.intersection.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();            
             tview = view * rotation.toRotationMatrix();
             trans = tview - view;
             trans *= camera.view_inv.topLeftCorner<3, 3>();
@@ -199,8 +196,27 @@ void Controller::process_input(float dt)
             offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen.width() * camera.right();
             offset += (is.mouse.prev_y - is.mouse.y) * h * prop / screen.height() * camera.up();
 
-            record.point += offset;
-            object->move(offset);
+            ////FPS
+            //rotation = quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
+            //rotation *= quat{ Eigen::AngleAxisf{
+            //    rot.yaw,
+            //    vec3{0,1,0} *camera.view.topLeftCorner<3, 3>()}};
+
+            //view = record.intersection.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();
+            //tview = view * rotation.toRotationMatrix();
+            //trans = tview - view;
+            //trans *= camera.view_inv.topLeftCorner<3, 3>();
+
+            //move_camera(move, rot);
+            //camera_update = false;
+
+            //offset = trans;
+            //offset += move.x() * camera.right() + move.y() * camera.up() + move.z() * camera.forward();
+            //offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen.width() * camera.right();
+            //offset += (is.mouse.prev_y - is.mouse.y) * h * prop / screen.height() * camera.up();
+
+            record.intersection.point += offset;
+            record.mover->move(offset);
         }
 
         break;

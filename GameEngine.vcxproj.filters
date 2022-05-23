@@ -140,5 +140,8 @@
     <ClInclude Include="engine\math\CubeMesh.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
+    <ClInclude Include="engine\IntersectionQuery.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
