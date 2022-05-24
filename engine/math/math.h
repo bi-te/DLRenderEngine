@@ -1,5 +1,4 @@
 #pragma once
-#define PI 3.14159265
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"
@@ -10,7 +9,7 @@ using vec4 = Eigen::RowVector4f;
 using vec3 = Eigen::RowVector3f;
 using quat = Eigen::Quaternionf;
 
-using uint = unsigned int;
+constexpr float PI = 3.14159265f;
 
 struct Angles
 {

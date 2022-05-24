@@ -1,20 +1,24 @@
 #include "Scene.h"
 
 #include "moving/SphereMover.h"
+#include "moving/PointLightMover.h"
+#include "moving/SpotlightMover.h"
+#include "moving/TransformMover.h"
+#include "objects/MeshInstance.h"
 #include "render/Lighting.h"
 #include "render/light_render.h"
 
 void Scene::select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record)
 {
 	record.intersection = Intersection::infinite();
-	record.object.type = NONE;
+	objectRef ref;
 
 	for(PointLightObject& plobject: point_lights)
 	{
 		if(plobject.sphere.intersection(ray, t_min, t_max, record.intersection))
 		{
-			record.object.type = POINTLIGHT;
-			record.object.ptr = &plobject;
+			ref.type = POINTLIGHT;
+			ref.ptr = &plobject;
 		}
 	}
 
@@ -22,8 +26,8 @@ void Scene::select_object(const Ray& ray, float t_min, float t_max, Intersection
 	{
 		if (slobject.sphere.intersection(ray, t_min, t_max, record.intersection))
 		{
-			record.object.type = SPOTLIGHT;
-			record.object.ptr = &slobject;
+			ref.type = SPOTLIGHT;
+			ref.ptr = &slobject;
 		}
 	}
 
@@ -31,8 +35,8 @@ void Scene::select_object(const Ray& ray, float t_min, float t_max, Intersection
 	{
 		if (object.sphere.intersection(ray, t_min, t_max, record.intersection))
 		{
-			record.object.type = SPHERE;
-			record.object.ptr = &object;
+			ref.type = SPHERE;
+			ref.ptr = &object;
 		}
 	}
 
@@ -40,15 +44,22 @@ void Scene::select_object(const Ray& ray, float t_min, float t_max, Intersection
 	{
 		if (mesh.intersection(ray, t_min, t_max, record.intersection))
 		{
-			record.object.type = MESH;
-			record.object.ptr = &mesh;
+			ref.type = MESH;
+			ref.ptr = &mesh;
 		}
 	}
 
-	record.update_mover();
+	switch (ref.type)
+	{
+	case SPHERE: record.mover = std::make_unique<SphereMover>(static_cast<SphereObject*>(ref.ptr)->sphere); break;
+	case MESH: record.mover = std::make_unique<TransformMover>(static_cast<MeshInstance*>(ref.ptr)->transform); break;
+	case POINTLIGHT: record.mover = std::make_unique<PointLightMover>(*static_cast<PointLightObject*>(ref.ptr)); break;
+	case SPOTLIGHT: record.mover = std::make_unique<SpotlightMover>(*static_cast<SpotlightObject*>(ref.ptr)); break;
+	case NONE: record.mover = nullptr;
+	}
 }
 
-bool Scene::ray_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint& material_index) const
+bool Scene::ray_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint32_t& material_index) const
 {
 	Intersection record = Intersection::infinite();
 	bool hit = false;
@@ -115,14 +126,14 @@ void Scene::draw(Screen& screen, const Camera& camera)
 
 	float dx, dy;
 	vec3 color;
-	uint material;
+	uint32_t material;
 
-	for (int k = 0; k < screen_height; ++k)
+	for (uint16_t row = 0; row < screen_height; ++row)
 	{
-		dy = float(k) / screen_height;
-		for (int i = 0; i < screen_width; ++i)
+		dy = (row + 0.5f) / screen_height;
+		for (uint16_t column = 0; column < screen_width; ++column)
 		{
-			dx = float(i) / screen_width;
+			dx = (column + 0.5f) / screen_width;
 
 			ray.direction = ((blpoint + right * dx + up * dy).head<3>() - ray.origin).normalized();
 
@@ -142,16 +153,9 @@ void Scene::draw(Screen& screen, const Camera& camera)
 			}
 			else
 			{
-				color = { 0, 15, 30 };
+				color = AMBIENT;
 			}
-			if (color.x() > 255) color.x() = 255;
-			if (color.y() > 255) color.y() = 255;
-			if (color.z() > 255) color.z() = 255;
-
-			screen[k * screen_width + i] = {
-				static_cast<unsigned char>(color.x()),
-				static_cast<unsigned char>(color.y()),
-				static_cast<unsigned char>(color.z()) };
+			screen.set(row, column, color);
 		}
 	}
 }
@@ -160,7 +164,7 @@ void Scene::process_direct_light(vec3& color, const Intersection& record, const 
 {
 	Ray visible;
 	visible.direction = -sunlight.direction;
-	visible.origin = record.point + visible.direction * 0.01;
+	visible.origin = record.point + visible.direction * 0.01f;
 
 	if (shadow_test(visible, std::numeric_limits<float>::infinity())) return;
 
@@ -174,7 +178,7 @@ void Scene::process_point_lights(vec3& color, const Intersection& record, const 
 	{
 		PointLight plight = plobject.plight;
 		visible.direction = (plight.position - record.point).normalized();
-		visible.origin = record.point + visible.direction * 0.01;
+		visible.origin = record.point + visible.direction * 0.01f;
 
 		float max_dist = (plight.position - record.point).norm() - 1.f;
 
@@ -191,7 +195,7 @@ void Scene::process_spotlights(vec3& color, const Intersection& record, const ve
 	{
 		Spotlight spotlight = slobject.spotlight;
 		visible.direction = (spotlight.position - record.point).normalized();
-		visible.origin = record.point + visible.direction * 0.01;
+		visible.origin = record.point + visible.direction * 0.01f;
 
 		float max_dist = (spotlight.position - record.point).norm() - 1.f;
 

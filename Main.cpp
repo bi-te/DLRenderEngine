@@ -25,7 +25,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 {
     //initConsole();
 
-    Timer timer(1.f/60);
+    Timer timer(1.f/60.f);
 
     Engine& engine = Engine::instance();
     Screen& screen = engine.screen;
@@ -55,8 +55,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
         
         if(timer.frame_time_check())
         {
-            controller.process_input(timer.get_dt());
-            timer.restart();
+            controller.process_input(timer.time_passed());
+            timer.advance_current();
             render(window.handle());
         }
 

@@ -12,10 +12,19 @@
 #include "objects/PlaneObject.h"
 #include "objects/LightObjects.h"
 
-const vec3 AMBIENT{ 70, 70, 70 };
+const vec3 AMBIENT{ 50.f, 50.f, 90.f };
 
 class Scene
 {
+	enum ObjType { SPHERE, MESH, POINTLIGHT, SPOTLIGHT, NONE };
+
+	struct objectRef
+	{
+		void* ptr;
+		ObjType type = NONE;
+	};
+	
+
 public:
 	DirectLight sunlight;
 	std::vector<Material> materials;
@@ -27,7 +36,7 @@ public:
 	CubeMesh cube;
 
 	void select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record);
-	bool ray_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint& material_index) const;
+	bool ray_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint32_t& material_index) const;
 	bool shadow_test(const Ray& ray, float t_max) const;
 
 	void process_direct_light(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const;

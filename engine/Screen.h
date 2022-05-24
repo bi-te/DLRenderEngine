@@ -9,9 +9,10 @@ struct rgb
 
 	rgb() = default;
 
-	rgb(uint8_t r, uint8_t g, uint8_t b): r(r), g(g), b(b)
+	rgb(uint8_t r, uint8_t g, uint8_t b): b(b), g(g), r(r)
 	{
 	}
+
 };
 
 class Screen
@@ -35,30 +36,23 @@ public:
 		bmi.bmiHeader.biBitCount = 32;
 	}
 
-	rgb& operator[](uint32_t i)
+	rgb& operator[](uint32_t i) { return buffer_[i]; }
+
+	void set(uint16_t row, uint16_t column, const vec3& color)
 	{
-		return buffer_[i];
+		uint8_t r = color.x() > 255.f ? 255 : color.x();
+		uint8_t g = color.y() > 255.f ? 255 : color.y();
+		uint8_t b = color.z() > 255.f ? 255 : color.z();
+
+		buffer_[row * bwidth_ + column] = { r, g, b };
 	}
 
-	uint16_t width() const
-	{
-		return width_;
-	}
+	uint16_t width() const { return width_;}
+	uint16_t height() const { return height_; }
+	uint16_t buffer_width() const { return bwidth_; }
+	uint16_t buffer_height() const { return bheight_; }
 
-	uint16_t height() const
-	{
-		return height_;
-	}
 
-	uint16_t buffer_width() const
-	{
-		return bwidth_;
-	}
-
-	uint16_t buffer_height() const
-	{
-		return bheight_;
-	}
 
 	void init_resize(int16_t w, int16_t h)
 	{

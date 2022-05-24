@@ -1,7 +1,7 @@
 #include "MeshInstance.h"
 
 bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Intersection& nearest,
-	uint& material_index) const
+	uint32_t& material_index) const
 {
 	if(intersection(ray, t_min, t_max, nearest))
 	{

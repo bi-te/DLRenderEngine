@@ -38,6 +38,12 @@ struct InputState
 
 class  Controller
 {
+    const float movement_speed = 50.f,
+				rotation_speed = 1.f,
+				rotation_speed_mouse = 2.f * PI;
+
+    IntersectionQuery record;
+
     Scene& scene;
     Camera& camera;
 public:

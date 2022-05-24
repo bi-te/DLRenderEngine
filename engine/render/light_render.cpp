@@ -6,7 +6,7 @@
 float smoothstep(float edge0, float edge1, float x)
 {
 	x = std::clamp((x - edge0) / (edge1 - edge0), 0.f, 1.f);
-	return x * x * (3 - 2 * x);
+	return x * x * (3.f - 2.f * x);
 }
 
 void calc_direct_light(vec3& color, const DirectLight& dirlight, const Intersection& record, const vec3& camera_pos,
@@ -19,7 +19,7 @@ void calc_direct_light(vec3& color, const DirectLight& dirlight, const Intersect
 	vec3 h = (cameravec - dirlight.direction).normalized();
 
 	color += dirlight.light.cwiseProduct( visibility * m.albedo) +
-		dirlight.light * pow(std::max(h.dot(record.norm), 0.f), m.glossiness) * m.specular;
+		dirlight.light * powf(std::max(h.dot(record.norm), 0.f), m.glossiness) * m.specular;
 }
 
 void calc_point_light(vec3& color, const PointLight& plight, const Intersection& record, const vec3& camera_pos,
@@ -35,8 +35,8 @@ void calc_point_light(vec3& color, const PointLight& plight, const Intersection&
 	vec3 cameravec = (camera_pos - record.point).normalized();
 	vec3 h = (cameravec + light_dir).normalized();
 
-	color += plight.light.cwiseProduct( visibility * m.albedo) / pow(light_dist / plight.light_range, 2)
-		+ plight.light * pow(std::max(h.dot(record.norm), 0.f), m.glossiness) * m.specular;
+	color += plight.light.cwiseProduct( visibility * m.albedo) / powf(light_dist / plight.light_range, 2.f)
+		+ plight.light * powf(std::max(h.dot(record.norm), 0.f), m.glossiness) * m.specular;
 }
 
 void calc_spotlight(vec3& color, const Spotlight& spotlight, const Intersection& record, const vec3& camera_pos,
@@ -53,6 +53,6 @@ void calc_spotlight(vec3& color, const Spotlight& spotlight, const Intersection&
 	vec3 cameravec = (camera_pos - record.point).normalized();
 	vec3 h = (cameravec + light_dir).normalized();
 
-	color += intensity * (spotlight.light.cwiseProduct(std::max(record.norm.dot(light_dir), 0.f) * m.albedo) / pow(light_dist / spotlight.light_range, 2)
-		+ spotlight.light * pow(std::max(h.dot(record.norm), 0.f), m.glossiness) * m.specular);
+	color += intensity * (spotlight.light.cwiseProduct(std::max(record.norm.dot(light_dir), 0.f) * m.albedo) / powf(light_dist / spotlight.light_range, 2.f)
+		+ spotlight.light * powf(std::max(h.dot(record.norm), 0.f), m.glossiness) * m.specular);
 }
