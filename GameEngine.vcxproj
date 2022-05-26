@@ -121,6 +121,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -136,6 +137,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,19 +147,42 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="engine\Camera.cpp" />
     <ClCompile Include="engine\Controller.cpp" />
     <ClCompile Include="engine\math\Sphere.cpp" />
+    <ClCompile Include="engine\math\Transform.cpp" />
+    <ClCompile Include="engine\objects\MeshInstance.cpp" />
+    <ClCompile Include="engine\render\light_render.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
     <ClCompile Include="engine\Window.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="engine\Camera.h" />
     <ClInclude Include="engine\Controller.h" />
     <ClInclude Include="engine\Engine.h" />
+    <ClInclude Include="engine\IntersectionQuery.h" />
+    <ClInclude Include="engine\math\CubeMesh.h" />
+    <ClInclude Include="engine\math\Intersection.h" />
     <ClInclude Include="engine\math\math.h" />
+    <ClInclude Include="engine\math\Mesh.h" />
+    <ClInclude Include="engine\math\Plane.h" />
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
+    <ClInclude Include="engine\math\Transform.h" />
     <ClInclude Include="engine\math\Vec3.h" />
+    <ClInclude Include="engine\moving\PointLightMover.h" />
+    <ClInclude Include="engine\moving\ObjectMover.h" />
+    <ClInclude Include="engine\moving\SphereMover.h" />
+    <ClInclude Include="engine\moving\SpotlightMover.h" />
+    <ClInclude Include="engine\moving\TransformMover.h" />
+    <ClInclude Include="engine\Objects\MeshInstance.h" />
+    <ClInclude Include="engine\Objects\PlaneObject.h" />
+    <ClInclude Include="engine\objects\LightObjects.h" />
+    <ClInclude Include="engine\Objects\SphereObject.h" />
+    <ClInclude Include="engine\render\Lighting.h" />
+    <ClInclude Include="engine\render\light_render.h" />
+    <ClInclude Include="engine\render\Material.h" />
     <ClInclude Include="engine\Scene.h" />
     <ClInclude Include="engine\Screen.h" />
     <ClInclude Include="engine\Timer.h" />

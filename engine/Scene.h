@@ -1,17 +1,47 @@
 #pragma once
 #include <vector>
 
+#include "Camera.h"
+#include "IntersectionQuery.h"
 #include "Screen.h"
-#include "math/Sphere.h"
-#include "math/Ray.h"
+#include "math/CubeMesh.h"
+#include "render/Material.h"
+#include "render//Lighting.h"
+#include "objects/MeshInstance.h"
+#include "objects/SphereObject.h"
+#include "objects/PlaneObject.h"
+#include "objects/LightObjects.h"
+
+const vec3 AMBIENT{ 50.f, 50.f, 90.f };
 
 class Scene
 {
+	enum ObjType { SPHERE, MESH, POINTLIGHT, SPOTLIGHT, NONE };
+
+	struct objectRef
+	{
+		void* ptr;
+		ObjType type = NONE;
+	};
+	
+
 public:
+	DirectLight sunlight;
+	std::vector<Material> materials;
+	std::vector<PointLightObject> point_lights;
+	std::vector<SpotlightObject> spotlights;
+	std::vector<SphereObject> spheres;
+	std::vector<MeshInstance> meshes;
+	PlaneObject floor;
+	CubeMesh cube;
 
-	std::vector<Sphere> objects;
+	void select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record);
+	bool ray_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint32_t& material_index) const;
+	bool shadow_test(const Ray& ray, float t_max) const;
 
-	bool ray_collision(const Ray& ray, float t_min, hit_record& record) const;
+	void process_direct_light(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const;
+	void process_point_lights(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const;
+	void process_spotlights(  vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const;
 
-	void draw(Screen& screen);
+	void draw(Screen& screen, const Camera& camera);
 };

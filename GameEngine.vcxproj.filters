@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\math">
+      <UniqueIdentifier>{8637fbc2-cf02-4da4-bafd-aab83c511056}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\render">
+      <UniqueIdentifier>{3b36de1e-c19a-44ba-b5ba-fe5ee58343b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\objects">
+      <UniqueIdentifier>{49ce2637-0642-4abd-bce1-b23716aeec9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\moving">
+      <UniqueIdentifier>{b75f5270-20a6-49d8-917c-9d8df3c9adc3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -30,20 +42,20 @@
     <ClCompile Include="engine\math\Sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="engine\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\objects\MeshInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\Transform.cpp">
+      <Filter>Header Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\light_render.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="engine\math\math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\math\Ray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\math\Sphere.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\math\Vec3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="engine\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -60,6 +72,75 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="engine\Controller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Ray.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Sphere.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Plane.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Intersection.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Vec3.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Transform.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\Objects\MeshInstance.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\Objects\PlaneObject.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\Objects\SphereObject.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\math.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Material.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Lighting.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\objects\LightObjects.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\moving\ObjectMover.h">
+      <Filter>Header Files\moving</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\moving\SphereMover.h">
+      <Filter>Header Files\moving</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\moving\TransformMover.h">
+      <Filter>Header Files\moving</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\moving\PointLightMover.h">
+      <Filter>Header Files\moving</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\moving\SpotlightMover.h">
+      <Filter>Header Files\moving</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Mesh.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\light_render.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\CubeMesh.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\IntersectionQuery.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

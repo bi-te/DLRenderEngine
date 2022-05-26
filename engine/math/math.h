@@ -1,21 +1,31 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Eigen/Core"
+#include "Eigen/Geometry"
 
-inline float length_squared(const Vec3& vec)
+using mat4 = Eigen::Matrix<float, 4, 4, Eigen::RowMajor>;
+using mat3 = Eigen::Matrix<float, 3, 3, Eigen::RowMajor>;
+using vec4 = Eigen::RowVector4f;
+using vec3 = Eigen::RowVector3f;
+using quat = Eigen::Quaternionf;
+
+constexpr float PI = 3.14159265f;
+
+struct Angles
 {
-	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+	float roll, pitch, yaw;
+};
+
+inline float to_radians(float degrees)
+{
+	return degrees * PI / 180.f;
 }
-
-inline float length(const Vec3& vec)
+	
+inline Angles rotation_from_degrees(float roll, float pitch, float yaw)
 {
-	return sqrt(length_squared(vec));
-}
+	float r = to_radians(roll);
+	float p = to_radians(pitch);
+	float y = to_radians(yaw);
 
-inline void make_unit_vector(Vec3& vec)
-{
-	float l = length(vec);
-	vec.x /= l;
-	vec.y /= l;
-	vec.z /= l;
+	return { r, p, y };
 }

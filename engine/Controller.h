@@ -2,14 +2,13 @@
 #include <cstdint>
 
 #include "Scene.h"
-#include "Window.h"
-#include "math/Ray.h"
-#include "math/Sphere.h"
+#include "math/math.h"
 
 enum BUTTON { PRESSED, DOWN, RELEASED, UP };
 
 struct Mouse
 {
+    int16_t lmb_x, lmb_y;
 	int16_t prev_x, prev_y;
 	int16_t x, y;
 
@@ -20,10 +19,13 @@ struct Mouse
 
 struct Keyboard
 {
-	bool up, down, left, right;
+	bool forward, backward, left, right, up, down;
+    bool yawleft, yawright, pitchup, pitchdown;
+    bool lroll, rroll;
 	bool exit;
 
-	Keyboard() : up(false), down(false), left(false), right(false), exit(false)
+	Keyboard() : forward(false), backward(false), left(false), right(false),
+	up(false), down(false), lroll(false), rroll(false), exit(false)
 	{
 	}
 };
@@ -36,10 +38,17 @@ struct InputState
 
 class  Controller
 {
+    const float movement_speed = 50.f,
+				rotation_speed = 1.f,
+				rotation_speed_mouse = 2.f * PI;
+
+    IntersectionQuery record;
+
     Scene& scene;
+    Camera& camera;
 public:
 
-    explicit Controller(Scene& rscene): scene(rscene)
+    explicit Controller(Scene& rscene, Camera& camera): scene(rscene), camera(camera)
     {
     }
 
@@ -49,24 +58,17 @@ public:
         return is;
     }
 
-    void move_scene(float dx, float dy, float dz)
+
+
+    void move_camera(const vec3& offset, const Angles& angles)
     {
-        for (Sphere& sphere : scene.objects)
-        {
-            sphere.center += Vec3{ dx, dy, dz };
-        }
+        camera.add_relative_angles(angles);
+        camera.add_relative_offset(offset);
+        camera.update_matrices();
     }
 
     void process_input(float dt);
 
-    void init_scene()
-    {
-        Sphere sphere{ {50, 50, 50}, 40 };
-
-        scene.objects.push_back(sphere);
-        sphere = { {150, 150, 50}, 40 };
-
-        scene.objects.push_back(sphere);
-    }
+    void init_scene();
 
 };
