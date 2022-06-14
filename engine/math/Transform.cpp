@@ -13,6 +13,7 @@ void Transform::update()
 		mtransform.row(3).head<3>() = position_;
 
 		mtransform_inv = mtransform.inverse();
+		normal_matrix = mtransform_inv.topLeftCorner<3, 3>().transpose();
 		updated = false;
 	}
 }

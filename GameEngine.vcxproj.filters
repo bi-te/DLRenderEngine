@@ -51,8 +51,14 @@
     <ClCompile Include="engine\math\Transform.cpp">
       <Filter>Header Files\math</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\light_render.cpp">
+    <ClCompile Include="engine\ParallelExecutor.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\math.cpp">
+      <Filter>Header Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\light_render.cpp">
+      <Filter>Header Files\render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +147,15 @@
       <Filter>Header Files\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\IntersectionQuery.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\ParallelExecutor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\RandomGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\ImageSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

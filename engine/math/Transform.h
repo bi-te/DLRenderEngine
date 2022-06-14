@@ -10,7 +10,7 @@ class Transform
 
 	bool updated;
 public:
-
+	mat3 normal_matrix = mat3::Identity();
 	mat4 mtransform = mat4::Identity(),
 		 mtransform_inv = mat4::Identity();
 

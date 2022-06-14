@@ -20,7 +20,7 @@ public:
 	bool intersection(const Ray& ray, float t_min, float t_max, Intersection& record) const
 	{
 		float denom = normal.dot(-ray.direction);
-		if(denom <= 0) return false;
+		if(fabs(denom) < std::numeric_limits<double>::epsilon()	) return false;
 
 		vec3 op = ray.origin - point;
 		float t = normal.dot(op) / denom;

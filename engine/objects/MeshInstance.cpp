@@ -22,11 +22,10 @@ bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Inters
 	transformed_ray.direction = ray.direction * transform.mtransform_inv.topLeftCorner<3, 3>();
 
 	vec3 a, b, c;
-
 	vec3 ab, ac, ao;
 	vec3 norm;
 
-	for (int i = 0; i < mesh->vertices().size(); i += 3)
+	for (uint32_t i = 0; i < mesh->vertices().size(); i += 3)
 	{
 		a = mesh->vertices()[i];
 		b = mesh->vertices()[i + 1];
@@ -53,10 +52,7 @@ bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Inters
 			intersected = true;
 			record.t = t;
 			record.point = ray.position(t);
-			record.norm = 
-				(ab * transform.mtransform.topLeftCorner<3, 3>())
-			.cross(ac * transform.mtransform.topLeftCorner<3, 3>())
-			.normalized();
+			record.norm = (norm * transform.normal_matrix).normalized();
 		}
 	}
 

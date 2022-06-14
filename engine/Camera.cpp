@@ -27,8 +27,6 @@ void Camera::set_perspective(float fov, float aspect, float zn, float zf)
 	proj(3, 2) = -zf * proj(2, 2);
 	proj(3, 3) = 0;
 
-	float a = proj(2, 2);
-
 	proj_inv = proj.inverse();
 }
 
@@ -57,14 +55,21 @@ void Camera::add_relative_angles(const Angles& angles)
 {
 	basis_update = true;
 
-	//spaceship
-	rotation *= quat{ Eigen::AngleAxisf{angles.roll, forward()} };
-	rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
-	rotation *= quat{ Eigen::AngleAxisf{angles.yaw, up()} };
+	if(fps_camera)
+	{
+		//FPS
+		rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
+		rotation *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}}};
+	}else
+	{
+		//spaceship
+		rotation *= quat{ Eigen::AngleAxisf{angles.roll, forward()} };
+		rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
+		rotation *= quat{ Eigen::AngleAxisf{angles.yaw, up()} };
 
-	////FPS
-	//rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
-	//rotation *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}}};
+	}
+
+
 
 	rotation.normalize();
 }
@@ -95,11 +100,13 @@ void Camera::update_frustum_points()
 	blnear_fpoint = vec4{ -1, -1, 1, 1 } * view_proj_inv;
 	blnear_fpoint /= blnear_fpoint.w();
 
-	tlnear_fpoint = vec4{ -1, 1, 1, 1 } * view_proj_inv;
+	vec4 tlnear_fpoint = vec4{ -1, 1, 1, 1 } * view_proj_inv;
 	tlnear_fpoint /= tlnear_fpoint.w();
+	frustrum_up = tlnear_fpoint - blnear_fpoint;
 
-	brnear_fpoint = vec4{ 1, -1, 1, 1 } * view_proj_inv;
+	vec4 brnear_fpoint = vec4{ 1, -1, 1, 1 } * view_proj_inv;
 	brnear_fpoint /= brnear_fpoint.w();
+	frustrum_right = brnear_fpoint - blnear_fpoint;
 }
 
 void Camera::change_aspect(float asp)
@@ -118,4 +125,18 @@ void Camera::change_fov(float fovy)
 	proj(0, 0) = proj(1, 1) / aspect;
 
 	proj_inv = proj.inverse();
+}
+
+void Camera::change_znear(float near)
+{
+	zn = near;
+	proj(2, 2) = zn / (zn - zf);
+	proj(3, 2) = -zf * proj(2, 2);
+}
+
+void Camera::change_zfar(float far)
+{
+	zf = far;
+	proj(2, 2) = zn / (zn - zf);
+	proj(3, 2) = -zf * proj(2, 2);
 }

@@ -3,102 +3,88 @@
 #include <iostream>
 
 #include "Engine.h"
-#include "render/Material.h"
 
 void Controller::init_scene()
 {
     //materials
     Material material;
     material.type = SURFACE;
-    material.albedo = { 0.1f, 0.5f, 0.3f };
-    material.emission = { 0.f, 0.f, 0.f };
-    material.specular = 0.7f;
-    material.glossiness = 64.f;
-    scene.materials.push_back(material);// 0 - green 
-
-    material.type = LIGHT_SOURCE;
-    material.albedo = { 0.f, 0.f, 0.f };
-    material.emission = { 255.f, 0.f, 0.f };
-    material.specular = 0.f;
-    material.glossiness = 0.f;
-    scene.materials.push_back(material);// 1 - red light
-
-    material.type = SURFACE;
-    material.albedo = { 0.56f, 1.f, 0.38f };
-    material.emission = { 0.f, 0.f, 0.f };
-    material.specular = 0.15f;
-    material.glossiness = 2.f;
-    scene.materials.push_back(material);// 2 - light green
-
-    material.type = SURFACE;
     material.albedo = { 0.45f, 0.25f, 0.45f };
     material.emission = { 0.f, 0.f, 0.f };
-    material.specular = 0.5f;
-    material.glossiness = 16.f;
-    scene.materials.push_back(material);// 3 - dark purple
+    material.f0 = {0.04f, 0.04f, 0.04f};
+    material.roughness = 0.7f;
+    material.metalness = 1.f;
+    scene.materials.push_back(material);// 0 - dark purple 
+
+    material.type = SURFACE;
+    material.albedo = { 0.36f, 0.85f, 0.24f };
+    material.emission = { 0.f, 0.f, 0.f };
+    material.f0 = { 0.03f, 0.03f, 0.03f };
+    material.roughness = 0.9f;
+    material.metalness = 0.f;
+    scene.materials.push_back(material);// 1 - light green
 
     material.type = LIGHT_SOURCE;
     material.albedo = { 0.f, 0.f, 0.f };
-    material.emission = { 0.f, 0.f, 255.f };
-    material.specular = 0.f;
-    material.glossiness = 0.f;
-    scene.materials.push_back(material);// 4 - blue light
+    material.emission = { 40000.f, 40000.f, 40000.f };
+    material.f0 = { 0.f, 0.f, 0.f };
+    material.roughness = 0.f;
+    material.metalness = 0.f;
+    scene.materials.push_back(material);// 2 - white light
 
     // spheres
-    Sphere sphere{ {0.f, 3.f, 30.f}, 5.f };
-    SphereObject spo{ sphere, 0 };
-    scene.spheres.push_back(spo); // green sphere
+    Sphere sphere;
+    SphereObject spo;
+
+    int8_t mx = 6, my = 6;
+    float drough = (1.f - 0.01f) / (mx - 1);
+    float dmetal = 1.f / (my - 1);
+    float radius = 5.f;
+    for (uint8_t x = 0; x < mx; ++x)
+    {
+	    for (uint8_t y = 0; y < my; ++y)
+	    {
+            material.type = SURFACE;
+            material.emission = { 0.f, 0.f, 0.f };
+
+            material.roughness = powf(0.01f + x * drough, 2.f);
+            material.metalness = y * dmetal;
+            material.albedo = vec3{ 0.8f, 0.f, 0.f };
+            material.f0 = lerp(vec3{ 0.03f, 0.03f, 0.03f }, material.albedo, material.metalness);
+            scene.materials.push_back(material); //y + my * x + 3 
+
+            sphere = { {2.5f * radius * x, 2.5f * radius * y, 15.5f}, radius };
+            spo = { sphere, uint32_t(y + my * x + 3)};
+            scene.spheres.push_back(spo);
+	    }
+
+    }
 
     //direct light
-    scene.sunlight.direction = vec3{ 0.f, -1.f, 0.25f }.normalized();
-    scene.sunlight.light = {100.f, 100.f, 100.f }; // white direct light
+    scene.dirlight.direction = vec3{ 0.f, -1.f, 0.25f }.normalized();
+    scene.dirlight.light = {80000.f, 80000.f, 80000.f }; // white direct light
+    scene.dirlight.solid_angle = 6.418e-5f;
 
     //point lights
     PointLightObject pl;
-    pl.plight.position = { 10.f, 20.f, 0.f };
-    pl.plight.light = { 105.f, 5.f, 5.f };
-    pl.plight.light_range = 100.f;
+    pl.plight.position = { 0.f, 62.5f, -7.f };
+    pl.plight.light = { 40000.f, 40000.f, 40000.f };
     pl.sphere.center = pl.plight.position;
-    pl.sphere.radius = 0.5f;
-    pl.material = 1;
-    scene.point_lights.push_back(pl); // red point light
-
-    //spot lights
-    SpotlightObject sp{};
-    sp.spotlight.position = { 0.f, 0.f, 100.f };
-    sp.spotlight.light = { 5.f, 5.f, 155.f };
-    sp.spotlight.light_range = 100.f;
-    sp.spotlight.direction = vec3{ 0.f, 0.f, -1.f }.normalized();
-    sp.spotlight.cutOff = cosf(to_radians(7.f));
-    sp.spotlight.outerCutOff = cosf(to_radians(12.f));
-    sp.sphere.center = sp.spotlight.position;
-    sp.sphere.radius = 0.5f;
-    sp.material = 4;
-    scene.spotlights.push_back(sp); // blue spotlight
+    pl.sphere.radius = 1.f;
+    pl.material = 2;
+    scene.point_lights.push_back(pl); // point light
 
     //floor
     scene.floor.plane = { vec3{0.f, 1.f, 0.f}, {0.f, -40.f, 0.f}};
-    scene.floor.material = 2;
+    scene.floor.material = 1;
 
-    //cubes
-    MeshInstance instance;
-    instance.mesh = &scene.cube;
-    instance.transform.set_world_offset({10.f, -10.f, 5.f });
-    instance.transform.set_scale({5.f, 5.f, 5.f });
-    instance.transform.set_world_rotation({0.f, 0.f, 60.f });
-    instance.transform.update();
-    instance.material = 0;
-    scene.meshes.push_back(instance);
+    camera.change_znear(0.1f);
+    camera.set_world_offset({ 0.f, 0.f, -20.f });
 
-    instance.mesh = &scene.cube;
-    instance.transform.set_world_offset({ -10.f, 8.f, 0.f });
-    instance.transform.set_scale({10.f, 10.f, 10.f });
-    instance.transform.set_world_rotation({45.f, 0.f, 0.f });
-    instance.transform.update();
-    instance.material = 3;
-    scene.meshes.push_back(instance);
-
-    camera.set_world_offset({ 0.f, 0.f, -100.f });
+    image_settings().ev100 = 2.f;
+    image_settings().max_reflect_depth = 2;
+    image_settings().max_reflect_distance = 300.f;
+    image_settings().gi_tests = 1000;
 }
 
 void Controller::process_input(float dt)
@@ -106,49 +92,62 @@ void Controller::process_input(float dt)
     Screen& screen = Engine::instance().screen;
     InputState& is = input_state();
 
-    if (is.keyboard.exit) {
+    if (is.keyboard.keys[ESCAPE]) {
         PostQuitMessage(0);
         return;
     }
 
-    float dist = movement_speed * dt;
+    //image settings
+    if (is.keyboard.keys[PLUS])  image_settings().ev100 += 0.1f;
+    if (is.keyboard.keys[MINUS]) image_settings().ev100 -= 0.1f;
+    if(is.keyboard.keys[R])
+    {
+        image_settings().reflection = !image_settings().reflection;
+        is.keyboard.keys[R] = false;
+    }
+    if(is.keyboard.keys[G])
+    {
+        image_settings().global_illumination = GI_ON;
+        is.keyboard.keys[G] = false;
+    }
 
-    vec3 move{0.f, 0.f, 0.f };
+
+    vec3 move{ 0.f, 0.f, 0.f };
     Angles rot{};
 
-    if (is.keyboard.forward) move.z() += dist;
-    if (is.keyboard.backward) move.z() -= dist;
-    if (is.keyboard.right) move.x() += dist;
-    if (is.keyboard.left) move.x() -= dist;
-    if (is.keyboard.up) move.y() += dist;
-    if (is.keyboard.down) move.y() -= dist;
+    // movement
+    float dist = movement_speed * dt;
+    if (is.mouse.wheel) dist = is.mouse.wheel > 0 ? dist * is.mouse.wheel * dspeed : -dist / (is.mouse.wheel * dspeed);
+    if (is.keyboard.keys[SHIFT]) dist *= shift;
+
+    if (is.keyboard.keys[W]) move.z() += dist;
+    if (is.keyboard.keys[S]) move.z() -= dist;
+    if (is.keyboard.keys[D]) move.x() += dist;
+    if (is.keyboard.keys[A]) move.x() -= dist;
+    if (is.keyboard.keys[SPACE] || is.keyboard.keys[E]) move.y() += dist;
+    if (is.keyboard.keys[C] || is.keyboard.keys[CTRL] ||is.keyboard.keys[Q]) move.y() -= dist;
 
     float rspeed = rotation_speed * dt;
-
-    if (is.keyboard.rroll) rot.roll += rspeed;
-    if (is.keyboard.lroll) rot.roll -= rspeed;
-
-    if (is.keyboard.yawleft) rot.yaw += rspeed;
-    if (is.keyboard.yawright) rot.yaw -= rspeed;
-    if (is.keyboard.pitchup) rot.pitch += rspeed;
-    if (is.keyboard.pitchdown) rot.pitch -= rspeed;
+    if (is.keyboard.keys[LEFT]) rot.yaw += rspeed;
+    if (is.keyboard.keys[RIGHT]) rot.yaw -= rspeed;
+    if (is.keyboard.keys[UP]) rot.pitch += rspeed;
+    if (is.keyboard.keys[DOWN]) rot.pitch -= rspeed;
 
     float mspeedx = rotation_speed_mouse * dt / screen.width();
     float mspeedy = rotation_speed_mouse * dt / screen.height();
-
     switch (is.mouse.lmb)
     {
     case PRESSED:
-        is.mouse.lmb = DOWN;
-        break;
-    case DOWN:
+        is.mouse.lmb = MDOWN;
+
+    case MDOWN:
         rot.yaw += float(is.mouse.lmb_x - is.mouse.x) * mspeedx;
         rot.pitch += float(is.mouse.lmb_y - is.mouse.y) * mspeedy;
 
         break;
     case RELEASED:
-        is.mouse.lmb = UP;
-    case UP:
+        is.mouse.lmb = MUP;
+    case MUP:
         break;
     }
 
@@ -162,8 +161,8 @@ void Controller::process_input(float dt)
     switch (is.mouse.rmb)
     {
     case PRESSED:
-        up = camera.tlnear_fpoint - camera.blnear_fpoint;
-        right = camera.brnear_fpoint - camera.blnear_fpoint;
+        up = camera.frustrum_up;
+        right = camera.frustrum_right;
 
         dx = (is.mouse.x + 0.5f) / screen.width();
         dy = 1.f - (is.mouse.y + 0.5f)/ screen.height();
@@ -173,9 +172,9 @@ void Controller::process_input(float dt)
 
         scene.select_object(mouse_ray, camera.zn, camera.zf, record);
 
-        is.mouse.rmb = DOWN;
+        is.mouse.rmb = MDOWN;
 
-    case DOWN:
+    case MDOWN:
         if (record.mover.get())
         {
             h = 2.f * camera.zn / camera.proj(1, 1);
@@ -183,41 +182,47 @@ void Controller::process_input(float dt)
 
             prop = fabsf((record.intersection.point * camera.view.col(2).head<3>() + camera.view(3, 2)) / camera.zn);
 
-            rotation = quat{ Eigen::AngleAxisf{rot.roll, vec3{0.f, 0.f,1.f}} };
-            rotation *= quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
-            rotation *= quat{ Eigen::AngleAxisf{rot.yaw, vec3{0.f, 1.f,0.f}} };
-            
-            view = record.intersection.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();            
-            tview = view * rotation.toRotationMatrix();
-            trans = tview - view;
-            trans *= camera.view_inv.topLeftCorner<3, 3>();
+            if(camera.fps_camera)
+            {
+                //FPS
+                rotation = quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
+                rotation *= quat{ Eigen::AngleAxisf{
+                    rot.yaw,
+                    vec3{0,1,0} *camera.view.topLeftCorner<3, 3>()} };
 
-            move_camera(move, rot);
-            camera_update = false;
+                view = record.intersection.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();
+                tview = view * rotation.toRotationMatrix();
+                trans = tview - view;
+                trans *= camera.view_inv.topLeftCorner<3, 3>();
 
-            offset = trans;
-            offset += move.x() * camera.right() + move.y() * camera.up() + move.z() * camera.forward();
-            offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen.width() * camera.right();
-            offset += (is.mouse.prev_y - is.mouse.y) * h * prop / screen.height() * camera.up();
+                move_camera(move, rot);
+                camera_update = false;
 
-            ////FPS
-            //rotation = quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
-            //rotation *= quat{ Eigen::AngleAxisf{
-            //    rot.yaw,
-            //    vec3{0,1,0} *camera.view.topLeftCorner<3, 3>()}};
+                offset = trans;
+                offset += move.x() * camera.right() + move.y() * camera.up() + move.z() * camera.forward();
+                offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen.width() * camera.right();
+                offset += (is.mouse.prev_y - is.mouse.y) * h * prop / screen.height() * camera.up();
+            } else
+            {
+                //spaceship
+                rotation = quat{ Eigen::AngleAxisf{rot.roll, vec3{0.f, 0.f,1.f}} };
+                rotation *= quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
+                rotation *= quat{ Eigen::AngleAxisf{rot.yaw, vec3{0.f, 1.f,0.f}} };
 
-            //view = record.intersection.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();
-            //tview = view * rotation.toRotationMatrix();
-            //trans = tview - view;
-            //trans *= camera.view_inv.topLeftCorner<3, 3>();
+                view = record.intersection.point * camera.view.topLeftCorner<3, 3>() + camera.view.row(3).head<3>();
+                tview = view * rotation.toRotationMatrix();
+                trans = tview - view;
+                trans *= camera.view_inv.topLeftCorner<3, 3>();
 
-            //move_camera(move, rot);
-            //camera_update = false;
+                move_camera(move, rot);
+                camera_update = false;
 
-            //offset = trans;
-            //offset += move.x() * camera.right() + move.y() * camera.up() + move.z() * camera.forward();
-            //offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen.width() * camera.right();
-            //offset += (is.mouse.prev_y - is.mouse.y) * h * prop / screen.height() * camera.up();
+                offset = trans;
+                offset += move.x() * camera.right() + move.y() * camera.up() + move.z() * camera.forward();
+                offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen.width() * camera.right();
+                offset += (is.mouse.prev_y - is.mouse.y) * h * prop / screen.height() * camera.up();
+            }
+
 
             record.intersection.point += offset;
             record.mover->move(offset);
@@ -225,8 +230,8 @@ void Controller::process_input(float dt)
 
         break;
     case RELEASED:
-        is.mouse.rmb = UP;
-    case UP:
+        is.mouse.rmb = MUP;
+    case MUP:
         break;
     }
 

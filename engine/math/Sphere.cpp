@@ -14,7 +14,16 @@ bool Sphere::intersection(const Ray& ray, float t_min, float t_max, Intersection
 	{
 		record.t = t;
 		record.point = ray.position(t);
-		record.norm = (record.point - center) / radius;
+		record.norm = (record.point - center).normalized();
+		return true;
+	}
+
+	t = (-b + sqrt(D)) / 2;
+	if (t > t_min && t < t_max && t < record.t)
+	{
+		record.t = t;
+		record.point = ray.position(t);
+		record.norm = (record.point - center).normalized();
 		return true;
 	}
 	return false;

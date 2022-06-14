@@ -2,8 +2,6 @@
 
 #include "math/math.h"
 
-
-
 mat4 invert_to_view(mat4& src);
 
 class Camera
@@ -14,20 +12,19 @@ public:
 
 	mat4 view = mat4::Identity();
 	mat4 view_inv = mat4::Identity();
-
 	mat4 proj = mat4::Identity();
 	mat4 proj_inv = mat4::Identity();
-
 	mat4 view_proj = mat4::Identity();
 	mat4 view_proj_inv = mat4::Identity();
 
-	vec4 blnear_fpoint = {-1, -1, 1, 1};
-	vec4 tlnear_fpoint = {-1,  1, 1, 1};
-	vec4 brnear_fpoint = { 1, -1, 1, 1 };
-
 	quat rotation = quat::Identity();
+	bool fps_camera = true;
 
 	bool matrices_update = false, basis_update = false;
+
+	vec4 blnear_fpoint = { -1, -1, 1, 1 };
+	vec4 frustrum_up = vec4::Identity();
+	vec4 frustrum_right = vec4::Identity();
 
 	auto right() { return view_inv.row(0).head<3>(); }
 	auto up() { return view_inv.row(1).head<3>(); }
@@ -55,6 +52,8 @@ public:
 
 	void change_aspect(float asp);
 	void change_fov(float fovy);
+	void change_znear(float near);
+	void change_zfar(float far);
 
 };
 

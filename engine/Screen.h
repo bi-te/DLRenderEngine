@@ -17,18 +17,21 @@ struct rgb
 
 class Screen
 {
-	uint16_t bwidth_, bheight_;
-	uint16_t width_, height_;
-	std::vector<rgb> buffer_;
+	uint8_t shrink_;
+	uint32_t width_, height_;
+	uint32_t bwidth_, bheight_;
+
 	bool wresize;
 	BITMAPINFO bmi;
-
 public:
 
-	Screen(uint16_t width = 800, uint16_t height = 600) : width_(width), height_(height),
-	bwidth_(width / 4), bheight_(height / 4), wresize(false)
+	std::vector<rgb> buffer_;
+	Screen(uint32_t width = 800, uint32_t height = 600, uint8_t shrink = 4) :
+	shrink_(shrink),
+	width_(width), height_(height),
+	bwidth_(width / shrink), bheight_(height / shrink), wresize(false)
 	{
-		buffer_.resize(bwidth_ * bheight_);
+		buffer_.resize(width_ * height_);
 		ZeroMemory(&bmi, sizeof(BITMAPINFO));
 
 		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -38,7 +41,7 @@ public:
 
 	rgb& operator[](uint32_t i) { return buffer_[i]; }
 
-	void set(uint16_t row, uint16_t column, const vec3& color)
+	void set(uint32_t row, uint32_t column, const vec3& color)
 	{
 		uint8_t r = color.x() > 255.f ? 255 : color.x();
 		uint8_t g = color.y() > 255.f ? 255 : color.y();
@@ -47,19 +50,32 @@ public:
 		buffer_[row * bwidth_ + column] = { r, g, b };
 	}
 
-	uint16_t width() const { return width_;}
-	uint16_t height() const { return height_; }
-	uint16_t buffer_width() const { return bwidth_; }
-	uint16_t buffer_height() const { return bheight_; }
+	uint32_t width() const { return width_;}
+	uint32_t height() const { return height_; }
+	uint32_t buffer_width() const { return bwidth_; }
+	uint32_t buffer_height() const { return bheight_; }
 
+	void clear()
+	{
+		for (int i = 0; i < buffer_.size(); ++i)
+		{
+			buffer_[i] = {0, 0 , 0};
+		}
+	}
 
+	void set_shrink(uint8_t shrink)
+	{
+		shrink_ = shrink;
+		bwidth_ = width_ / shrink_;
+		bheight_ = height_ / shrink_;
+	}
 
-	void init_resize(int16_t w, int16_t h)
+	void init_resize(uint32_t w, uint32_t h)
 	{
 		width_ = w ;
 		height_ = h;
-		bwidth_ = w / 4;
-		bheight_ = h / 4;
+		bwidth_ = w / shrink_;
+		bheight_ = h / shrink_;
 		wresize = true;
 	}
 
@@ -67,7 +83,7 @@ public:
 	{
 		if (wresize)
 		{
-			buffer_.resize(bwidth_ * bheight_);
+			buffer_.resize(width_ * height_);
 			wresize = false;
 		}
 	}
