@@ -1,5 +1,6 @@
 #include "Window.h"
 
+#include <iostream>
 #include <windowsx.h>
 
 
@@ -67,11 +68,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     case WM_KEYDOWN:
         im.global_illumination = GI_OFF;
-        if(0x31 <= wParam && wParam <= 0x39)
-        {
-            Engine::instance().screen.set_shrink(wParam % 16);
-        }
+
         is.keyboard.keys[wParam] = true;
+
+        if(0x31 <= wParam && wParam <= 0x39)
+            Engine::instance().screen.set_shrink(wParam % 16);
+        if(wParam == R || wParam == G)
+            is.keyboard.keys[wParam] = (HIWORD(lParam) & KF_REPEAT) != KF_REPEAT;
         break;
 
     case WM_KEYUP:

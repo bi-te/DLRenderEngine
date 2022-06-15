@@ -108,12 +108,12 @@ vec3 Scene::reflection(Ray& ray, uint8_t depth, uint8_t max_depth, float t_max) 
 	process_point_lights(color, record, ray.origin, m);
 	process_spotlights(color, record, ray.origin, m);
 
-	if (m.roughness < 0.1f && depth < max_depth)
+	if (m.roughness < MAX_REFLECTIVE_ROUGHNESS && depth < max_depth)
 	{
 		Ray refl;
 		refl.direction = reflect(ray.direction, record.norm);
 		refl.origin = record.point + refl.direction * 0.001f;
-		vec3 reflcolor = reflection(refl, depth + 1, max_depth, t_max) * (0.1f - m.roughness) * 10;
+		vec3 reflcolor = reflection(refl, depth + 1, max_depth, t_max) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10;
 		
 		cook_torrance(
 			color, refl.direction, record.norm, -ray.direction,
@@ -172,29 +172,30 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 
 		if (m.type == SURFACE)
 		{
+
 			process_direct_light(color, record, ray.origin, m);
 			process_point_lights(color, record, ray.origin, m);
 			process_spotlights(color, record, ray.origin, m);
-
 			if (image.global_illumination == GI_ON)
 			{
 				light_integral(color, ray.origin, m, record, image.gi_tests);
 			}
 			else
 			{
+
 				color += AMBIENT.cwiseProduct(m.albedo);
-				if (image.reflection && m.roughness < 0.1f)
+				if (image.reflection && m.roughness < MAX_REFLECTIVE_ROUGHNESS)
 				{
 					Ray refl;
 					refl.direction = reflect(ray.direction, record.norm);
 					refl.origin = record.point + refl.direction * 0.01f;
 					vec3 reflcolor = lerp(
 						vec3(0, 0, 0),  
-						reflection(refl, 1, image.max_reflect_depth, image.max_reflect_distance),
-						(0.1f - m.roughness) * 10);
+						reflection(refl, 1, MAX_REFLECTION_DEPTH, MAX_PROCESS_DISTANCE),
+						(MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10);
 										
 					cook_torrance(color, refl.direction, record.norm, -ray.direction, 
-						reflcolor, 1.f, m);
+					              reflcolor, 1.f, m);
 				}
 			}	
 		}
@@ -234,25 +235,38 @@ void Scene::integral_test(const Ray& integral_ray, float t_max, vec3& light) con
 void Scene::light_integral(vec3& color, const vec3& camera_pos, const Material& material, 
 	const Intersection& record, uint32_t tests) const
 {
+	RandomGenerator& rndm = RandomGenerator::generator();
 	mat3 basis = mat3::Identity();
 	basis.row(1) = record.norm;
 	onb_frisvad(basis);
-	std::vector set(fibonacci_set(tests, 2 * RandomGenerator::generator().get_real() * PI));
+	std::vector set(fibonacci_set(tests, 2 * rndm.get_real() * PI));
 
 	Ray integral_ray;
 	vec3 light, view = (camera_pos - record.point).normalized();
 	float dw = 1.f / (tests + 1.f);
 	for (const vec3& point : set)
+	//for(uint32_t i = 0; i < tests; i++)
 	{
 		integral_ray.direction = (point * basis).normalized();
+		//vec3 random;
+		//do
+		//{
+		//	random = {
+		//	   2.f * rndm.get_real() - 1.f,
+		//	   2.f * rndm.get_real() - 1.f,
+		//	   2.f * rndm.get_real() - 1.f
+		//	};
+		//} while (record.norm.dot(random) <= 0.f);		
+		//integral_ray.direction = random.normalized();
+
 		integral_ray.origin = record.point + integral_ray.direction * 0.001f;
-		integral_test(integral_ray, 300.f, light);
+		integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
 		cook_torrance(color, integral_ray.direction, record.norm, view, light, dw, material);
 	}
 
 	integral_ray.direction = reflect(-view, record.norm);
 	integral_ray.origin = record.point + integral_ray.direction * 0.001f;
-	integral_test(integral_ray, 300.f, light);
+	integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
 	cook_torrance(color, integral_ray.direction, record.norm, view, light, dw, material);
 }
 
@@ -265,7 +279,7 @@ void Scene::process_direct_light(vec3& color, const Intersection& record, const 
 
 	if (shadow_test(light, std::numeric_limits<float>::infinity())) return;
 	cook_torrance_aprox(color, light.direction, light.direction, record.norm, view,
-		dirlight.light, 0.5 * dirlight.solid_angle / PI, m);
+	                    dirlight.light, 0.5 * dirlight.solid_angle / PI, m);
 }
 
 void Scene::process_point_lights(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const
@@ -280,7 +294,7 @@ void Scene::process_point_lights(vec3& color, const Intersection& record, const 
 
 		if (shadow_test(light, max_dist)) continue;
 		calc_point_light_pbr(color, light.direction, plobject.plight.light, 
-			max_dist, plobject.sphere.radius, record.norm, view, m);
+		                     max_dist, plobject.sphere.radius, record.norm, view, m);
 	}
 }
 

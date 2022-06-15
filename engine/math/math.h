@@ -52,7 +52,7 @@ inline float smoothstep(float edge0, float edge1, float x)
 	return x * x * (3.f - 2.f * x);
 }
 
-void onb_frisvad(const vec3& n, vec3& b1, vec3& b2);
+void onb_frisvad(vec3& b1, const vec3& normal, vec3& b2);
 void onb_frisvad(mat3& basis);
 vec3 fibonacci_set_point(uint32_t number, float start_phi, uint32_t index);
 std::vector<vec3> fibonacci_set(uint32_t number, float start_phi);

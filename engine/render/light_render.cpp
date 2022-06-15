@@ -56,97 +56,97 @@ void calc_spotlight(vec3& color, const Spotlight& spotlight, const Intersection&
 
 
 //Cook-Tarrance
-float ggx_distribution(float rough2, float cosH)
+float ggx_distribution(float rough2, float cosNH)
 {
-	float denum = cosH * cosH * (rough2 - 1) + 1;
+	float denum = cosNH * cosNH * (rough2 - 1) + 1;
 	denum = PI * denum * denum;
 	return rough2 / denum;
 }
 
-float ggx_smith(float rough2, float cosV, float cosL)
+float ggx_smith(float rough2, float cosNV, float cosNL)
 {
-	cosV *= cosV;
-	cosL *= cosL;
-	return 2 / (sqrtf(1 + rough2 * (1 - cosV) / cosV) + sqrtf(1 + rough2 * (1 - cosL) / cosL));
+	cosNV *= cosNV;
+	cosNL *= cosNL;
+	return 2 / (sqrtf(1 + rough2 * (1 - cosNV) / cosNV) + sqrtf(1 + rough2 * (1 - cosNL) / cosNL));
 }
 
-vec3 fresnel(const vec3& f0, float cosL)
+vec3 fresnel(const vec3& f0, float cosNL)
 {
-	return f0 + (vec3(1.f, 1.f, 1.f) - f0) * powf(1.f - cosL, 5.f);
+	return f0 + (vec3(1.f, 1.f, 1.f) - f0) * powf(1.f - cosNL, 5.f);
 }
 
-void cook_torrance_aprox(vec3& color, const vec3& l, const vec3& cl, const vec3& n, const vec3& v, 
-	const vec3& radiance, float dw, const Material& m)
+void cook_torrance_aprox(vec3& color, const vec3& light, const vec3& closest_light, const vec3& normal, const vec3& view,
+                         const vec3& radiance, float solid_angle, const Material& material)
 {
-	vec3 h = (cl + v).normalized();
+	vec3 h = (closest_light + view).normalized();
 
-	float cosV = n.dot(v);
+	float cosV = normal.dot(view);
 	if (cosV <= 0.f) { return; }
-	float cosL = n.dot(l);
+	float cosL = normal.dot(light);
 	if (cosL <= 0.f) { return; }
-	float cosC = n.dot(cl);
-	float cosH = n.dot(h);
-	float cosHL = h.dot(cl);
+	float cosC = normal.dot(closest_light);
+	float cosH = normal.dot(h);
+	float cosHL = h.dot(closest_light);
 
-	float rough2 = m.roughness * m.roughness;
+	float rough2 = material.roughness * material.roughness;
 	float g = ggx_smith(rough2, cosV, cosC);
-	float d = std::min(ggx_distribution(rough2, cosH) * dw * 0.25f / (cosV * cosL), 1.f);
-	vec3 f = fresnel(m.f0, cosHL);
-	vec3 diffK = vec3(1.f, 1.f, 1.f) - fresnel(m.f0, cosL);
+	float d = std::min(ggx_distribution(rough2, cosH) * solid_angle * 0.25f / (cosV * cosL), 1.f);
+	vec3 f = fresnel(material.f0, cosHL);
+	vec3 diffK = vec3(1.f, 1.f, 1.f) - fresnel(material.f0, cosL);
 
 	vec3 spec = f * g * d;
-	vec3 diff = (1 - m.metalness) * diffK.cwiseProduct(m.albedo) * dw / PI;
+	vec3 diff = (1 - material.metalness) * diffK.cwiseProduct(material.albedo) * solid_angle / PI;
 
 	color += (diff + spec ).cwiseProduct(radiance) * cosL;
 }
 
-void cook_torrance(vec3& color, const vec3& l, const vec3& n, const vec3& v,
-	const vec3& radiance, float dw, const Material& m)
+void cook_torrance(vec3& color, const vec3& light, const vec3& normal, const vec3& view,
+                   const vec3& radiance, float solid_angle, const Material& material)
 {
-	vec3 h = (l + v).normalized();
+	vec3 h = (light + view).normalized();
 
-	float cosV = n.dot(v);
+	float cosV = normal.dot(view);
 	if (cosV <= 0.f) { return; }
-	float cosL = n.dot(l);
+	float cosL = normal.dot(light);
 	if (cosL <= 0.f) { return; }
-	float cosH = n.dot(h);
-	float cosHL = h.dot(l);
+	float cosH = normal.dot(h);
+	float cosHL = h.dot(light);
 
-	float rough2 = m.roughness * m.roughness;
+	float rough2 = material.roughness * material.roughness;
 	float g = ggx_smith(rough2, cosV, cosL);
 	float d = ggx_distribution(rough2, cosH);
 	
 
-	vec3 f = fresnel(m.f0, cosHL);
+	vec3 f = fresnel(material.f0, cosHL);
 	vec3 diffK = vec3(1.f, 1.f, 1.f) - f;
 
-	vec3 spec = f * g * std::min(d *dw * 0.25f / (cosV * cosL), 1.f);
-	vec3 diff = (1 - m.metalness) * diffK.cwiseProduct(m.albedo) * dw  / PI;
+	vec3 spec = f * g * std::min(d *solid_angle * 0.25f / (cosV * cosL), 1.f);
+	vec3 diff = (1 - material.metalness) * diffK.cwiseProduct(material.albedo) * solid_angle  / PI;
 
 	color += (diff + spec).cwiseProduct(radiance) * cosL;
 }
 
 // PBR
 void calc_direct_light_pbr(vec3& color, const DirectLight& dirlight, const vec3& norm,
-	const vec3& light_vec, const vec3& view, const Material& m)
+                           const vec3& light, const vec3& view, const Material& material)
 {
-	cook_torrance_aprox(color, light_vec, light_vec, norm, view, dirlight.light, dirlight.solid_angle / ( 2 * PI), m);
+	cook_torrance_aprox(color, light, light, norm, view, dirlight.light, dirlight.solid_angle / ( 2 * PI), material);
 }
 
-void calc_point_light_pbr(vec3& color, vec3 light_vec, const vec3& light, float light_dist, float radius, 
-	const vec3& norm, const vec3& view, const Material& m)
+void calc_point_light_pbr(vec3& color, vec3 light, const vec3& radiance, float light_dist, float radius,
+                          const vec3& norm, const vec3& view, const Material& material)
 {	
 	float cosPhi = sqrtf(light_dist * light_dist - radius * radius) / light_dist;
 	float attenuation = 1 - cosPhi;
 
-	vec3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
+	vec3 closest_vec = closest_sphere_direction(light * light_dist, light,
 		reflect(-view, norm), light_dist, radius, cosPhi);
-	clamp_to_horizon(norm, light_vec, 0.01f);
-	cook_torrance_aprox(color, light_vec, closest_vec, norm, view, light, attenuation, m);
+	clamp_to_horizon(norm, light, 0.01f);
+	cook_torrance_aprox(color, light, closest_vec, norm, view, radiance, attenuation, material);
 }
 
-void calc_spotlight_pbr(vec3& color, const Spotlight& spotlight, float radius, 
-	const Intersection& record, const vec3& view, const Material& m)
+void calc_spotlight_pbr(vec3& color, const Spotlight& spotlight, float radius,
+                        const Intersection& record, const vec3& view, const Material& material)
 {
 	vec3 light_vec = spotlight.position - record.point;
 	float dist = light_vec.norm();
@@ -163,7 +163,7 @@ void calc_spotlight_pbr(vec3& color, const Spotlight& spotlight, float radius,
 		reflect(-view, record.norm), dist, radius, cosPhi);
 	clamp_to_horizon(record.norm, light_vec, 0.01f);
 
-	cook_torrance_aprox(color, light_vec, closest_vec, record.norm, view, spotlight.light, attenuation, m);
+	cook_torrance_aprox(color, light_vec, closest_vec, record.norm, view, spotlight.light, attenuation, material);
 }
 
 //Color processing
@@ -203,5 +203,4 @@ void gamma_correction(vec3& color)
 	color.z() = powf(color.z(), 1.f / 2.2f);
 }
 
-//hemisphere integration
 

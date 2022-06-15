@@ -62,7 +62,7 @@ void Controller::init_scene()
 
     //direct light
     scene.dirlight.direction = vec3{ 0.f, -1.f, 0.25f }.normalized();
-    scene.dirlight.light = {80000.f, 80000.f, 80000.f }; // white direct light
+    scene.dirlight.light = {100000.f, 100000.f, 100000.f }; // white direct light
     scene.dirlight.solid_angle = 6.418e-5f;
 
     //point lights
@@ -82,8 +82,6 @@ void Controller::init_scene()
     camera.set_world_offset({ 0.f, 0.f, -20.f });
 
     image_settings().ev100 = 2.f;
-    image_settings().max_reflect_depth = 2;
-    image_settings().max_reflect_distance = 300.f;
     image_settings().gi_tests = 1000;
 }
 
@@ -100,8 +98,7 @@ void Controller::process_input(float dt)
     //image settings
     if (is.keyboard.keys[PLUS])  image_settings().ev100 += 0.1f;
     if (is.keyboard.keys[MINUS]) image_settings().ev100 -= 0.1f;
-    if(is.keyboard.keys[R])
-    {
+    if (is.keyboard.keys[R]) {
         image_settings().reflection = !image_settings().reflection;
         is.keyboard.keys[R] = false;
     }

@@ -39,13 +39,13 @@ vec3 fibonacci_set_point(uint32_t number, float start_phi, uint32_t index)
 	return point;
 }
 
-void onb_frisvad(const vec3& n, vec3& b1, vec3& b2)
+void onb_frisvad(vec3& b1, const vec3& normal, vec3& b2)
 {
-	float sign = copysignf(1.0f, n.z());
-	const float a = -1.0f / (sign + n.z());
-	const float b = n.x() * n.y() * a;
-	b1 = vec3(1.0f + sign * n.x() * n.x() * a, sign * b, -sign * n.x());
-	b2 = vec3(b, sign + n.y() * n.y() * a, -n.y());
+	float sign = copysignf(1.0f, normal.z());
+	const float a = -1.0f / (sign + normal.z());
+	const float b = normal.x() * normal.y() * a;
+	b1 = vec3(1.0f + sign * normal.x() * normal.x() * a, sign * b, -sign * normal.x());
+	b2 = vec3(b, sign + normal.y() * normal.y() * a, -normal.y());
 }
 
 void onb_frisvad(mat3& basis)

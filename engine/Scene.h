@@ -14,6 +14,10 @@
 #include "objects/PlaneObject.h"
 #include "objects/LightObjects.h"
 
+const uint16_t MAX_REFLECTION_DEPTH = 2;	
+const float MAX_REFLECTIVE_ROUGHNESS = 0.1f;
+const float MAX_PROCESS_DISTANCE = 500.f;
+
 const vec3 AMBIENT{ 0.18f, 0.f, 0.72f };
 
 class Scene
