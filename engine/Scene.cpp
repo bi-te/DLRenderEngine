@@ -205,6 +205,11 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 				integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
 				cook_torrance(color, integral_ray.direction, record.norm, 
 					view, light, 0.5f , m);
+
+				float weight = 1.f / min(image.gi_frame + 1.f, image.gi_tests);
+
+				color = lerp(screen.hdr_buffer.at(row * screen.buffer_width() + column), color, weight);
+				screen.hdr_buffer.at(row * screen.buffer_width() + column) = color;
 			}
 			else
 			{
@@ -236,13 +241,6 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 	gamma_correction(color);
 	color *= 255;
 
-	if (image.progressive_gi)
-	{
-		float weight = 1.f / min(image.gi_frame + 1.f, image.gi_tests);
-
-		color = lerp(screen.fbuffer_.at(row * screen.buffer_width() + column), color, weight);
-		screen.fbuffer_.at(row * screen.buffer_width() + column) = color;
-	}
 	screen.set(row, column, color);
 }
 

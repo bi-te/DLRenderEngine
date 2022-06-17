@@ -27,7 +27,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    initConsole();
+    //initConsole();
 
     Timer timer(1.f/60.f);
 
