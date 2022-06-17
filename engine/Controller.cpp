@@ -53,7 +53,7 @@ void Controller::init_scene()
             material.f0 = lerp(vec3{ 0.03f, 0.03f, 0.03f }, material.albedo, material.metalness);
             scene.materials.push_back(material); //y + my * x + 3 
 
-            sphere = { {2.5f * radius * x, 2.5f * radius * y, 15.5f}, radius };
+            sphere = { {2.5f * radius * x, 2.5f * radius * y, 5.5f}, radius };
             spo = { sphere, uint32_t(y + my * x + 3)};
             scene.spheres.push_back(spo);
 	    }
@@ -67,7 +67,7 @@ void Controller::init_scene()
 
     //point lights
     PointLightObject pl;
-    pl.plight.position = { 0.f, 62.5f, -7.f };
+    pl.plight.position = { 62.5f, 10.f, -7.f };
     pl.plight.light = { 40000.f, 40000.f, 40000.f };
     pl.sphere.center = pl.plight.position;
     pl.sphere.radius = 1.f;
@@ -75,11 +75,12 @@ void Controller::init_scene()
     scene.point_lights.push_back(pl); // point light
 
     //floor
-    scene.floor.plane = { vec3{0.f, 1.f, 0.f}, {0.f, -40.f, 0.f}};
+    scene.floor.plane = { vec3{0.f, 1.f, 0.f}, {0.f, -5.f, 0.f}};
     scene.floor.material = 1;
 
     camera.change_znear(0.1f);
-    camera.set_world_offset({ 0.f, 0.f, -20.f });
+    camera.set_world_angles({ 0.f, to_radians(-15.f), 0.f });
+    camera.set_world_offset({ 62.5f, 0.f, -10.f });
 
     image_settings().ev100 = 2.f;
     image_settings().gi_tests = 1000;
@@ -89,6 +90,7 @@ void Controller::process_input(float dt)
 {
     Screen& screen = Engine::instance().screen;
     InputState& is = input_state();
+    ImageSettings& im = image_settings();
 
     if (is.keyboard.keys[ESCAPE]) {
         PostQuitMessage(0);
@@ -96,15 +98,20 @@ void Controller::process_input(float dt)
     }
 
     //image settings
-    if (is.keyboard.keys[PLUS])  image_settings().ev100 += 0.1f;
-    if (is.keyboard.keys[MINUS]) image_settings().ev100 -= 0.1f;
+    if (is.keyboard.keys[PLUS])  im.ev100 += 0.1f;
+    if (is.keyboard.keys[MINUS]) im.ev100 -= 0.1f;
     if (is.keyboard.keys[R]) {
-        image_settings().reflection = !image_settings().reflection;
+        im.reflection = !im.reflection;
         is.keyboard.keys[R] = false;
+    }
+    if (is.keyboard.keys[P]) {
+        im.progressive_gi = !im.progressive_gi;
+        im.gi_frame = 0;
+        is.keyboard.keys[P] = false;
     }
     if(is.keyboard.keys[G])
     {
-        image_settings().global_illumination = GI_ON;
+        im.global_illumination = GI_ON;
         is.keyboard.keys[G] = false;
     }
 
@@ -151,7 +158,7 @@ void Controller::process_input(float dt)
     bool camera_update = true;
     float dx, dy, h, w, prop;
     vec4 up, right;
-    vec3 offset, view, tview, trans;
+    vec3 view, tview, trans, offset{ 0.f, 0.f, 0.f };
     Ray mouse_ray;
     quat rotation;
 
@@ -236,6 +243,11 @@ void Controller::process_input(float dt)
     {
         move_camera(move, rot);
     }
+
+    if( move.x() != 0.f || move.y() != 0.f  || move.z() != 0.f ||
+        rot.yaw != 0.f  || rot.pitch != 0.f || rot.roll != 0.f ||
+        offset.x() != 0.f || offset.y() != 0.f || offset.z() != 0.f )
+        im.gi_frame = 0;
 
     is.mouse.prev_x = is.mouse.x;
     is.mouse.prev_y = is.mouse.y;

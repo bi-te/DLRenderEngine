@@ -6,6 +6,7 @@ struct ImageSettings
 {
 	float ev100;
 	bool reflection;
+	bool progressive_gi;
 	GLOBAL_ILLUMINATION global_illumination;
-	uint32_t gi_tests;
+	uint32_t gi_tests, gi_frame;
 };

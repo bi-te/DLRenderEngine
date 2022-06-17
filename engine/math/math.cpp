@@ -30,7 +30,7 @@ vec3 fibonacci_set_point(uint32_t number, float start_phi, uint32_t index)
 {
 	vec3 point;
 
-	point.y() = 1.f - (index - 0.5f) / number;
+	point.y() = 1.f - (index + 0.5f) / number;
 	float radius = sqrtf(1.f - point.y() * point.y());
 	float phi = start_phi + GOLDEN_ANGLE * index;
 

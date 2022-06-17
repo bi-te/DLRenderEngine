@@ -142,12 +142,9 @@ void Scene::draw(Screen& screen, ImageSettings& image, const Camera& camera, Par
 	{
 		draw_pixel(screen, image, camera, taskIndex / screen.buffer_width(), taskIndex % screen.buffer_width());
 	};
-
 	executor.execute(fdraw, screen.buffer_width() * screen.buffer_height(), 50);
-	if (image.global_illumination == GI_ON) {
-		std::cout << 21 << std::endl;
-		image.global_illumination = GI_COMPLETED;
-	}
+
+	if (image.global_illumination == GI_ON) image.global_illumination = GI_COMPLETED;
 }
 
 void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camera, uint32_t row, uint32_t column) const
@@ -172,17 +169,45 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 
 		if (m.type == SURFACE)
 		{
-
 			process_direct_light(color, record, ray.origin, m);
 			process_point_lights(color, record, ray.origin, m);
 			process_spotlights(color, record, ray.origin, m);
+
 			if (image.global_illumination == GI_ON)
 			{
 				light_integral(color, ray.origin, m, record, image.gi_tests);
 			}
+			else if (image.progressive_gi)
+			{
+				Ray integral_ray;
+				vec3 random, refl  = reflect(ray.direction, record.norm);
+				vec3 light, view = (ray.origin - record.point).normalized();
+
+				mat3 basis = mat3::Identity();
+				basis.row(1) = record.norm;
+				onb_frisvad(basis);
+				random = vec3{
+					   2.f * RandomGenerator::generator().get_real() - 1.f,
+					   RandomGenerator::generator().get_real(),
+					   2.f * RandomGenerator::generator().get_real() - 1.f
+				}.normalized() * basis;				
+
+				integral_ray.direction = lerp(refl, random, m.roughness).normalized();
+				integral_ray.origin = record.point + integral_ray.direction * 0.001f;
+
+				integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
+				cook_torrance(color, integral_ray.direction, record.norm,
+					view, light, 0.5f, m);
+
+				integral_ray.direction = random.normalized();
+				integral_ray.origin = record.point + integral_ray.direction * 0.001f;
+
+				integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
+				cook_torrance(color, integral_ray.direction, record.norm, 
+					view, light, 0.5f , m);
+			}
 			else
 			{
-
 				color += AMBIENT.cwiseProduct(m.albedo);
 				if (image.reflection && m.roughness < MAX_REFLECTIVE_ROUGHNESS)
 				{
@@ -192,7 +217,8 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 					vec3 reflcolor = lerp(
 						vec3(0, 0, 0),  
 						reflection(refl, 1, MAX_REFLECTION_DEPTH, MAX_PROCESS_DISTANCE),
-						(MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10);
+						(MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10
+					);
 										
 					cook_torrance(color, refl.direction, record.norm, -ray.direction, 
 					              reflcolor, 1.f, m);
@@ -208,8 +234,15 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 	adjust_exposure(color, image.ev100);
 	aces_tonemap(color);
 	gamma_correction(color);
-
 	color *= 255;
+
+	if (image.progressive_gi)
+	{
+		float weight = 1.f / min(image.gi_frame + 1.f, image.gi_tests);
+
+		color = lerp(screen.fbuffer_.at(row * screen.buffer_width() + column), color, weight);
+		screen.fbuffer_.at(row * screen.buffer_width() + column) = color;
+	}
 	screen.set(row, column, color);
 }
 
@@ -245,20 +278,8 @@ void Scene::light_integral(vec3& color, const vec3& camera_pos, const Material& 
 	vec3 light, view = (camera_pos - record.point).normalized();
 	float dw = 1.f / (tests + 1.f);
 	for (const vec3& point : set)
-	//for(uint32_t i = 0; i < tests; i++)
 	{
 		integral_ray.direction = (point * basis).normalized();
-		//vec3 random;
-		//do
-		//{
-		//	random = {
-		//	   2.f * rndm.get_real() - 1.f,
-		//	   2.f * rndm.get_real() - 1.f,
-		//	   2.f * rndm.get_real() - 1.f
-		//	};
-		//} while (record.norm.dot(random) <= 0.f);		
-		//integral_ray.direction = random.normalized();
-
 		integral_ray.origin = record.point + integral_ray.direction * 0.001f;
 		integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
 		cook_torrance(color, integral_ray.direction, record.norm, view, light, dw, material);

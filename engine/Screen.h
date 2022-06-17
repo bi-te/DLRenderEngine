@@ -26,12 +26,16 @@ class Screen
 public:
 
 	std::vector<rgb> buffer_;
+	std::vector<vec3> fbuffer_;
+
 	Screen(uint32_t width = 800, uint32_t height = 600, uint8_t shrink = 4) :
 	shrink_(shrink),
 	width_(width), height_(height),
 	bwidth_(width / shrink), bheight_(height / shrink), wresize(false)
 	{
 		buffer_.resize(width_ * height_);
+		fbuffer_.resize(width_ * height_);
+
 		ZeroMemory(&bmi, sizeof(BITMAPINFO));
 
 		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -84,6 +88,7 @@ public:
 		if (wresize)
 		{
 			buffer_.resize(width_ * height_);
+			fbuffer_.resize(width_ * height_);
 			wresize = false;
 		}
 	}

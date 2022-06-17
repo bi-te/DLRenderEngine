@@ -27,7 +27,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    //initConsole();
+    initConsole();
 
     Timer timer(1.f/60.f);
 
@@ -39,7 +39,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     screen.init_resize(300, 180);
     screen.set_shrink(4);
 
-    Window window{ L"WindowClass", hInstance};
+    Window window{L"WindowClass", hInstance};
     window.create_window(L"Test21", screen.width(), screen.height());
     window.show_window(nShowCmd);
 
@@ -49,7 +49,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
     controller.init_scene();
 
     MSG msg;
-
     timer.start();
 
     while(true)
@@ -68,7 +67,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
             timer.advance_current();
             render(window.handle(), executor);
             //render(window.handle());
-
         }
         std::this_thread::yield();
     }
@@ -80,9 +78,11 @@ void render(HWND hwnd)
 {
     Engine& engine = Engine::instance();
     Screen& screen = engine.screen;
-    screen.resize();
+    ImageSettings& im = Controller::image_settings();
 
-    engine.scene.draw(screen, Controller::image_settings(), engine.camera);
+    screen.resize();
+    engine.scene.draw(screen, im, engine.camera);
+    if (im.progressive_gi) im.gi_frame++;
 	screen.update(hwnd);   
 }
 
@@ -90,8 +90,10 @@ void render(HWND hwnd, ParallelExecutor& executor)
 {
     Engine& engine = Engine::instance();
     Screen& screen = engine.screen;
-    screen.resize();
+    ImageSettings& im = Controller::image_settings();
 
-    engine.scene.draw(screen, Controller::image_settings(), engine.camera, executor);    
-	screen.update(hwnd);
+    screen.resize();
+    engine.scene.draw(screen, im, engine.camera, executor);
+    if (im.progressive_gi) im.gi_frame++;
+    screen.update(hwnd);
 }

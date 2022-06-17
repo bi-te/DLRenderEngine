@@ -40,6 +40,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     {
     case WM_RBUTTONDOWN:
         im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
 
         is.mouse.rmb = PRESSED;
         is.mouse.x = x;
@@ -47,6 +48,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         break;
     case WM_LBUTTONDOWN:
         im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
 
         is.mouse.lmb = PRESSED;
         is.mouse.lmb_x = x;
@@ -68,12 +70,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     case WM_KEYDOWN:
         im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
 
         is.keyboard.keys[wParam] = true;
 
         if(0x31 <= wParam && wParam <= 0x39)
             Engine::instance().screen.set_shrink(wParam % 16);
-        if(wParam == R || wParam == G)
+        if(wParam == R || wParam == G || wParam == P)
             is.keyboard.keys[wParam] = (HIWORD(lParam) & KF_REPEAT) != KF_REPEAT;
         break;
 
@@ -83,6 +86,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     case WM_SIZE:
         im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
 
         Engine::instance().screen.init_resize(LOWORD(lParam), HIWORD(lParam));
         Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));

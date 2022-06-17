@@ -30,7 +30,6 @@ class Scene
 		ObjType type = NONE;
 	};
 	
-
 public:
 	DirectLight dirlight;
 	std::vector<Material> materials;
@@ -42,13 +41,11 @@ public:
 	PlaneObject floor;
 	CubeMesh cube;
 
-
 	void select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record);
 	bool ray_light_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint32_t& material_index) const;
 	bool ray_object_collision(const Ray& ray, float t_min, float t_max, Intersection& nearest, uint32_t& material_index) const;
 	bool shadow_test(const Ray& ray, float t_max) const;
 	void integral_test(const Ray& ray, float t_max, vec3& light) const;
-
 
 	void process_direct_light(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const;
 	void process_point_lights(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const;

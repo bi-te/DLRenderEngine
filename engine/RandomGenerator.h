@@ -10,7 +10,7 @@ class RandomGenerator
 
 	RandomGenerator():
 		random((std::chrono::system_clock::now().time_since_epoch().count())),
-		distribution(-1.f, std::nextafter(1.f, 2.f))
+		distribution(0.f, std::nextafter(1.f, 2.f))
 	{
 	}
 
