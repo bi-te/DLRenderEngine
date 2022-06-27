@@ -24,13 +24,21 @@ void Controller::init_scene()
     material.metalness = 0.f;
     scene.materials.push_back(material);// 1 - light green
 
+    material.type = SURFACE;
+    material.emission = { 0.f, 0.f, 0.f };
+    material.albedo = { 0.67f, 0.67f, 0.15f };
+    material.f0 = { 0.05f, 0.05f, 0.05f };
+    material.roughness = 0.05f;
+    material.metalness = 0.f;
+    scene.materials.push_back(material);// 2
+
     material.type = LIGHT_SOURCE;
     material.albedo = { 0.f, 0.f, 0.f };
     material.emission = { 40000.f, 40000.f, 40000.f };
     material.f0 = { 0.f, 0.f, 0.f };
     material.roughness = 0.f;
     material.metalness = 0.f;
-    scene.materials.push_back(material);// 2 - white light
+    scene.materials.push_back(material);// 3 - white light
 
     // spheres
     Sphere sphere;
@@ -42,19 +50,19 @@ void Controller::init_scene()
     float radius = 5.f;
     for (uint8_t x = 0; x < mx; ++x)
     {
-	    for (uint8_t y = 0; y < my; ++y)
+	    for (uint8_t z = 0; z < my; ++z)
 	    {
             material.type = SURFACE;
             material.emission = { 0.f, 0.f, 0.f };
 
             material.roughness = powf(0.01f + x * drough, 2.f);
-            material.metalness = y * dmetal;
+            material.metalness = z * dmetal;
             material.albedo = vec3{ 0.8f, 0.f, 0.f };
             material.f0 = lerp(vec3{ 0.03f, 0.03f, 0.03f }, material.albedo, material.metalness);
-            scene.materials.push_back(material); //y + my * x + 3 
+            scene.materials.push_back(material); //y + my * x + 4 
 
-            sphere = { {2.5f * radius * x, 2.5f * radius * y, 5.5f}, radius };
-            spo = { sphere, uint32_t(y + my * x + 3)};
+            sphere = { {2.5f * radius * x, 5.5f, 2.5f * radius * z}, radius };
+            spo = { sphere, uint32_t(z + my * x + 4)};
             scene.spheres.push_back(spo);
 	    }
 
@@ -71,11 +79,29 @@ void Controller::init_scene()
     pl.plight.light = { 40000.f, 40000.f, 40000.f };
     pl.sphere.center = pl.plight.position;
     pl.sphere.radius = 1.f;
-    pl.material = 2;
+    pl.material = 3;
     scene.point_lights.push_back(pl); // point light
 
+	//cubes
+    MeshInstance instance;
+    instance.mesh = &scene.cube;
+    instance.transform.set_world_offset({ 10.f, 0.f, -10.f });
+    instance.transform.set_scale({ 5.f, 5.f, 5.f });
+    instance.transform.set_world_rotation({ 0.f, 0.f, 60.f });
+    instance.transform.update();
+    instance.material = 2;
+    scene.meshes.push_back(instance);
+
+    instance.mesh = &scene.cube;
+    instance.transform.set_world_offset({ -10.f, 15.f, 0.f });
+    instance.transform.set_scale({ 10.f, 10.f, 10.f });
+    instance.transform.set_world_rotation({ 45.f, 0.f, 0.f });
+    instance.transform.update();
+    instance.material = 0;
+    scene.meshes.push_back(instance);
+
     //floor
-    scene.floor.plane = { vec3{0.f, 1.f, 0.f}, {0.f, -5.f, 0.f}};
+    scene.floor.plane = { vec3{0.f, 1.f, 0.f}, {0.f, -20.f, 0.f}};
     scene.floor.material = 1;
 
     camera.change_znear(0.1f);
@@ -83,7 +109,7 @@ void Controller::init_scene()
     camera.set_world_offset({ 62.5f, 0.f, -10.f });
 
     image_settings().ev100 = 2.f;
-    image_settings().gi_tests = 1000;
+    image_settings().set_gi_tests(5000);
 }
 
 void Controller::process_input(float dt)

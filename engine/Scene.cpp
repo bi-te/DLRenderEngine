@@ -113,11 +113,10 @@ vec3 Scene::reflection(Ray& ray, uint8_t depth, uint8_t max_depth, float t_max) 
 		Ray refl;
 		refl.direction = reflect(ray.direction, record.norm);
 		refl.origin = record.point + refl.direction * 0.001f;
-		vec3 reflcolor = reflection(refl, depth + 1, max_depth, t_max) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10;
-		
-		cook_torrance(
-			color, refl.direction, record.norm, -ray.direction,
-			reflcolor, 1.f, m);
+
+		vec3 reflcolor = reflection(refl, depth + 1, max_depth, t_max);		
+		vec3 f = fresnel(m.f0, record.norm.dot(refl.direction));
+		color += f.cwiseProduct(reflcolor) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10.f;
 	}
 
 	return color;
@@ -175,7 +174,7 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 
 			if (image.global_illumination == GI_ON)
 			{
-				light_integral(color, ray.origin, m, record, image.gi_tests);
+				light_integral(color, ray.origin, m, record, image.hemisphere_points);
 			}
 			else if (image.progressive_gi)
 			{
@@ -206,7 +205,7 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 				cook_torrance(color, integral_ray.direction, record.norm, 
 					view, light, 0.5f , m);
 
-				float weight = 1.f / min(image.gi_frame + 1.f, image.gi_tests);
+				float weight = 1.f / min(image.gi_frame + 1.f, image.hemisphere_points.size());
 
 				color = lerp(screen.hdr_buffer.at(row * screen.buffer_width() + column), color, weight);
 				screen.hdr_buffer.at(row * screen.buffer_width() + column) = color;
@@ -219,14 +218,10 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 					Ray refl;
 					refl.direction = reflect(ray.direction, record.norm);
 					refl.origin = record.point + refl.direction * 0.01f;
-					vec3 reflcolor = lerp(
-						vec3(0, 0, 0),  
-						reflection(refl, 1, MAX_REFLECTION_DEPTH, MAX_PROCESS_DISTANCE),
-						(MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10
-					);
-										
-					cook_torrance(color, refl.direction, record.norm, -ray.direction, 
-					              reflcolor, 1.f, m);
+
+					vec3 reflcolor = reflection(refl, 1, MAX_REFLECTION_DEPTH, MAX_PROCESS_DISTANCE);
+					vec3 f = fresnel(m.f0, record.norm.dot(refl.direction));
+					color += f.cwiseProduct(reflcolor) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10.f;
 				}
 			}	
 		}
@@ -263,19 +258,19 @@ void Scene::integral_test(const Ray& integral_ray, float t_max, vec3& light) con
 
 }
 
-void Scene::light_integral(vec3& color, const vec3& camera_pos, const Material& material, 
-	const Intersection& record, uint32_t tests) const
+void Scene::light_integral(vec3& color, const vec3& camera_pos, const Material& material,
+                           const Intersection& record, std::vector<vec3>& points) const
 {
 	RandomGenerator& rndm = RandomGenerator::generator();
 	mat3 basis = mat3::Identity();
 	basis.row(1) = record.norm;
 	onb_frisvad(basis);
-	std::vector set(fibonacci_set(tests, 2 * rndm.get_real() * PI));
+	fibonacci_set(points, 2 * rndm.get_real() * PI);
 
 	Ray integral_ray;
 	vec3 light, view = (camera_pos - record.point).normalized();
-	float dw = 1.f / (tests + 1.f);
-	for (const vec3& point : set)
+	float dw = 2.f * PI / (points.size() + 1.f);
+	for (const vec3& point : points)
 	{
 		integral_ray.direction = (point * basis).normalized();
 		integral_ray.origin = record.point + integral_ray.direction * 0.001f;

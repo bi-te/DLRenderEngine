@@ -29,7 +29,7 @@ class Scene
 		void* ptr;
 		ObjType type = NONE;
 	};
-	
+
 public:
 	DirectLight dirlight;
 	std::vector<Material> materials;
@@ -56,5 +56,5 @@ public:
 	void draw_pixel(Screen& screen, ImageSettings& image, const Camera& camera, uint32_t row, uint32_t column) const;
 
 	vec3 reflection(Ray& ray, uint8_t depth, uint8_t max_depth, float t_max) const;
-	void light_integral(vec3& color, const vec3& camera_pos, const Material& material, const Intersection& record, uint32_t tests)const;
+	void light_integral(vec3& color, const vec3& camera_pos, const Material& material, const Intersection& record, std::vector<vec3>& points) const;
 };

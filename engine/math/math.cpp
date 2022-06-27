@@ -26,6 +26,29 @@ std::vector<vec3> fibonacci_set(uint32_t number, float start_phi)
 	return set;
 }
 
+void fibonacci_set(std::vector<vec3>& set, float start_phi)
+{
+	float dy = 1.f / set.size();
+	float y = 1.f - dy / 2.f;
+
+	vec3 point;
+	float radius, phi = start_phi;
+	for (uint32_t i = 0; i < set.size(); ++i)
+	{
+		point.y() = y;
+
+		radius = sqrtf(1.f - y * y);
+
+		point.x() = cosf(phi) * radius;
+		point.z() = sinf(phi) * radius;
+
+		y -= dy;
+		phi += GOLDEN_ANGLE;
+		set.at(i) = point;
+	}
+
+}
+
 vec3 fibonacci_set_point(uint32_t number, float start_phi, uint32_t index)
 {
 	vec3 point;

@@ -56,6 +56,7 @@ void onb_frisvad(vec3& b1, const vec3& normal, vec3& b2);
 void onb_frisvad(mat3& basis);
 vec3 fibonacci_set_point(uint32_t number, float start_phi, uint32_t index);
 std::vector<vec3> fibonacci_set(uint32_t number, float start_phi);
+void fibonacci_set(std::vector<vec3>& set, float start_phi);
 
 vec3 closest_sphere_direction(const vec3& sphere_rel_pos, const vec3& sphere_dir, const vec3& reflection,
 	float sphere_dist, float radius, float cos_sphere);
