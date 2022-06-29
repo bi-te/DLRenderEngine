@@ -27,6 +27,7 @@ public:
 
 	std::vector<rgb> buffer_;
 	std::vector<vec3> hdr_buffer;
+	std::vector<vec3> gi_hdr_buffer;
 
 	Screen(uint32_t width = 800, uint32_t height = 600, uint8_t shrink = 4) :
 	shrink_(shrink),
@@ -35,6 +36,7 @@ public:
 	{
 		buffer_.resize(width_ * height_);
 		hdr_buffer.resize(width_ * height_);
+		gi_hdr_buffer.resize(width_ * height_);
 
 		ZeroMemory(&bmi, sizeof(BITMAPINFO));
 
@@ -89,6 +91,7 @@ public:
 		{
 			buffer_.resize(width_ * height_);
 			hdr_buffer.resize(width_ * height_);
+			gi_hdr_buffer.resize(width_ * height_);
 			wresize = false;
 		}
 	}

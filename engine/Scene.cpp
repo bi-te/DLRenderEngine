@@ -152,8 +152,9 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 	Ray ray;
 	ray.origin = camera.position();
 
-	float dy = (row + 0.5f) / screen.buffer_height();
-	float dx = (column + 0.5f) / screen.buffer_width();
+	uint32_t width = screen.buffer_width(), height = screen.buffer_height();
+	float dy = (row + 0.5f) / height;
+	float dx = (column + 0.5f) / width;
 	ray.direction = 
 		((camera.blnear_fpoint + camera.frustrum_right * dx + camera.frustrum_up * dy).head<3>() - ray.origin).normalized();
 
@@ -168,51 +169,12 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 
 		if (m.type == SURFACE)
 		{
-			process_direct_light(color, record, ray.origin, m);
-			process_point_lights(color, record, ray.origin, m);
-			process_spotlights(color, record, ray.origin, m);
-
-			if (image.global_illumination == GI_ON)
+			if(image.gi_frame == 0)
 			{
-				light_integral(color, ray.origin, m, record, image.hemisphere_points);
-			}
-			else if (image.progressive_gi)
-			{
-				Ray integral_ray;
-				vec3 random, refl  = reflect(ray.direction, record.norm);
-				vec3 light, view = (ray.origin - record.point).normalized();
+				process_direct_light(color, record, ray.origin, m);
+				process_point_lights(color, record, ray.origin, m);
+				process_spotlights(color, record, ray.origin, m);
 
-				mat3 basis = mat3::Identity();
-				basis.row(1) = record.norm;
-				onb_frisvad(basis);
-				random = vec3{
-					   2.f * RandomGenerator::generator().get_real() - 1.f,
-					   RandomGenerator::generator().get_real(),
-					   2.f * RandomGenerator::generator().get_real() - 1.f
-				}.normalized() * basis;				
-
-				integral_ray.direction = lerp(refl, random, m.roughness).normalized();
-				integral_ray.origin = record.point + integral_ray.direction * 0.001f;
-
-				integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
-				cook_torrance(color, integral_ray.direction, record.norm,
-					view, light, 0.5f, m);
-
-				integral_ray.direction = random.normalized();
-				integral_ray.origin = record.point + integral_ray.direction * 0.001f;
-
-				integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
-				cook_torrance(color, integral_ray.direction, record.norm, 
-					view, light, 0.5f , m);
-
-				float weight = 1.f / min(image.gi_frame + 1.f, image.hemisphere_points.size());
-
-				color = lerp(screen.hdr_buffer.at(row * screen.buffer_width() + column), color, weight);
-				screen.hdr_buffer.at(row * screen.buffer_width() + column) = color;
-			}
-			else
-			{
-				color += AMBIENT.cwiseProduct(m.albedo);
 				if (image.reflection && m.roughness < MAX_REFLECTIVE_ROUGHNESS)
 				{
 					Ray refl;
@@ -223,7 +185,48 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 					vec3 f = fresnel(m.f0, record.norm.dot(refl.direction));
 					color += f.cwiseProduct(reflcolor) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10.f;
 				}
-			}	
+
+				if (image.progressive_gi) 
+					screen.hdr_buffer.at(row * screen.buffer_width() + column) = color;
+			}			
+
+			if (image.global_illumination == GI_ON)
+			{
+				light_integral(color, ray.origin, m, record, image.hemisphere_points);
+			}
+			else if (image.progressive_gi)
+			{
+				if(image.gi_frame < image.gi_tests)
+				{
+					Ray integral_ray;
+					vec3 fibonacci_vec, light, view = (ray.origin - record.point).normalized();
+
+					mat3 basis = mat3::Identity();
+					basis.row(1) = record.norm;
+					onb_frisvad(basis);
+					
+					fibonacci_vec = fibonacci_set_point(image.gi_tests,
+						row * column + row * (row & height) + column * (column & width),
+						image.gi_frame) * basis;
+
+					integral_ray.direction = fibonacci_vec.normalized();
+					integral_ray.origin = record.point + integral_ray.direction * 0.001f;
+					integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
+					cook_torrance(color, integral_ray.direction, record.norm,
+						view, light, 2.f * PI, m);
+
+					float weight = 1.f / min(image.gi_frame + 1.f, image.gi_tests);
+					color = lerp(screen.gi_hdr_buffer.at(row * screen.buffer_width() + column), color, weight);
+					screen.gi_hdr_buffer.at(row * screen.buffer_width() + column) = color;
+				}
+
+				color = screen.hdr_buffer.at(row * screen.buffer_width() + column) + 
+					screen.gi_hdr_buffer.at(row * screen.buffer_width() + column);
+			}
+			else
+			{
+				color += AMBIENT.cwiseProduct(m.albedo);
+			}
 		}
 	}
 	else
@@ -269,7 +272,7 @@ void Scene::light_integral(vec3& color, const vec3& camera_pos, const Material& 
 
 	Ray integral_ray;
 	vec3 light, view = (camera_pos - record.point).normalized();
-	float dw = 2.f * PI / (points.size() + 1.f);
+	float dw = 2.f * PI / points.size();
 	for (const vec3& point : points)
 	{
 		integral_ray.direction = (point * basis).normalized();
@@ -277,11 +280,6 @@ void Scene::light_integral(vec3& color, const vec3& camera_pos, const Material& 
 		integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
 		cook_torrance(color, integral_ray.direction, record.norm, view, light, dw, material);
 	}
-
-	integral_ray.direction = reflect(-view, record.norm);
-	integral_ray.origin = record.point + integral_ray.direction * 0.001f;
-	integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
-	cook_torrance(color, integral_ray.direction, record.norm, view, light, dw, material);
 }
 
 void Scene::process_direct_light(vec3& color, const Intersection& record, const vec3& camera_pos, const Material& m) const
