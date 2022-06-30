@@ -135,7 +135,8 @@ void calc_direct_light_pbr(vec3& color, const DirectLight& dirlight, const vec3&
 
 void calc_point_light_pbr(vec3& color, vec3 light, const vec3& radiance, float light_dist, float radius,
                           const vec3& norm, const vec3& view, const Material& material)
-{	
+{
+	light_dist = std::max(light_dist, radius);
 	float cosPhi = sqrtf(light_dist * light_dist - radius * radius) / light_dist;
 	float attenuation = 1 - cosPhi;
 
@@ -149,7 +150,7 @@ void calc_spotlight_pbr(vec3& color, const Spotlight& spotlight, float radius,
                         const Intersection& record, const vec3& view, const Material& material)
 {
 	vec3 light_vec = spotlight.position - record.point;
-	float dist = light_vec.norm();
+	float dist = std::max(light_vec.norm(), radius);
 	light_vec.normalize();
 
 	float cosDSL = spotlight.direction.dot(-light_vec);

@@ -116,7 +116,7 @@ vec3 Scene::reflection(Ray& ray, uint8_t depth, uint8_t max_depth, float t_max) 
 
 		vec3 reflcolor = reflection(refl, depth + 1, max_depth, t_max);		
 		vec3 f = fresnel(m.f0, record.norm.dot(refl.direction));
-		color += f.cwiseProduct(reflcolor) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10.f;
+		color += f.cwiseProduct(reflcolor) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) / MAX_REFLECTIVE_ROUGHNESS;
 	}
 
 	return color;
@@ -183,7 +183,7 @@ void Scene::draw_pixel(Screen& screen, ImageSettings& image, const Camera& camer
 
 					vec3 reflcolor = reflection(refl, 1, MAX_REFLECTION_DEPTH, MAX_PROCESS_DISTANCE);
 					vec3 f = fresnel(m.f0, record.norm.dot(refl.direction));
-					color += f.cwiseProduct(reflcolor) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) * 10.f;
+					color += f.cwiseProduct(reflcolor) * (MAX_REFLECTIVE_ROUGHNESS - m.roughness) / MAX_REFLECTIVE_ROUGHNESS;
 				}
 
 				if (image.progressive_gi) 
@@ -275,7 +275,7 @@ void Scene::light_integral(vec3& color, const vec3& camera_pos, const Material& 
 	float dw = 2.f * PI / points.size();
 	for (const vec3& point : points)
 	{
-		integral_ray.direction = (point * basis).normalized();
+		integral_ray.direction = point * basis;
 		integral_ray.origin = record.point + integral_ray.direction * 0.001f;
 		integral_test(integral_ray, MAX_PROCESS_DISTANCE, light);
 		cook_torrance(color, integral_ray.direction, record.norm, view, light, dw, material);
