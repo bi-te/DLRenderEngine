@@ -6,14 +6,6 @@
 #include "Controller.h"
 #include "Engine.h"
 
-#define BUTTON_W 0x57
-#define BUTTON_A 0x41
-#define BUTTON_S 0x53
-#define BUTTON_D 0x44
-#define BUTTON_C 0x43
-#define BUTTON_Q 0x51
-#define BUTTON_E 0x45
-
 LRESULT CALLBACK WindowProc(HWND hwnd,
     UINT message, WPARAM wparam, LPARAM lparam);
 

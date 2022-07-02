@@ -1,5 +1,6 @@
 #include "Window.h"
 
+#include <iostream>
 #include <windowsx.h>
 
 
@@ -31,25 +32,34 @@ void Window::create_window(LPCWSTR name, LONG width, LONG height)
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     InputState& is = Controller::input_state();
+    ImageSettings& im = Controller::image_settings();
+    
     int16_t x = GET_X_LPARAM(lParam);
     int16_t y = GET_Y_LPARAM(lParam);
     switch (message)
     {
     case WM_RBUTTONDOWN:
+        im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
+
         is.mouse.rmb = PRESSED;
         is.mouse.x = x;
         is.mouse.y = y;
         break;
     case WM_LBUTTONDOWN:
+        im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
+
         is.mouse.lmb = PRESSED;
         is.mouse.lmb_x = x;
         is.mouse.lmb_y = y;
         break;
-
     case WM_MOUSEMOVE:
         is.mouse.x = x;
         is.mouse.y = y;
         break;
+    case WM_MOUSEWHEEL:
+        is.mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / 120;
 
     case WM_RBUTTONUP:
         is.mouse.rmb = RELEASED;
@@ -59,101 +69,25 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         break;
 
     case WM_KEYDOWN:
-        switch (wParam)
-        {
-        case BUTTON_W:
-            is.keyboard.forward = true;
-            break;
-        case BUTTON_A:
-            is.keyboard.left = true;
-            break;
-        case BUTTON_S:
-            is.keyboard.backward = true;
-            break;
-        case BUTTON_D:
-            is.keyboard.right = true;
-            break;
-        case BUTTON_C:
-            is.keyboard.down = true;
-            break;
-        case VK_SPACE:
-            is.keyboard.up = true;
-            break;
-        case BUTTON_Q:
-            is.keyboard.lroll = true;
-            break;
-        case BUTTON_E:
-            is.keyboard.rroll = true;
-            break;
-        case VK_ESCAPE:
-            is.keyboard.exit = true;
-            break;
-        case VK_CONTROL:
-            is.keyboard.down = true;
-            break;
+        im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
 
-        case VK_LEFT:
-            is.keyboard.yawleft = true;
-            break;
-        case VK_RIGHT:
-            is.keyboard.yawright = true;
-            break;
-        case VK_UP:
-            is.keyboard.pitchup = true;
-            break;
-        case VK_DOWN:
-            is.keyboard.pitchdown = true;
-            break;
-        }
+        is.keyboard.keys[wParam] = true;
+
+        if(0x31 <= wParam && wParam <= 0x39)
+            Engine::instance().screen.set_shrink(wParam % 16);
+        if(wParam == R || wParam == G || wParam == P)
+            is.keyboard.keys[wParam] = (HIWORD(lParam) & KF_REPEAT) != KF_REPEAT;
         break;
 
     case WM_KEYUP:
-        switch (wParam)
-        {
-        case BUTTON_W:
-            is.keyboard.forward = false;
-            break;
-        case BUTTON_A:
-            is.keyboard.left = false;
-            break;
-        case BUTTON_S:
-            is.keyboard.backward = false;
-            break;
-        case BUTTON_D:
-            is.keyboard.right = false;
-            break;
-        case BUTTON_C:
-            is.keyboard.down = false;
-            break;
-        case VK_SPACE:
-            is.keyboard.up = false;
-            break;
-        case BUTTON_Q:
-            is.keyboard.lroll = false;
-            break;
-        case BUTTON_E:
-            is.keyboard.rroll = false;
-            break;
-        case VK_CONTROL:
-            is.keyboard.down = false;
-            break;
-
-        case VK_LEFT:
-            is.keyboard.yawleft = false;
-            break;
-        case VK_RIGHT:
-            is.keyboard.yawright = false;
-            break;
-        case VK_UP:
-            is.keyboard.pitchup = false;
-            break;
-        case VK_DOWN:
-            is.keyboard.pitchdown = false;
-            break;
-        }
+        is.keyboard.keys[wParam] = false;
         break;
 
     case WM_SIZE:
+        im.global_illumination = GI_OFF;
+        im.gi_frame = 0;
+
         Engine::instance().screen.init_resize(LOWORD(lParam), HIWORD(lParam));
         Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));
         break;
