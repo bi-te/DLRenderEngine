@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Screen.h"
 #include "Scene.h"
 
 class Engine
@@ -8,7 +7,6 @@ class Engine
 public:
 	Camera camera;
 	Scene scene;
-	Screen screen;
 
 	static Engine& instance()
 	{

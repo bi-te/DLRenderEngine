@@ -74,8 +74,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 
         is.keyboard.keys[wParam] = true;
 
-        if(0x31 <= wParam && wParam <= 0x39)
-            Engine::instance().screen.set_shrink(wParam % 16);
         if(wParam == R || wParam == G || wParam == P)
             is.keyboard.keys[wParam] = (HIWORD(lParam) & KF_REPEAT) != KF_REPEAT;
         break;
@@ -87,8 +85,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     case WM_SIZE:
         im.global_illumination = GI_OFF;
         im.gi_frame = 0;
-
-        Engine::instance().screen.init_resize(LOWORD(lParam), HIWORD(lParam));
+        
         Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));
         break;
 

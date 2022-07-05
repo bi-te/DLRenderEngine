@@ -25,11 +25,16 @@ bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Inters
 	vec3 ab, ac, ao;
 	vec3 norm;
 
-	for (uint32_t i = 0; i < mesh->vertices().size(); i += 3)
+
+
+	for (uint32_t i = 0; i < mesh->vertices_data_.size();)
 	{
-		a = mesh->vertices()[i];
-		b = mesh->vertices()[i + 1];
-		c = mesh->vertices()[i + 2];
+		vec3 a = vec3{ mesh->vertices_data_[i], mesh->vertices_data_[i + 1] , mesh->vertices_data_[i + 2] };
+		i += mesh->strip;
+		vec3 b = vec3{ mesh->vertices_data_[i], mesh->vertices_data_[i + 1] , mesh->vertices_data_[i + 2] };
+		i += mesh->strip;
+		vec3 c = vec3{ mesh->vertices_data_[i], mesh->vertices_data_[i + 1] , mesh->vertices_data_[i + 2] };
+		i += mesh->strip;
 
 		ab = b - a;
 		ac = c - a;

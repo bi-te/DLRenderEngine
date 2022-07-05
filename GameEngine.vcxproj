@@ -154,7 +154,8 @@
     <ClCompile Include="engine\math\Transform.cpp" />
     <ClCompile Include="engine\objects\MeshInstance.cpp" />
     <ClCompile Include="engine\ParallelExecutor.cpp" />
-    <ClCompile Include="engine\render\light_render.cpp" />
+    <ClCompile Include="engine\render\Direct3D.cpp" />
+    <ClCompile Include="engine\render\Renderer.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
     <ClCompile Include="engine\Window.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -164,6 +165,10 @@
     <ClInclude Include="engine\Controller.h" />
     <ClInclude Include="engine\Engine.h" />
     <ClInclude Include="engine\ImageSettings.h" />
+    <ClInclude Include="engine\includes\d3d.h" />
+    <ClInclude Include="engine\includes\win.h" />
+    <ClInclude Include="engine\includes\win_def.h" />
+    <ClInclude Include="engine\includes\win_undef.h" />
     <ClInclude Include="engine\IntersectionQuery.h" />
     <ClInclude Include="engine\math\CubeMesh.h" />
     <ClInclude Include="engine\math\Intersection.h" />
@@ -173,7 +178,6 @@
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\Transform.h" />
-    <ClInclude Include="engine\math\Vec3.h" />
     <ClInclude Include="engine\moving\PointLightMover.h" />
     <ClInclude Include="engine\moving\ObjectMover.h" />
     <ClInclude Include="engine\moving\SphereMover.h" />
@@ -185,13 +189,27 @@
     <ClInclude Include="engine\Objects\SphereObject.h" />
     <ClInclude Include="engine\ParallelExecutor.h" />
     <ClInclude Include="engine\RandomGenerator.h" />
+    <ClInclude Include="engine\render\Direct3D.h" />
+    <ClInclude Include="engine\render\Renderer.h" />
     <ClInclude Include="engine\render\Lighting.h" />
-    <ClInclude Include="engine\render\light_render.h" />
     <ClInclude Include="engine\render\Material.h" />
     <ClInclude Include="engine\Scene.h" />
-    <ClInclude Include="engine\Screen.h" />
     <ClInclude Include="engine\Timer.h" />
     <ClInclude Include="engine\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\pixel.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\vertex.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -25,6 +25,12 @@
     <Filter Include="Header Files\moving">
       <UniqueIdentifier>{b75f5270-20a6-49d8-917c-9d8df3c9adc3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\includes">
+      <UniqueIdentifier>{cec55c35-9b91-4bc0-99b7-aaf1b1bc45b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{c5d864f5-53ef-4b24-84f5-69c250de7277}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -39,13 +45,7 @@
     <ClCompile Include="engine\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="engine\math\Sphere.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="engine\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\objects\MeshInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="engine\math\Transform.cpp">
@@ -57,8 +57,17 @@
     <ClCompile Include="engine\math\math.cpp">
       <Filter>Header Files\math</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\light_render.cpp">
-      <Filter>Header Files\render</Filter>
+    <ClCompile Include="engine\math\Sphere.cpp">
+      <Filter>Header Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\objects\MeshInstance.cpp">
+      <Filter>Header Files\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Renderer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -69,9 +78,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="engine\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="engine\Scene.h">
@@ -93,9 +99,6 @@
       <Filter>Header Files\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Intersection.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\math\Vec3.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Transform.h">
@@ -140,9 +143,6 @@
     <ClInclude Include="engine\math\Mesh.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="engine\render\light_render.h">
-      <Filter>Header Files\render</Filter>
-    </ClInclude>
     <ClInclude Include="engine\math\CubeMesh.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
@@ -158,5 +158,31 @@
     <ClInclude Include="engine\ImageSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="engine\includes\win.h">
+      <Filter>Header Files\includes</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct3D.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\includes\d3d.h">
+      <Filter>Header Files\includes</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Renderer.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\includes\win_undef.h">
+      <Filter>Header Files\includes</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\includes\win_def.h">
+      <Filter>Header Files\includes</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\vertex.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\pixel.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
