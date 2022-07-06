@@ -20,13 +20,31 @@ void Renderer::init_swap_chain(HWND window)
     HRESULT result = globals.factory5->CreateSwapChainForHwnd(globals.device5.Get(), window, &desc,
         NULL, NULL, &swap_chain);
     assert(result >= 0 && "CreateSwapChainForHwnd");
+}
+
+void Renderer::init_render_target_view()
+{
+    if (!swap_chain.Get())
+        return;
 
     comptr<ID3D11Texture2D> back_buffer;
-    result = swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), &back_buffer);
+    HRESULT result = swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), &back_buffer);
     assert(SUCCEEDED(result) && "GetBuffer");
 
-    result = globals.device5->CreateRenderTargetView(back_buffer.Get(), NULL, &target_view);
+    result = Direct3D::globals().device5->CreateRenderTargetView(back_buffer.Get(), NULL, &target_view);
     assert(SUCCEEDED(result) && "CreateRenderTargetView");
+}
+
+void Renderer::resize_buffers()
+{
+    if (!swap_chain.Get())
+        return;
+
+    target_view.Reset();
+    HRESULT result = swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+    assert(SUCCEEDED(result) && "ResizeBuffers");
+
+    init_render_target_view();
 }
 
 void Renderer::update_vertex_shader(LPCWSTR file_name, LPCSTR entry_point)

@@ -87,6 +87,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         im.gi_frame = 0;
         
         Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));
+        Engine::instance().renderer.resize_buffers();
         break;
 
     case WM_DESTROY:

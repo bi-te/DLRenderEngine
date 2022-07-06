@@ -52,12 +52,14 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
     MSG msg;
     timer.start();
-    Renderer renderer;
-    renderer.init_swap_chain(window.handle());
-    renderer.update_vertex_shader(L"shaders/vertex.hlsl", "main");
-    renderer.update_pixel_shader(L"shaders/pixel.hlsl", "main");
-    renderer.create_input_layout();
+
+    engine.renderer.init_swap_chain(window.handle());
+    engine.renderer.init_render_target_view();
+    engine.renderer.update_vertex_shader(L"shaders/vertex.hlsl", "main");
+    engine.renderer.update_pixel_shader(L"shaders/pixel.hlsl", "main");
+    engine.renderer.create_input_layout();
     engine.scene.init_buffers();
+
     while(true)
     {
 	    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -73,7 +75,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
             //controller.process_input(timer.time_passed());
             timer.advance_current();
 
-            renderer.draw(engine.scene);
+            engine.renderer.draw(engine.scene);
         }
         std::this_thread::yield();
     }

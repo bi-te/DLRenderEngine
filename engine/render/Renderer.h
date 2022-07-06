@@ -23,6 +23,8 @@ public:
 	}
 
     void init_swap_chain(HWND window);
+    void init_render_target_view();
+    void resize_buffers();
     
     void update_vertex_shader(LPCWSTR file_name, LPCSTR entry_point);
     void update_pixel_shader(LPCWSTR file_name, LPCSTR entry_point);

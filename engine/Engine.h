@@ -1,12 +1,14 @@
 #pragma once
 
 #include "Scene.h"
+#include "render/Renderer.h"
 
 class Engine
 {
 public:
 	Camera camera;
 	Scene scene;
+	Renderer renderer;
 
 	static Engine& instance()
 	{
