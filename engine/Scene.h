@@ -2,7 +2,6 @@
 #include <vector>
 
 #include "render/Direct3D.h"
-#include "ParallelExecutor.h"
 #include "Camera.h"
 #include "ImageSettings.h"
 #include "IntersectionQuery.h"

@@ -18,11 +18,14 @@ public:
         return graphics;
     }
 
-	~Direct3D()
-	{
-		devdebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
-
+	void clear()
+    {
 		context4->ClearState();
 		context4->Flush();
-	}
+
+		factory5.Reset();
+		device5.Reset();
+		context4.Reset();
+		devdebug.Reset();
+    }
 };

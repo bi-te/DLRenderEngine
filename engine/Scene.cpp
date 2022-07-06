@@ -53,7 +53,7 @@ void Scene::init_buffers()
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 	vertexBufferDesc.ByteWidth = meshes_data[0].vertices_data_.size() * sizeof(float);
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	D3D11_SUBRESOURCE_DATA subresdesc;
 	ZeroMemory(&subresdesc, sizeof(subresdesc));

@@ -32,4 +32,16 @@ public:
     void create_input_layout();
 
     void draw(Scene& scene);
+
+    void clear()
+    {
+        layout.Reset();
+        pixel_shader.Reset();
+        vertex_shader.Reset();
+        vertex_shader_blob.Reset();
+        pixel_shader_blob.Reset();
+        error_blob.Reset();
+        target_view.Reset();
+        swap_chain.Reset();
+    }
 };

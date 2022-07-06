@@ -11,20 +11,12 @@
 #include "engine/Engine.h"
 #include "engine/Window.h"
 
-
-
-uint32_t ParallelExecutor::MAX_THREADS = std::max(1u, std::thread::hardware_concurrency());
-uint32_t ParallelExecutor::HALF_THREADS = std::max(1u, std::thread::hardware_concurrency() / 2);
-
 void initConsole()
 {
     AllocConsole();
     FILE* dummy;
     auto s = freopen_s(&dummy, "CONOUT$", "w", stdout); // stdout will print to the newly created console
 }
-
-void render(HWND hwnd);
-void render(HWND hwnd, ParallelExecutor& executor);
 
 int WINAPI WinMain(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
@@ -34,9 +26,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
     initConsole();
 
     Timer timer(1.f/60.f);
-
-    uint32_t numThreads = std::max(1u, std::max(ParallelExecutor::MAX_THREADS - 4u, ParallelExecutor::HALF_THREADS));
-    ParallelExecutor executor(numThreads);
 
     Engine& engine = Engine::instance();
     uint32_t width = 800, height = 600;
@@ -79,7 +68,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
         }
         std::this_thread::yield();
     }
-    
+
+    engine.renderer.clear();
+    engine.scene.vertexBuffer.Reset();
+    Direct3D::globals().clear();
+
     return msg.wParam;
 }
 
