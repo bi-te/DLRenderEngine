@@ -85,9 +85,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     case WM_SIZE:
         im.global_illumination = GI_OFF;
         im.gi_frame = 0;
-        
-        Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));
-        Engine::instance().renderer.resize_buffers();
+
+        if(LOWORD(lParam) && HIWORD(lParam))
+        {
+            Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));
+            Engine::instance().renderer.resize_buffers();
+        }
+
         break;
 
     case WM_DESTROY:

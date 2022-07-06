@@ -23,7 +23,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    initConsole();
+    //initConsole();
 
     Timer timer(1.f/60.f);
 
@@ -64,7 +64,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
             //controller.process_input(timer.time_passed());
             timer.advance_current();
 
-            engine.renderer.draw(engine.scene);
+            if(!IsIconic(window.handle()))
+                engine.renderer.draw(engine.scene);
         }
         std::this_thread::yield();
     }
