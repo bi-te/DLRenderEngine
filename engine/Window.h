@@ -1,18 +1,19 @@
 #pragma once
 
-#include <string>
-#include <windows.h>
-
 #include "Controller.h"
 #include "Engine.h"
 
+#include "includes/win.h"
+
 LRESULT CALLBACK WindowProc(HWND hwnd,
-    UINT message, WPARAM wparam, LPARAM lparam);
+                            UINT message, WPARAM wparam, LPARAM lparam);
 
 class Window
 {
     WNDCLASSEX wc;
     HWND window;
+
+
 public:
     Window(LPCWSTR class_name, HINSTANCE hInstance);
 
