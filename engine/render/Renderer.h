@@ -2,45 +2,64 @@
 
 #include <iostream>
 
-#include "Direct3D.h"
-#include "../Scene.h"
+#include "Direct11/Direct3D.h"
+#include "Direct11/DynamicBuffer.h"
+#include "math/math.h"
 
-enum ShadersType{VertexShader, PixelShader};
+struct DepthStencil
+{
+    comptr<ID3D11Texture2D> buffer;
+    comptr<ID3D11DepthStencilView> view;
+    comptr<ID3D11DepthStencilState> state;
+
+    void reset()
+    {
+        buffer.Reset();
+        view.Reset();
+        state.Reset();
+    }
+};
 
 class Renderer
 {
-    comptr<IDXGISwapChain1> swap_chain;
+    uint32_t scbuffer_width, scbuffer_height;
+
+    DepthStencil depth_stencil;
+    comptr< ID3D11SamplerState> sampler_state;
+    comptr<ID3D11RasterizerState> rasterizer_state;
     comptr<ID3D11RenderTargetView> target_view;
-
-    comptr<ID3DBlob> vertex_shader_blob, pixel_shader_blob, error_blob;
-    comptr<ID3D11VertexShader> vertex_shader;
-    comptr<ID3D11PixelShader> pixel_shader;
-
-    comptr<ID3D11InputLayout> layout;
+    comptr<IDXGISwapChain1> swap_chain;
+    DynamicBuffer<D3D11_BIND_CONSTANT_BUFFER> view_projection_buffer;
 public:
+
 	Renderer()
 	{
+        view_projection_buffer.allocate(sizeof(mat4));
 	}
 
+    uint32_t buffer_width() const { return scbuffer_width; }
+    uint32_t buffer_height() const { return scbuffer_height; }
+
+    void init(HWND window);
     void init_swap_chain(HWND window);
     void init_render_target_view();
-    void resize_buffers();
-    
-    void update_vertex_shader(LPCWSTR file_name, LPCSTR entry_point);
-    void update_pixel_shader(LPCWSTR file_name, LPCSTR entry_point);
+    void init_depth_and_stencil_buffer();
+    void init_depth_stencil_state();
+    void init_rasterizer_state();
+    void init_sampler_state();
+    void resize_buffers(uint32_t width, uint32_t height);
 
-    void create_input_layout();
+    void bind_viewProjection(const mat4& viewProj);
+    void clear_buffers(const float background_color[4]);
+    void prepare_output();
+    void flush() { swap_chain->Present(0, 0); }
 
-    void draw(Scene& scene);
-
-    void clear()
+    void reset()
     {
-        layout.Reset();
-        pixel_shader.Reset();
-        vertex_shader.Reset();
-        vertex_shader_blob.Reset();
-        pixel_shader_blob.Reset();
-        error_blob.Reset();
+        depth_stencil.reset();
+        sampler_state.Reset();
+        rasterizer_state.Reset();
+        view_projection_buffer.free();
         target_view.Reset();
         swap_chain.Reset();
     }

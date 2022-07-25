@@ -1,11 +1,33 @@
 #include "Renderer.h"
 
+#include "ShaderManager.h"
+#include "TextureManager.h"
+#include "Direct11/ImmutableBuffer.h"
+
+void Renderer::init(HWND window)
+{
+    init_swap_chain(window);
+    init_render_target_view();
+    init_depth_and_stencil_buffer();
+    init_depth_stencil_state();
+    init_rasterizer_state();
+    init_sampler_state();
+}
+
 void Renderer::init_swap_chain(HWND window)
 {
     Direct3D& globals = Direct3D::globals();
     DXGI_SWAP_CHAIN_DESC1 desc;
     ZeroMemory(&desc, sizeof(desc));
 
+    RECT winrect;
+    GetClientRect(window, &winrect);
+
+    scbuffer_width = winrect.right - winrect.left;
+    scbuffer_height = winrect.bottom - winrect.top;
+
+    desc.Width = scbuffer_width;
+    desc.Height = scbuffer_height;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
     desc.SampleDesc.Quality = 0;
@@ -35,7 +57,68 @@ void Renderer::init_render_target_view()
     assert(SUCCEEDED(result) && "CreateRenderTargetView");
 }
 
-void Renderer::resize_buffers()
+void Renderer::init_depth_and_stencil_buffer()
+{
+    D3D11_TEXTURE2D_DESC depthBufferDesc{};
+    depthBufferDesc.Width = scbuffer_width;
+    depthBufferDesc.Height = scbuffer_height;
+    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthBufferDesc.MipLevels = 1;
+    depthBufferDesc.ArraySize = 1;
+    depthBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    depthBufferDesc.SampleDesc.Count = 1;
+    depthBufferDesc.SampleDesc.Quality = 0;
+    HRESULT result = Direct3D::globals().device5->CreateTexture2D(&depthBufferDesc, nullptr,
+        &depth_stencil.buffer);
+    assert(SUCCEEDED(result) && "CreateTexture2D Depth Stencil");
+
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthViewDesc{};
+    depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    depthViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    depthViewDesc.Texture2D.MipSlice = 0;
+
+    
+    result = Direct3D::globals().device5->CreateDepthStencilView(depth_stencil.buffer.Get(),
+        &depthViewDesc, &depth_stencil.view);
+    assert(SUCCEEDED(result) && "CreateDepthStencilView");
+}
+
+void Renderer::init_depth_stencil_state()
+{
+    D3D11_DEPTH_STENCIL_DESC depthDesc{};
+    depthDesc.DepthEnable = true;
+    depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+    HRESULT result = Direct3D::globals().device5->CreateDepthStencilState(&depthDesc, &depth_stencil.state);
+    assert(SUCCEEDED(result) && "CreateDepthStencilState");
+}
+
+void Renderer::init_rasterizer_state()
+{
+    D3D11_RASTERIZER_DESC rasterizer{};
+    rasterizer.FillMode = D3D11_FILL_SOLID;
+    rasterizer.CullMode = D3D11_CULL_BACK;
+    rasterizer.DepthClipEnable = true;
+    rasterizer.FrontCounterClockwise = false;
+    HRESULT result = Direct3D::globals().device5->CreateRasterizerState(&rasterizer, &rasterizer_state);
+    assert(SUCCEEDED(result) && "CreateRasterizerState");
+}
+
+void Renderer::init_sampler_state()
+{
+    D3D11_SAMPLER_DESC sdesc{};
+    sdesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sdesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sdesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sdesc.MinLOD = 0.f;
+    sdesc.MaxLOD = 10.f;
+
+    Direct3D::globals().device5->CreateSamplerState(&sdesc, &sampler_state);
+}
+
+void Renderer::resize_buffers(uint32_t width, uint32_t height)
 {
     if (!swap_chain.Get())
         return;
@@ -44,83 +127,39 @@ void Renderer::resize_buffers()
     HRESULT result = swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
     assert(SUCCEEDED(result) && "ResizeBuffers");
 
+    scbuffer_width = width;
+    scbuffer_height = height;
+
     init_render_target_view();
+    init_depth_and_stencil_buffer();
 }
 
-void Renderer::update_vertex_shader(LPCWSTR file_name, LPCSTR entry_point)
+void Renderer::bind_viewProjection(const mat4& viewProj)
 {
-    HRESULT result;
-
-    result = D3DCompileFromFile(file_name, nullptr, nullptr, entry_point, "vs_5_0",
-        D3DCOMPILE_DEBUG, NULL, &vertex_shader_blob, &error_blob);
-    if (FAILED(result))
-    {
-        OutputDebugStringA((char*)error_blob->GetBufferPointer());
-        assert(false && "VertexShader Compilation");
-    }
-    result = Direct3D::globals().device5->CreateVertexShader(vertex_shader_blob->GetBufferPointer(),
-        vertex_shader_blob->GetBufferSize(), nullptr, &vertex_shader);
-    assert(SUCCEEDED(result) && "CreateVertexShader");
-
-    Direct3D::globals().context4->VSSetShader(vertex_shader.Get(), nullptr, 0);
+    view_projection_buffer.write(viewProj.data());
+    Direct3D::globals().context4->VSSetConstantBuffers(0, 1, view_projection_buffer.address());
 }
 
-void Renderer::update_pixel_shader(LPCWSTR file_name, LPCSTR entry_point)
+void Renderer::clear_buffers(const float background_color[4])
 {
-    HRESULT result;
-
-    result = D3DCompileFromFile(file_name, nullptr, nullptr, entry_point, "ps_5_0",
-        D3DCOMPILE_DEBUG, NULL, &pixel_shader_blob, &error_blob);
-    if (FAILED(result))
-    {
-        OutputDebugStringA((char*)error_blob->GetBufferPointer());
-        assert(false && "PixelShader Compilation");
-    }
-    result = Direct3D::globals().device5->CreatePixelShader(pixel_shader_blob->GetBufferPointer(),
-        pixel_shader_blob->GetBufferSize(), nullptr, &pixel_shader);
-    assert(SUCCEEDED(result) && "CreateVertexShader");
-
-    Direct3D::globals().context4->PSSetShader(pixel_shader.Get(), nullptr, 0);
+    Direct3D::globals().context4->ClearRenderTargetView(target_view.Get(), background_color);
+    Direct3D::globals().context4->ClearDepthStencilView(depth_stencil.view.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
 }
 
-void Renderer::create_input_layout()
-{
-    D3D11_INPUT_ELEMENT_DESC input_element_desc[2]
-    {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
-            0, D3D11_INPUT_PER_VERTEX_DATA , 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,
-            D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0}
-    };
-
-    HRESULT result = Direct3D::globals().device5->CreateInputLayout(input_element_desc,
-        ARRAYSIZE(input_element_desc), vertex_shader_blob->GetBufferPointer(),
-        vertex_shader_blob->GetBufferSize(), &layout);
-    assert(SUCCEEDED(result) && "CreateInputLayout");
-}
-
-void Renderer::draw(Scene& scene)
+void Renderer::prepare_output()
 {
     Direct3D& globals = Direct3D::globals();
-    DXGI_SWAP_CHAIN_DESC desc;
-    swap_chain->GetDesc(&desc);
 
-    float backgroundColor[4] = { AMBIENT.x(), AMBIENT.y(), AMBIENT.z(), 1.f };
-    globals.context4->ClearRenderTargetView(target_view.Get(), backgroundColor);
-
-    D3D11_VIEWPORT viewport = { 0.f, 0.f,
-        FLOAT(desc.BufferDesc.Width),
-        FLOAT(desc.BufferDesc.Height),
+    D3D11_VIEWPORT viewport = {
+        0.f, 0.f,
+        FLOAT(scbuffer_width), FLOAT(scbuffer_height),
         0.f, 1.f
     };
 
-    globals.context4->RSSetViewports(1, &viewport);
-    globals.context4->OMSetRenderTargets(1, target_view.GetAddressOf(), NULL);
     globals.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    globals.context4->IASetInputLayout(layout.Get());
-    globals.context4->IASetVertexBuffers(0, 1, scene.vertexBuffer.GetAddressOf(),
-        &scene.vertex_buffer_stride, &scene.vertex_buffer_offset);
-
-    globals.context4->Draw(3, 0);
-    swap_chain->Present(1, 0);
+    globals.context4->RSSetViewports(1, &viewport);
+    globals.context4->RSSetState(rasterizer_state.Get());
+    globals.context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
+    globals.context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
+    globals.context4->OMSetRenderTargets(1, target_view.GetAddressOf(),depth_stencil.view.Get());
 }

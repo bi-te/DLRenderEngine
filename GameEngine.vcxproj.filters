@@ -31,6 +31,9 @@
     <Filter Include="shaders">
       <UniqueIdentifier>{c5d864f5-53ef-4b24-84f5-69c250de7277}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\render\Direct11">
+      <UniqueIdentifier>{1fcf6c70-a930-4dbb-b59d-e202c52e577a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -51,9 +54,6 @@
     <ClCompile Include="engine\math\Transform.cpp">
       <Filter>Header Files\math</Filter>
     </ClCompile>
-    <ClCompile Include="engine\ParallelExecutor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="engine\math\math.cpp">
       <Filter>Header Files\math</Filter>
     </ClCompile>
@@ -63,11 +63,32 @@
     <ClCompile Include="engine\objects\MeshInstance.cpp">
       <Filter>Header Files\objects</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\Direct3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="engine\render\Renderer.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\Direct3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\ShaderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\objects\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\TextureManager.cpp">
+      <Filter>Header Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\CubeMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\Engine.cpp">
+      <Filter>Header Files\render\Direct11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -143,28 +164,13 @@
     <ClInclude Include="engine\math\Mesh.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
-    <ClInclude Include="engine\math\CubeMesh.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
     <ClInclude Include="engine\IntersectionQuery.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\ParallelExecutor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\RandomGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="engine\ImageSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="engine\includes\win.h">
-      <Filter>Header Files\includes</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\render\Direct3D.h">
-      <Filter>Header Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\includes\d3d.h">
       <Filter>Header Files\includes</Filter>
     </ClInclude>
     <ClInclude Include="engine\render\Renderer.h">
@@ -176,13 +182,45 @@
     <ClInclude Include="engine\includes\win_def.h">
       <Filter>Header Files\includes</Filter>
     </ClInclude>
+    <ClInclude Include="engine\render\Direct11\DDSTextureLoader11.h">
+      <Filter>Header Files\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\Direct3D.h">
+      <Filter>Header Files\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\ShaderManager.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\TextureManager.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\d3d.h">
+      <Filter>Header Files\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\ImmutableBuffer.h">
+      <Filter>Header Files\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\objects\Skybox.h">
+      <Filter>Header Files\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\DynamicBuffer.h">
+      <Filter>Header Files\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\CubeMesh.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\vertex.hlsl">
+    <FxCompile Include="shaders\default.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\pixel.hlsl">
+    <FxCompile Include="shaders\sky.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\globals.hlsli">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

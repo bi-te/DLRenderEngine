@@ -44,7 +44,7 @@ struct InputState
 
 class  Controller
 {
-    const float movement_speed = 50.f,
+    const float movement_speed = 20.f,
 				shift = 5.f, dspeed = 1.1f,
 				rotation_speed = 1.f,
 				rotation_speed_mouse = 2.f * PI;

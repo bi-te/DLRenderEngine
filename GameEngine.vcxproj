@@ -122,11 +122,16 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(ProjectDir)engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -138,6 +143,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(ProjectDir)engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,17 +151,27 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <ShaderType>Vertex</ShaderType>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="engine\Camera.cpp" />
     <ClCompile Include="engine\Controller.cpp" />
+    <ClCompile Include="engine\Engine.cpp" />
+    <ClCompile Include="engine\math\CubeMesh.cpp" />
     <ClCompile Include="engine\math\math.cpp" />
+    <ClCompile Include="engine\math\Mesh.cpp" />
     <ClCompile Include="engine\math\Sphere.cpp" />
     <ClCompile Include="engine\math\Transform.cpp" />
     <ClCompile Include="engine\objects\MeshInstance.cpp" />
-    <ClCompile Include="engine\ParallelExecutor.cpp" />
-    <ClCompile Include="engine\render\Direct3D.cpp" />
+    <ClCompile Include="engine\objects\Skybox.cpp" />
+    <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp" />
+    <ClCompile Include="engine\render\Direct11\Direct3D.cpp" />
     <ClCompile Include="engine\render\Renderer.cpp" />
+    <ClCompile Include="engine\render\ShaderManager.cpp" />
+    <ClCompile Include="engine\render\TextureManager.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
     <ClCompile Include="engine\Window.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -165,7 +181,6 @@
     <ClInclude Include="engine\Controller.h" />
     <ClInclude Include="engine\Engine.h" />
     <ClInclude Include="engine\ImageSettings.h" />
-    <ClInclude Include="engine\includes\d3d.h" />
     <ClInclude Include="engine\includes\win.h" />
     <ClInclude Include="engine\includes\win_def.h" />
     <ClInclude Include="engine\includes\win_undef.h" />
@@ -186,30 +201,28 @@
     <ClInclude Include="engine\Objects\MeshInstance.h" />
     <ClInclude Include="engine\Objects\PlaneObject.h" />
     <ClInclude Include="engine\objects\LightObjects.h" />
+    <ClInclude Include="engine\objects\Skybox.h" />
     <ClInclude Include="engine\Objects\SphereObject.h" />
-    <ClInclude Include="engine\ParallelExecutor.h" />
-    <ClInclude Include="engine\RandomGenerator.h" />
-    <ClInclude Include="engine\render\Direct3D.h" />
+    <ClInclude Include="engine\render\Direct11\ImmutableBuffer.h" />
+    <ClInclude Include="engine\render\Direct11\d3d.h" />
+    <ClInclude Include="engine\render\Direct11\DDSTextureLoader11.h" />
+    <ClInclude Include="engine\render\Direct11\Direct3D.h" />
+    <ClInclude Include="engine\render\Direct11\DynamicBuffer.h" />
     <ClInclude Include="engine\render\Renderer.h" />
     <ClInclude Include="engine\render\Lighting.h" />
     <ClInclude Include="engine\render\Material.h" />
+    <ClInclude Include="engine\render\ShaderManager.h" />
+    <ClInclude Include="engine\render\TextureManager.h" />
     <ClInclude Include="engine\Scene.h" />
     <ClInclude Include="engine\Timer.h" />
     <ClInclude Include="engine\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\pixel.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="shaders\vertex.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
+    <FxCompile Include="shaders\sky.hlsl" />
+    <FxCompile Include="shaders\default.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\globals.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

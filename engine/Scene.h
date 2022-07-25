@@ -1,17 +1,15 @@
 #pragma once
 #include <vector>
 
-#include "render/Direct3D.h"
 #include "Camera.h"
 #include "ImageSettings.h"
 #include "IntersectionQuery.h"
-#include "math/CubeMesh.h"
 #include "render/Material.h"
-#include "render/Lighting.h"
 #include "objects/MeshInstance.h"
+#include "objects/Skybox.h"
 #include "objects/SphereObject.h"
-#include "objects/PlaneObject.h"
-#include "objects/LightObjects.h"
+#include "render/Renderer.h"
+
 
 const uint16_t MAX_REFLECTION_DEPTH = 2;	
 const float MAX_REFLECTIVE_ROUGHNESS = 0.1f;
@@ -30,21 +28,17 @@ class Scene
 	};
 
 public:
-	DirectLight dirlight;
+	Skybox skybox;
 	std::vector<Material> materials;
-	std::vector<PointLightObject> point_lights;
-	std::vector<SpotlightObject> spotlights;
-	std::vector<SphereObject> spheres;
-	std::vector<MeshInstance> meshes;
-	std::vector<Mesh> meshes_data;
+	std::vector<MeshInstance> instances;
+	std::vector<Mesh> meshes;
 
-	comptr<ID3D11Buffer> vertexBuffer;
-	UINT vertex_buffer_stride = 6 * sizeof(float);
-	UINT vertex_buffer_offset = 0;
-
-	void select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record);
+	bool select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record);
 	
-	void init_buffers();
+	void init_objects_buffers();
+	void reset_objects_buffers();
+
+	void draw(const Camera& camera, Renderer& renderer);
 };
 
 
