@@ -2,14 +2,14 @@
 #include <iostream>
 #include <thread>
 
-#include "engine/includes/win.h"   
-
-#include "engine/render/Renderer.h"
+#include "engine/includes/win.h"
 
 #include "engine/Controller.h"
 #include "engine/Timer.h"
 #include "engine/Engine.h"
 #include "engine/Window.h"
+#include "imgui/ImGuiManager.h"
+
 
 void initConsole()
 {
@@ -25,30 +25,27 @@ int WINAPI WinMain(HINSTANCE hInstance,
 {
     //initConsole();
 
-    Timer timer(1.f/60.f);
+    Timer timer(1.f / 60.f);
+    uint32_t width = 1024, height = 768;
 
-    Engine& engine = Engine::instance();
-    uint32_t width = 800, height = 600;
-
+    ImGuiManager::init_context();
+   
     Window window{L"WindowClass", hInstance};
     window.create_window(L"Test21", width, height);
-    window.show_window(nShowCmd);
 
-    engine.camera.set_perspective(to_radians(35.f), float(width) / height, 1.f, 500.f);
+    Engine::init(window.handle());
+    Engine& engine = Engine::instance();
+    engine.camera.set_perspective(to_radians(55.f), float(width) / height, 0.1f, 400.f);
 
-    Controller controller{engine.scene, engine.camera};
+    Controller controller{engine.scene, engine.camera, engine.renderer};
     controller.init_scene();
 
+    ImGuiManager::init_render(window.handle(),
+        Direct3D::globals().device5.Get(), Direct3D::globals().context4.Get());
+
     MSG msg;
+    window.show_window(nShowCmd);
     timer.start();
-
-    engine.renderer.init_swap_chain(window.handle());
-    engine.renderer.init_render_target_view();
-    engine.renderer.update_vertex_shader(L"shaders/vertex.hlsl", "main");
-    engine.renderer.update_pixel_shader(L"shaders/pixel.hlsl", "main");
-    engine.renderer.create_input_layout();
-    engine.scene.init_buffers();
-
     while(true)
     {
 	    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -61,18 +58,29 @@ int WINAPI WinMain(HINSTANCE hInstance,
         
         if(timer.frame_time_check())
         {
-            //controller.process_input(timer.time_passed());
+            if (ImGuiManager::active())
+            {
+                ImGuiManager::new_frame();
+                controller.process_gui_input();
+            }
+                
+            controller.process_input(timer.time_passed());
             timer.advance_current();
 
-            if(!IsIconic(window.handle()))
-                engine.renderer.draw(engine.scene);
+            if (!IsIconic(window.handle()))
+                engine.scene.draw(engine.camera, engine.renderer);
         }
+
+
+
+
         std::this_thread::yield();
     }
 
-    engine.renderer.clear();
-    engine.scene.vertexBuffer.Reset();
-    Direct3D::globals().clear();
+    ImGuiManager::reset();
+
+    engine.scene.reset_objects_buffers();
+    Engine::reset();
 
     return msg.wParam;
 }

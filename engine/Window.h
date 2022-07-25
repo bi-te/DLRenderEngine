@@ -4,6 +4,9 @@
 #include "Engine.h"
 
 #include "includes/win.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd,
                             UINT message, WPARAM wparam, LPARAM lparam);

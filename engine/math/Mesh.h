@@ -4,33 +4,33 @@
 
 #include "math.h"
 
+struct Vertex
+{
+	float x, y, z;
+};
+
+struct VertexColor
+{
+	Vertex coordinates;
+	float r, g, b;
+};
+
+struct VertexTexture
+{
+	Vertex coordinates;
+	float u, v;
+};
+
 class Mesh
 {
 
 public:
-	std::vector<float> vertices_data_;
-	uint8_t strip;
+	std::vector<float> vertices;
+	std::vector<uint32_t> indices;
+	uint32_t stride;
+	
+	void add_vertex(float x, float y, float z, float u, float v);
+	void add_vertex(const VertexTexture& vertex);
 
-	void add_vertex(float x, float y, float z)
-	{
-		vertices_data_.push_back(x);
-		vertices_data_.push_back(y);
-		vertices_data_.push_back(z);
-
-		vertices_data_.push_back(0.f);
-		vertices_data_.push_back(0.f);
-		vertices_data_.push_back(0.f);
-	}
-
-	void add_vertex(float x, float y, float z, 
-					float r, float g, float b)
-	{
-		vertices_data_.push_back(x);
-		vertices_data_.push_back(y);
-		vertices_data_.push_back(z);
-
-		vertices_data_.push_back(r);
-		vertices_data_.push_back(g);
-		vertices_data_.push_back(b);
-	}
+	Vertex get_vertex_coor(uint32_t index);
 };

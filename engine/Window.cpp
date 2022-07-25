@@ -25,12 +25,17 @@ void Window::create_window(LPCWSTR name, LONG width, LONG height)
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
     window = CreateWindowEx(NULL, wc.lpszClassName, name, WS_OVERLAPPEDWINDOW,
-        300, 300, rect.right - rect.left, rect.bottom - rect.top,
+        300, 30, rect.right - rect.left, rect.bottom - rect.top,
         NULL, NULL, wc.hInstance, NULL);
 }
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        return 0;
+
+    const ImGuiIO& io = ImGui::GetIO();
+
     InputState& is = Controller::input_state();
     ImageSettings& im = Controller::image_settings();
     
@@ -39,6 +44,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
     switch (message)
     {
     case WM_RBUTTONDOWN:
+        if (io.WantCaptureMouse) break;
+
         im.global_illumination = GI_OFF;
         im.gi_frame = 0;
 
@@ -47,6 +54,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         is.mouse.y = y;
         break;
     case WM_LBUTTONDOWN:
+        if (io.WantCaptureMouse) break;
+
         im.global_illumination = GI_OFF;
         im.gi_frame = 0;
 
@@ -55,10 +64,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         is.mouse.lmb_y = y;
         break;
     case WM_MOUSEMOVE:
+
         is.mouse.x = x;
         is.mouse.y = y;
         break;
     case WM_MOUSEWHEEL:
+        if (io.WantCaptureMouse) break;
         is.mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / 120;
 
     case WM_RBUTTONUP:
@@ -89,7 +100,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
         if(LOWORD(lParam) && HIWORD(lParam))
         {
             Engine::instance().camera.change_aspect(float(LOWORD(lParam)) / HIWORD(lParam));
-            Engine::instance().renderer.resize_buffers();
+            Engine::instance().renderer.resize_buffers(LOWORD(lParam), HIWORD(lParam));
         }
 
         break;
