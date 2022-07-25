@@ -8,6 +8,8 @@
 #include "engine/Timer.h"
 #include "engine/Engine.h"
 #include "engine/Window.h"
+#include "imgui/ImGuiManager.h"
+
 
 void initConsole()
 {
@@ -26,6 +28,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     Timer timer(1.f / 60.f);
     uint32_t width = 1024, height = 768;
 
+    ImGuiManager::init_context();
+   
     Window window{L"WindowClass", hInstance};
     window.create_window(L"Test21", width, height);
 
@@ -33,8 +37,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
     Engine& engine = Engine::instance();
     engine.camera.set_perspective(to_radians(55.f), float(width) / height, 0.1f, 400.f);
 
-    Controller controller{engine.scene, engine.camera};
+    Controller controller{engine.scene, engine.camera, engine.renderer};
     controller.init_scene();
+
+    ImGuiManager::init_render(window.handle(),
+        Direct3D::globals().device5.Get(), Direct3D::globals().context4.Get());
 
     MSG msg;
     window.show_window(nShowCmd);
@@ -51,14 +58,26 @@ int WINAPI WinMain(HINSTANCE hInstance,
         
         if(timer.frame_time_check())
         {
+            if (ImGuiManager::active())
+            {
+                ImGuiManager::new_frame();
+                controller.process_gui_input();
+            }
+                
             controller.process_input(timer.time_passed());
             timer.advance_current();
 
             if (!IsIconic(window.handle()))
                 engine.scene.draw(engine.camera, engine.renderer);
         }
+
+
+
+
         std::this_thread::yield();
     }
+
+    ImGuiManager::reset();
 
     engine.scene.reset_objects_buffers();
     Engine::reset();

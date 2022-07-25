@@ -1,4 +1,4 @@
-cbuffer view_projection_matrix: register(b0)
+cbuffer perFrame: register(b0)
 {
 	matrix <float, 4, 4> g_viewProj;
 }

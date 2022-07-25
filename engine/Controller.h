@@ -21,7 +21,7 @@ struct Mouse
 enum Key
 {
     SHIFT = 0x10, CTRL = 0x11, ESCAPE = 0x1B, SPACE = 0x20, LEFT = 0x25, UP = 0x26, RIGHT = 0x27, DOWN = 0x28,
-    A = 0x41, C = 0x43, D = 0x44, E = 0x45, G = 0x47, P = 0x50, Q = 0x51, R = 0x52, S = 0x53, W = 0x57,
+    A = 0x41, C = 0x43, D = 0x44, E = 0x45, G = 0x47, I = 0x49, P = 0x50, Q = 0x51, R = 0x52, S = 0x53, W = 0x57,
     PLUS = 0xBB, MINUS = 0xBD
 };
 
@@ -53,9 +53,11 @@ class  Controller
 
     Scene& scene;
     Camera& camera;
+    Renderer& renderer;
 public:
 
-    explicit Controller(Scene& rscene, Camera& camera): scene(rscene), camera(camera)
+    explicit Controller(Scene& rscene, Camera& camera, Renderer& renderer):
+		scene(rscene), camera(camera), renderer(renderer)
     {
     }
     
@@ -70,8 +72,7 @@ public:
         static InputState is{};
         return is;
     }
-
-
+    
 
     void move_camera(const vec3& offset, const Angles& angles)
     {
@@ -81,6 +82,7 @@ public:
     }
 
     void process_input(float dt);
+    void process_gui_input();
 
     void init_scene();
 

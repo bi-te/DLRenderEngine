@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Engine.h"
+#include "imgui/ImGuiManager.h"
 #include "includes/win.h"
 #include "math/CubeMesh.h"
 #include "render/ShaderManager.h"
@@ -37,6 +38,43 @@ void Controller::init_scene()
     scene.init_objects_buffers();
 }
 
+void Controller::process_gui_input()
+{
+    ImGui::Begin("Render Settings");
+
+    static const char* filter_labels[] = {
+        "MIN_MAG_MIP_POINT",
+        "MIN_MAG_POINT_MIP_LINEAR",
+        "MIN_POINT_MAG_LINEAR_MIP_POINT",
+        "MIN_POINT_MAG_MIP_LINEAR",
+        "MIN_LINEAR_MAG_MIP_POINT",
+        "MIN_LINEAR_MAG_POINT_MIP_LINEAR",
+        "MIN_MAG_LINEAR_MIP_POINT",
+        "MIN_MAG_MIP_LINEAR",
+        "ANISOTROPIC"
+    };
+
+    static D3D11_FILTER filters[] = {
+        D3D11_FILTER_MIN_MAG_MIP_POINT,
+        D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR,
+        D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT,
+        D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR ,
+        D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT ,
+        D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR ,
+        D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT ,
+        D3D11_FILTER_MIN_MAG_MIP_LINEAR ,
+        D3D11_FILTER_ANISOTROPIC,
+    };
+
+    static int index = 7;
+    if (ImGui::Combo("Filter", &index, filter_labels, ARRAYSIZE(filter_labels)))
+    {
+        renderer.init_sampler_state(filters[index]);
+    }
+
+    ImGui::End();
+}
+
 void Controller::process_input(float dt)
 {
     InputState& is = input_state();
@@ -45,23 +83,27 @@ void Controller::process_input(float dt)
 		  screen_height = Engine::instance().renderer.buffer_height();
 
     //image settings
-    if (is.keyboard.keys[PLUS])  im.ev100 += 0.1f;
-    if (is.keyboard.keys[MINUS]) im.ev100 -= 0.1f;
-    if (is.keyboard.keys[R]) {
-        im.reflection = !im.reflection;
-        is.keyboard.keys[R] = false;
-    }
-    if (is.keyboard.keys[P]) {
-        im.progressive_gi = !im.progressive_gi;
-        im.gi_frame = 0;
-        is.keyboard.keys[P] = false;
-    }
-    if(is.keyboard.keys[G])
-    {
-        im.global_illumination = GI_ON;
-        is.keyboard.keys[G] = false;
-    }
+    //if (is.keyboard.keys[PLUS])  im.ev100 += 0.1f;
+    //if (is.keyboard.keys[MINUS]) im.ev100 -= 0.1f;
+    //if (is.keyboard.keys[R]) {
+    //    im.reflection = !im.reflection;
+    //    is.keyboard.keys[R] = false;
+    //}
+    //if (is.keyboard.keys[P]) {
+    //    im.progressive_gi = !im.progressive_gi;
+    //    im.gi_frame = 0;
+    //    is.keyboard.keys[P] = false;
+    //}
+    //if(is.keyboard.keys[G])
+    //{
+    //    im.global_illumination = GI_ON;
+    //    is.keyboard.keys[G] = false;
+    //}
 
+    if (is.keyboard.keys[I]) {
+        ImGuiManager::active() = !ImGuiManager::active();
+        is.keyboard.keys[I] = false;
+    }
 
     vec3 move{ 0.f, 0.f, 0.f };
     Angles rot{};

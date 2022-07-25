@@ -46,10 +46,10 @@ public:
     void init_depth_and_stencil_buffer();
     void init_depth_stencil_state();
     void init_rasterizer_state();
-    void init_sampler_state();
+    void init_sampler_state(D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR);
     void resize_buffers(uint32_t width, uint32_t height);
 
-    void bind_viewProjection(const mat4& viewProj);
+    void bind_globals(const mat4& viewProj);
     void clear_buffers(const float background_color[4]);
     void prepare_output();
     void flush() { swap_chain->Present(0, 0); }

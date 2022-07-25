@@ -2,6 +2,10 @@
 
 #include <iostream>
 
+#include "imgui/imgui.h"
+#include "imgui/ImGuiManager.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
 #include "moving/SphereMover.h"
 #include "moving/PointLightMover.h"
 #include "moving/SpotlightMover.h"
@@ -50,23 +54,25 @@ void Scene::reset_objects_buffers()
 }
 
 void Scene::draw(const Camera& camera, Renderer& renderer)
-{
+{	
 	renderer.clear_buffers(AMBIENT.data());
 	renderer.prepare_output();
-
-	skybox.update_frustrum_buffer({
-	camera.blnear_fpoint - vec4{camera.position().x(), camera.position().y(), camera.position().z(), 1.f},
-	camera.frustrum_up, camera.frustrum_right
-		});
-	skybox.draw();
-
-	renderer.bind_viewProjection(camera.view_proj);
+	renderer.bind_globals(camera.view_proj);
 
 	for (MeshInstance & instance : instances)
 	{
 		instance.update_transform_buffer();
 		instance.draw();
 	}
+
+	skybox.update_frustrum_buffer({
+camera.blnear_fpoint - vec4{camera.position().x(), camera.position().y(), camera.position().z(), 1.f},
+camera.frustrum_up, camera.frustrum_right
+		});
+	skybox.draw();
+
+	if(ImGuiManager::active())
+		ImGuiManager::flush();
 
 	renderer.flush();
 }

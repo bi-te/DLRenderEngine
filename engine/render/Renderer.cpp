@@ -105,16 +105,15 @@ void Renderer::init_rasterizer_state()
     assert(SUCCEEDED(result) && "CreateRasterizerState");
 }
 
-void Renderer::init_sampler_state()
+void Renderer::init_sampler_state(D3D11_FILTER filter)
 {
     D3D11_SAMPLER_DESC sdesc{};
-    sdesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sdesc.Filter = filter;
     sdesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.MinLOD = 0.f;
     sdesc.MaxLOD = 10.f;
-
     Direct3D::globals().device5->CreateSamplerState(&sdesc, &sampler_state);
 }
 
@@ -134,10 +133,11 @@ void Renderer::resize_buffers(uint32_t width, uint32_t height)
     init_depth_and_stencil_buffer();
 }
 
-void Renderer::bind_viewProjection(const mat4& viewProj)
+void Renderer::bind_globals(const mat4& viewProj)
 {
     view_projection_buffer.write(viewProj.data());
     Direct3D::globals().context4->VSSetConstantBuffers(0, 1, view_projection_buffer.address());
+    Direct3D::globals().context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
 }
 
 void Renderer::clear_buffers(const float background_color[4])
@@ -159,7 +159,6 @@ void Renderer::prepare_output()
     globals.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     globals.context4->RSSetViewports(1, &viewport);
     globals.context4->RSSetState(rasterizer_state.Get());
-    globals.context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
     globals.context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
     globals.context4->OMSetRenderTargets(1, target_view.GetAddressOf(),depth_stencil.view.Get());
 }
