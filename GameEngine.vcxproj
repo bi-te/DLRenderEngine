@@ -176,11 +176,10 @@
     <ClCompile Include="engine\objects\Skybox.cpp" />
     <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp" />
     <ClCompile Include="engine\render\Direct11\Direct3D.cpp" />
-    <ClCompile Include="engine\render\Renderer.cpp" />
     <ClCompile Include="engine\render\ShaderManager.cpp" />
     <ClCompile Include="engine\render\TextureManager.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
-    <ClCompile Include="engine\Window.cpp" />
+    <ClCompile Include="engine\win32\Window.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -224,14 +223,15 @@
     <ClInclude Include="engine\render\Direct11\DDSTextureLoader11.h" />
     <ClInclude Include="engine\render\Direct11\Direct3D.h" />
     <ClInclude Include="engine\render\Direct11\DynamicBuffer.h" />
-    <ClInclude Include="engine\render\Renderer.h" />
     <ClInclude Include="engine\render\Lighting.h" />
     <ClInclude Include="engine\render\Material.h" />
     <ClInclude Include="engine\render\ShaderManager.h" />
     <ClInclude Include="engine\render\TextureManager.h" />
     <ClInclude Include="engine\Scene.h" />
     <ClInclude Include="engine\Timer.h" />
-    <ClInclude Include="engine\Window.h" />
+    <ClInclude Include="engine\wchar_algorithms.h" />
+    <ClInclude Include="engine\win32\Window.h" />
+    <ClInclude Include="engine\win32\WinListener.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\sky.hlsl" />

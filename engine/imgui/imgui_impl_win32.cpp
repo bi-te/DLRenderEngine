@@ -15,11 +15,11 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 
-#include "includes/win_def.h"
+#include "win32/win_def.h"
 #include <windowsx.h> // GET_X_LPARAM(), GET_Y_LPARAM()
 #include <tchar.h>
 #include <dwmapi.h>
-#include "includes/win_undef.h"
+#include "win32/win_undef.h"
 
 
 // Configuration flags to add in your imconfig.h file:

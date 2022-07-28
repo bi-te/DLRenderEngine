@@ -1,6 +1,6 @@
 #pragma once
 
-#include "includes/win_def.h"
+#include "win32/win_def.h"
 
 #include <wrl.h>
 #include <cassert>
@@ -11,7 +11,7 @@
 #pragma comment(lib, "dxgi")
 #pragma comment(lib, "d3dcompiler")
 
-#include "includes/win_undef.h"
+#include "win32/win_undef.h"
 
 template <class T>
 using comptr = Microsoft::WRL::ComPtr<T>;

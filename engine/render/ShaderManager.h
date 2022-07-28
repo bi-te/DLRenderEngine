@@ -1,6 +1,7 @@
 #pragma once
-#include <vector>
+#include <unordered_map>
 
+#include "wchar_algorithms.h"
 #include "Direct11/Direct3D.h"
 
 struct Shader
@@ -12,7 +13,7 @@ struct Shader
 
 class ShaderManager
 {
-	std::vector<Shader> shaders;
+	std::unordered_map<LPCWSTR, Shader, pwchar_hash, pwchar_comparator> shaders;
 
 	static ShaderManager* s_manager;
 	ShaderManager()
@@ -42,10 +43,9 @@ public:
 		delete s_manager;
 	}
 
-	const Shader& operator [](uint32_t ind) { return shaders[ind]; }
+	const Shader& operator() (LPCWSTR shader);
 
-	uint32_t add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry);
-	uint32_t add_shader(LPCWSTR vertex_shader_file, LPCSTR vertex_shader_entry,
-		LPCWSTR pixel_shader_file, LPCSTR pixel_shader_entry);
+	void add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry);
+
 };
 

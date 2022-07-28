@@ -1,19 +1,14 @@
 #pragma once
 
-#include <vector>
+#include <unordered_map>
 
+#include "wchar_algorithms.h"
 #include "Direct11/Direct3D.h"
 #include "Direct11/DDSTextureLoader11.h"
 
-struct Texture2D
-{
-	comptr<ID3D11ShaderResourceView> srvTexture;
-	comptr<ID3D11Resource> texture;
-};
-
 class TextureManager
 {
-	std::vector<Texture2D> textures2d;
+	std::unordered_map<LPCWSTR, comptr<ID3D11ShaderResourceView>, pwchar_hash, pwchar_comparator> textures2d;
 
 	static TextureManager* s_manager;
 	TextureManager()
@@ -39,9 +34,10 @@ public:
 		delete s_manager;
 	}
 
-	const Texture2D& operator [](uint32_t ind) { return textures2d[ind]; }
+	const comptr<ID3D11ShaderResourceView>& get_texture(LPCWSTR filename);
+	const comptr<ID3D11ShaderResourceView>& get_cubemap(LPCWSTR filename);
 
-	uint32_t add_texture(LPCWSTR filename);
-	uint32_t add_cubemap(LPCWSTR filename);
+	void add_texture(LPCWSTR filename);
+	void add_cubemap(LPCWSTR filename);
 };
 

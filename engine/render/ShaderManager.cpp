@@ -20,7 +20,7 @@ void ShaderManager::compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, 
 		assert(false && "CompileFromFile Vertex ShaderClass");
 	}
 
-	res = Direct3D::globals().device5->CreateVertexShader(
+	res = Direct3D::instance().device5->CreateVertexShader(
 		vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(),
 		nullptr, &shader.vertexShader);
 	assert(SUCCEEDED(res) && "CreateVertexShader");
@@ -78,7 +78,7 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 		inputLayoutDesc.push_back(elementDesc);
 	}
 
-	HRESULT result = Direct3D::globals().device5->CreateInputLayout(&inputLayoutDesc[0],
+	HRESULT result = Direct3D::instance().device5->CreateInputLayout(&inputLayoutDesc[0],
 		inputLayoutDesc.size(), vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), &shader.inputLayout);
 }
 
@@ -100,27 +100,26 @@ void ShaderManager::compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, S
 		assert(false && "CompileFromFile Vertex ShaderClass");
 	}
 
-	res = Direct3D::globals().device5->CreatePixelShader(
+	res = Direct3D::instance().device5->CreatePixelShader(
 		psBlob->GetBufferPointer(), psBlob->GetBufferSize(),
 		nullptr, &shader.pixelShader);
 	assert(SUCCEEDED(res) && "CreateVertexShader");
 }
 
-uint32_t ShaderManager::add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry)
+const Shader& ShaderManager::operator()(LPCWSTR shader)
+{
+	if(!shaders.count(shader))
+	{
+		add_shader(shader, "main", "ps_main");
+	}
+	assert(shaders.count(shader) && "Shader is not loaded");
+	return shaders.at(shader);
+}
+
+void ShaderManager::add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry)
 {
 	Shader shader;
 	compile_vertex_shader(filename, vertex_shader_entry, shader);
 	compile_pixel_shader(filename, pixel_shader_entry, shader);
-	shaders.push_back(std::move(shader));
-	return shaders.size() - 1;
-}
-
-uint32_t ShaderManager::add_shader(LPCWSTR vertex_shader_file, LPCSTR vertex_shader_entry, LPCWSTR pixel_shader_file,
-	LPCSTR pixel_shader_entry)
-{
-	Shader shader;
-	compile_vertex_shader(vertex_shader_file, vertex_shader_entry, shader);
-	compile_pixel_shader(pixel_shader_file, pixel_shader_entry, shader);
-	shaders.push_back(std::move(shader));
-	return shaders.size() - 1;
+	shaders.insert({filename, std::move(shader)});
 }

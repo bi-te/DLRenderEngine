@@ -2,12 +2,12 @@
 #include <iostream>
 #include <thread>
 
-#include "engine/includes/win.h"
+#include "engine/win32/win.h"
 
 #include "engine/Controller.h"
 #include "engine/Timer.h"
 #include "engine/Engine.h"
-#include "engine/Window.h"
+#include "win32/Window.h"
 #include "imgui/ImGuiManager.h"
 
 
@@ -18,30 +18,34 @@ void initConsole()
     auto s = freopen_s(&dummy, "CONOUT$", "w", stdout); // stdout will print to the newly created console
 }
 
+void render(const Camera& camera);
+
 int WINAPI WinMain(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    //initConsole();
+    initConsole();
 
     Timer timer(1.f / 60.f);
-    uint32_t width = 1024, height = 768;
+    uint32_t width = 1366, height = 768;
 
     ImGuiManager::init_context();
-   
+    Engine::init();
+    Engine& engine = Engine::instance();
+
     Window window{L"WindowClass", hInstance};
     window.create_window(L"Test21", width, height);
 
-    Engine::init(window.handle());
-    Engine& engine = Engine::instance();
-    engine.camera.set_perspective(to_radians(55.f), float(width) / height, 0.1f, 400.f);
+    engine.window = &window;
+    engine.scene.camera.set_perspective(to_radians(55.f), float(width) / height, 0.1f, 400.f);
 
-    Controller controller{engine.scene, engine.camera, engine.renderer};
+    Controller controller{engine.scene, window};
     controller.init_scene();
+    window.listeners.push_back(&controller);
 
     ImGuiManager::init_render(window.handle(),
-        Direct3D::globals().device5.Get(), Direct3D::globals().context4.Get());
+        Direct3D::instance().device5.Get(), Direct3D::instance().context4.Get());
 
     MSG msg;
     window.show_window(nShowCmd);
@@ -68,10 +72,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
             timer.advance_current();
 
             if (!IsIconic(window.handle()))
-                engine.scene.draw(engine.camera, engine.renderer);
+                engine.render();
         }
-
-
 
 
         std::this_thread::yield();
@@ -79,10 +81,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
     ImGuiManager::reset();
 
+    window.render_reset();
     engine.scene.reset_objects_buffers();
     Engine::reset();
 
     return msg.wParam;
 }
-
 

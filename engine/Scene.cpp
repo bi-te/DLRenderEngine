@@ -53,26 +53,60 @@ void Scene::reset_objects_buffers()
 	}
 }
 
-void Scene::draw(const Camera& camera, Renderer& renderer)
-{	
-	renderer.clear_buffers(AMBIENT.data());
-	renderer.prepare_output();
-	renderer.bind_globals(camera.view_proj);
+void Scene::init_depth_and_stencil_buffer(uint32_t width, uint32_t height)
+{
+	D3D11_TEXTURE2D_DESC depthBufferDesc{};
+	depthBufferDesc.Width = width;
+	depthBufferDesc.Height = height;
+	depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthBufferDesc.MipLevels = 1;
+	depthBufferDesc.ArraySize = 1;
+	depthBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthBufferDesc.SampleDesc.Count = 1;
+	depthBufferDesc.SampleDesc.Quality = 0;
+	HRESULT result = Direct3D::instance().device5->CreateTexture2D(&depthBufferDesc, nullptr,
+		&depth_stencil.buffer);
+	assert(SUCCEEDED(result) && "CreateTexture2D Depth Stencil");
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthViewDesc{};
+	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depthViewDesc.Texture2D.MipSlice = 0;
+
+	result = Direct3D::instance().device5->CreateDepthStencilView(depth_stencil.buffer.Get(),
+		&depthViewDesc, &depth_stencil.view);
+	assert(SUCCEEDED(result) && "CreateDepthStencilView");
+}
+
+void Scene::init_depth_stencil_state()
+{
+	D3D11_DEPTH_STENCIL_DESC depthDesc{};
+	depthDesc.DepthEnable = true;
+	depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	HRESULT result = Direct3D::instance().device5->CreateDepthStencilState(&depthDesc, &depth_stencil.state);
+	assert(SUCCEEDED(result) && "CreateDepthStencilState");
+}
+
+void Scene::draw(Window& window)
+{
+	window.clear_buffer();
+	window.bind_target(depth_stencil.view);
+	Direct3D::instance().context4->ClearDepthStencilView(depth_stencil.view.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
+	Direct3D::instance().context4->RSSetState(Direct3D::instance().rasterizer_state.Get());
+	Direct3D::instance().context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
 
 	for (MeshInstance & instance : instances)
 	{
 		instance.update_transform_buffer();
 		instance.draw();
 	}
-
-	skybox.update_frustrum_buffer({
-camera.blnear_fpoint - vec4{camera.position().x(), camera.position().y(), camera.position().z(), 1.f},
-camera.frustrum_up, camera.frustrum_right
-		});
+	
 	skybox.draw();
 
 	if(ImGuiManager::active())
 		ImGuiManager::flush();
 
-	renderer.flush();
+	window.swap_buffer();
 }

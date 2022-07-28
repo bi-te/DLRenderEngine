@@ -31,11 +31,11 @@
     <Filter Include="engine\moving">
       <UniqueIdentifier>{b75f5270-20a6-49d8-917c-9d8df3c9adc3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="engine\includes">
-      <UniqueIdentifier>{cec55c35-9b91-4bc0-99b7-aaf1b1bc45b9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="engine\imgui">
       <UniqueIdentifier>{1fd82a38-17ab-4eb0-a644-ff929261b584}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\win32">
+      <UniqueIdentifier>{cec55c35-9b91-4bc0-99b7-aaf1b1bc45b9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -46,9 +46,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="engine\Controller.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="engine\Camera.cpp">
@@ -65,9 +62,6 @@
     </ClCompile>
     <ClCompile Include="engine\objects\MeshInstance.cpp">
       <Filter>engine\objects</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\render\Renderer.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="engine\math\Mesh.cpp">
       <Filter>Source Files</Filter>
@@ -114,15 +108,15 @@
     <ClCompile Include="engine\imgui\imgui_widgets.cpp">
       <Filter>engine\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="engine\win32\Window.cpp">
+      <Filter>engine\win32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\Timer.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Window.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\Scene.h">
@@ -195,16 +189,13 @@
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\includes\win.h">
-      <Filter>engine\includes</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\render\Renderer.h">
-      <Filter>engine\render</Filter>
+      <Filter>engine\win32</Filter>
     </ClInclude>
     <ClInclude Include="engine\includes\win_undef.h">
-      <Filter>engine\includes</Filter>
+      <Filter>engine\win32</Filter>
     </ClInclude>
     <ClInclude Include="engine\includes\win_def.h">
-      <Filter>engine\includes</Filter>
+      <Filter>engine\win32</Filter>
     </ClInclude>
     <ClInclude Include="engine\render\Direct11\DDSTextureLoader11.h">
       <Filter>engine\render\Direct11</Filter>
@@ -259,6 +250,15 @@
     </ClInclude>
     <ClInclude Include="engine\imgui\ImGuiManager.h">
       <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\win32\Window.h">
+      <Filter>engine\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\win32\WinListener.h">
+      <Filter>engine\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\wchar_algorithms.h">
+      <Filter>engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

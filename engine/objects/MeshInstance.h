@@ -12,7 +12,8 @@
 
 struct RenderData
 {
-	uint32_t texture, shader, material;
+	std::wstring texture, shader;
+	uint32_t material;
 
 	ImmutableBuffer<D3D11_BIND_VERTEX_BUFFER> vertices;
 	ImmutableBuffer<D3D11_BIND_INDEX_BUFFER> indices;
@@ -29,13 +30,13 @@ public:
 	void update_transform_buffer()
 	{
 		transform.update();
-		render_data.transformation.write(transform.mtransform.data());
+		render_data.transformation.write(transform.mtransform.data(), Direct3D::instance().context4);
 	}
 
 	void load_buffers()
 	{
-		render_data.vertices.write(mesh->vertices.data(), mesh->vertices.size() * sizeof(float));
-		render_data.indices.write(mesh->indices.data(), mesh->indices.size() * sizeof(uint32_t));
+		render_data.vertices.write(mesh->vertices.data(), mesh->vertices.size() * sizeof(float), Direct3D::instance().device5);
+		render_data.indices.write(mesh->indices.data(), mesh->indices.size() * sizeof(uint32_t), Direct3D::instance().device5);
 	}
 
 	void reset_buffers()
@@ -47,8 +48,8 @@ public:
 
 	void draw()
 	{
-		Direct3D& globals = Direct3D::globals();
-		const Shader& shdr = ShaderManager::instance()[render_data.shader];
+		Direct3D& globals = Direct3D::instance();
+		const Shader& shdr = ShaderManager::instance()(render_data.shader.c_str());
 
 		uint32_t offset = 0;
 		globals.context4->IASetVertexBuffers(0, 1, render_data.vertices.address(), &mesh->stride, &offset);
@@ -57,7 +58,7 @@ public:
 		globals.context4->VSSetShader(shdr.vertexShader.Get(), nullptr, NULL);
 		globals.context4->VSSetConstantBuffers(1, 1, render_data.transformation.address());
 		globals.context4->PSSetShader(shdr.pixelShader.Get(), nullptr, NULL);
-		globals.context4->PSSetShaderResources(0, 1, TextureManager::instance()[render_data.texture].srvTexture.GetAddressOf());
+		globals.context4->PSSetShaderResources(0, 1, TextureManager::instance().get_texture(render_data.texture.c_str()).GetAddressOf());
 
 		globals.context4->DrawIndexed(mesh->indices.size(), 0, 0);
 	}

@@ -1,19 +1,18 @@
 #pragma once
 
 #include "Scene.h"
-#include "render/Renderer.h"
-#include "render/TextureManager.h"
 
 class Engine
 {
 	static Engine* s_engine;
 
 public:
-	Camera camera;
 	Scene scene;
-	Renderer renderer;
+	Window* window;
 
-	static void init(HWND handle);
+	static void init();
+
+	void render();
 
 	static Engine& instance()
 	{

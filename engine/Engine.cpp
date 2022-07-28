@@ -1,8 +1,8 @@
 #include "Engine.h"
-
+#include "render/TextureManager.h"
 Engine* Engine::s_engine;
 
-void Engine::init(HWND handle)
+void Engine::init()
 {
 	if (s_engine) s_engine->reset();
 
@@ -11,14 +11,26 @@ void Engine::init(HWND handle)
 	ShaderManager::init();
 
 	s_engine = new Engine;
-	s_engine->renderer.init(handle);
+}
+
+void Engine::render()
+{
+	PerFrame per_frame;
+	per_frame.view_projection = scene.camera.view_proj;
+	per_frame.frustum.bottom_left_point = scene.camera.blnear_fpoint - scene.camera.view_inv.row(3);
+	per_frame.frustum.up_vector = scene.camera.frustrum_up;
+	per_frame.frustum.right_vector = scene.camera.frustrum_right;
+	Direct3D::instance().bind_globals(per_frame);
+
+	Direct3D::instance().context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	scene.draw(*window);
 }
 
 void Engine::reset()
 {
 	assert(s_engine && "Engine not initialized");
-
-	s_engine->renderer.reset();
+	
 	delete s_engine;
 
 	ShaderManager::reset();
