@@ -18,6 +18,8 @@ const comptr<ID3D11ShaderResourceView>& TextureManager::get_cubemap(LPCWSTR text
 
 void TextureManager::add_texture(LPCWSTR filename)
 {
+	if (textures2d.count(filename)) return;
+
 	comptr<ID3D11ShaderResourceView> texture;
 	CreateDDSTextureFromFileEx(Direct3D::instance().device5.Get(), filename, 0,
 		D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, DXGI_CPU_ACCESS_NONE, 0, false,
@@ -28,6 +30,8 @@ void TextureManager::add_texture(LPCWSTR filename)
 
 void TextureManager::add_cubemap(LPCWSTR filename)
 {
+	if (textures2d.count(filename)) return;
+
 	comptr<ID3D11ShaderResourceView> texture;
 	CreateDDSTextureFromFileEx(Direct3D::instance().device5.Get(), filename, 0,
 		D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, DXGI_CPU_ACCESS_NONE,

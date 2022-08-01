@@ -22,8 +22,6 @@ void Engine::render()
 	per_frame.frustum.right_vector = scene.camera.frustrum_right;
 	Direct3D::instance().bind_globals(per_frame);
 
-	Direct3D::instance().context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	scene.draw(*window);
 }
 

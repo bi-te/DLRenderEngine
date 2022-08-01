@@ -118,6 +118,8 @@ const Shader& ShaderManager::operator()(LPCWSTR shader)
 
 void ShaderManager::add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry)
 {
+	if (shaders.count(filename)) return;
+
 	Shader shader;
 	compile_vertex_shader(filename, vertex_shader_entry, shader);
 	compile_pixel_shader(filename, pixel_shader_entry, shader);
