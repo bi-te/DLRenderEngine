@@ -1,20 +1,33 @@
 #pragma once
 
 #include "Scene.h"
-#include "render/Renderer.h"
 
 class Engine
 {
+	static Engine* s_engine;
+
 public:
-	Camera camera;
 	Scene scene;
-	Renderer renderer;
+	Window* window;
+
+	static void init();
+
+	void render();
 
 	static Engine& instance()
 	{
-		static std::unique_ptr<Engine> engine_(new Engine);
-		return  *engine_;
+		assert(s_engine && "Engine not initialized");
+		return *s_engine;
 	}
+	static void reset();
+
 private:
-	Engine() = default;	
+	Engine() = default;
+	
+	Engine(const Engine& other) = delete;
+	Engine(Engine&& other) noexcept = delete;
+
+	Engine& operator=(const Engine& other) = delete;
+	Engine& operator=(Engine&& other) noexcept = delete;
+	
 };

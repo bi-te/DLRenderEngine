@@ -1,23 +1,35 @@
 #pragma once
 #include <vector>
 
-#include "render/Direct3D.h"
 #include "Camera.h"
 #include "ImageSettings.h"
 #include "IntersectionQuery.h"
-#include "math/CubeMesh.h"
 #include "render/Material.h"
-#include "render/Lighting.h"
 #include "objects/MeshInstance.h"
+#include "objects/Skybox.h"
 #include "objects/SphereObject.h"
-#include "objects/PlaneObject.h"
-#include "objects/LightObjects.h"
+#include "win32/Window.h"
+
 
 const uint16_t MAX_REFLECTION_DEPTH = 2;	
 const float MAX_REFLECTIVE_ROUGHNESS = 0.1f;
 const float MAX_PROCESS_DISTANCE = 500.f;
 
 const vec3 AMBIENT{ 0.18f, 0.f, 0.72f };
+
+struct DepthStencil
+{
+	comptr<ID3D11Texture2D> buffer;
+	comptr<ID3D11DepthStencilView> view;
+	comptr<ID3D11DepthStencilState> state;
+
+	void reset()
+	{
+		buffer.Reset();
+		view.Reset();
+		state.Reset();
+	}
+};
 
 class Scene
 {
@@ -30,22 +42,23 @@ class Scene
 	};
 
 public:
-	DirectLight dirlight;
+	DepthStencil depth_stencil;
+
+	Camera camera;
+	Skybox skybox;
+
 	std::vector<Material> materials;
-	std::vector<PointLightObject> point_lights;
-	std::vector<SpotlightObject> spotlights;
-	std::vector<SphereObject> spheres;
-	std::vector<MeshInstance> meshes;
-	std::vector<Mesh> meshes_data;
+	std::vector<MeshInstance> instances;
+	std::vector<Mesh> meshes;
 
-	comptr<ID3D11Buffer> vertexBuffer;
-	UINT vertex_buffer_stride = 6 * sizeof(float);
-	UINT vertex_buffer_offset = 0;
-
-	void select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record);
+	bool select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record);
 	
-	void init_buffers();
+	void init_objects_buffers();
+	void reset_objects_buffers();
+
+	void init_depth_and_stencil_buffer(uint32_t width, uint32_t height);
+	void init_depth_stencil_state();
+
+	void draw(Window& window);
 };
-
-
 

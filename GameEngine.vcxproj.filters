@@ -5,31 +5,37 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\math">
-      <UniqueIdentifier>{8637fbc2-cf02-4da4-bafd-aab83c511056}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\render">
-      <UniqueIdentifier>{3b36de1e-c19a-44ba-b5ba-fe5ee58343b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\objects">
-      <UniqueIdentifier>{49ce2637-0642-4abd-bce1-b23716aeec9b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\moving">
-      <UniqueIdentifier>{b75f5270-20a6-49d8-917c-9d8df3c9adc3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\includes">
-      <UniqueIdentifier>{cec55c35-9b91-4bc0-99b7-aaf1b1bc45b9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="shaders">
       <UniqueIdentifier>{c5d864f5-53ef-4b24-84f5-69c250de7277}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="engine\math">
+      <UniqueIdentifier>{8637fbc2-cf02-4da4-bafd-aab83c511056}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\render">
+      <UniqueIdentifier>{3b36de1e-c19a-44ba-b5ba-fe5ee58343b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\render\Direct11">
+      <UniqueIdentifier>{1fcf6c70-a930-4dbb-b59d-e202c52e577a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\objects">
+      <UniqueIdentifier>{49ce2637-0642-4abd-bce1-b23716aeec9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\moving">
+      <UniqueIdentifier>{b75f5270-20a6-49d8-917c-9d8df3c9adc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\imgui">
+      <UniqueIdentifier>{1fd82a38-17ab-4eb0-a644-ff929261b584}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="engine\win32">
+      <UniqueIdentifier>{cec55c35-9b91-4bc0-99b7-aaf1b1bc45b9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,147 +48,230 @@
     <ClCompile Include="engine\Controller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="engine\Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="engine\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="engine\math\Transform.cpp">
-      <Filter>Header Files\math</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\ParallelExecutor.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>engine\math</Filter>
     </ClCompile>
     <ClCompile Include="engine\math\math.cpp">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClCompile>
     <ClCompile Include="engine\math\Sphere.cpp">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClCompile>
     <ClCompile Include="engine\objects\MeshInstance.cpp">
-      <Filter>Header Files\objects</Filter>
+      <Filter>engine\objects</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\Direct3D.cpp">
+    <ClCompile Include="engine\math\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\Renderer.cpp">
+    <ClCompile Include="engine\render\Direct11\Direct3D.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\ShaderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\objects\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\TextureManager.cpp">
+      <Filter>engine\render</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\CubeMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\Engine.cpp">
+      <Filter>engine\render\Direct11</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\imgui\imgui.cpp">
+      <Filter>engine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\imgui\imgui_demo.cpp">
+      <Filter>engine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\imgui\imgui_draw.cpp">
+      <Filter>engine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\imgui\imgui_impl_dx11.cpp">
+      <Filter>engine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\imgui\imgui_impl_win32.cpp">
+      <Filter>engine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\imgui\imgui_tables.cpp">
+      <Filter>engine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\imgui\imgui_widgets.cpp">
+      <Filter>engine\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\win32\Window.cpp">
+      <Filter>engine\win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
-      <Filter>Header Files</Filter>
+      <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\Timer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Window.h">
-      <Filter>Header Files</Filter>
+      <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\Scene.h">
-      <Filter>Header Files</Filter>
+      <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\Controller.h">
-      <Filter>Header Files</Filter>
+      <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\Camera.h">
-      <Filter>Header Files</Filter>
+      <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Ray.h">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Sphere.h">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Plane.h">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Intersection.h">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Transform.h">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\Objects\MeshInstance.h">
-      <Filter>Header Files\objects</Filter>
+      <Filter>engine\objects</Filter>
     </ClInclude>
     <ClInclude Include="engine\Objects\PlaneObject.h">
-      <Filter>Header Files\objects</Filter>
+      <Filter>engine\objects</Filter>
     </ClInclude>
     <ClInclude Include="engine\Objects\SphereObject.h">
-      <Filter>Header Files\objects</Filter>
+      <Filter>engine\objects</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\math.h">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\render\Material.h">
-      <Filter>Header Files\render</Filter>
+      <Filter>engine\render</Filter>
     </ClInclude>
     <ClInclude Include="engine\render\Lighting.h">
-      <Filter>Header Files\render</Filter>
+      <Filter>engine\render</Filter>
     </ClInclude>
     <ClInclude Include="engine\objects\LightObjects.h">
-      <Filter>Header Files\objects</Filter>
+      <Filter>engine\objects</Filter>
     </ClInclude>
     <ClInclude Include="engine\moving\ObjectMover.h">
-      <Filter>Header Files\moving</Filter>
+      <Filter>engine\moving</Filter>
     </ClInclude>
     <ClInclude Include="engine\moving\SphereMover.h">
-      <Filter>Header Files\moving</Filter>
+      <Filter>engine\moving</Filter>
     </ClInclude>
     <ClInclude Include="engine\moving\TransformMover.h">
-      <Filter>Header Files\moving</Filter>
+      <Filter>engine\moving</Filter>
     </ClInclude>
     <ClInclude Include="engine\moving\PointLightMover.h">
-      <Filter>Header Files\moving</Filter>
+      <Filter>engine\moving</Filter>
     </ClInclude>
     <ClInclude Include="engine\moving\SpotlightMover.h">
-      <Filter>Header Files\moving</Filter>
+      <Filter>engine\moving</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Mesh.h">
-      <Filter>Header Files\math</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\math\CubeMesh.h">
-      <Filter>Header Files\math</Filter>
+      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\IntersectionQuery.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\ParallelExecutor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\RandomGenerator.h">
-      <Filter>Header Files</Filter>
+      <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\ImageSettings.h">
-      <Filter>Header Files</Filter>
+      <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\includes\win.h">
-      <Filter>Header Files\includes</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\render\Direct3D.h">
-      <Filter>Header Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\includes\d3d.h">
-      <Filter>Header Files\includes</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\render\Renderer.h">
-      <Filter>Header Files\render</Filter>
+      <Filter>engine\win32</Filter>
     </ClInclude>
     <ClInclude Include="engine\includes\win_undef.h">
-      <Filter>Header Files\includes</Filter>
+      <Filter>engine\win32</Filter>
     </ClInclude>
     <ClInclude Include="engine\includes\win_def.h">
-      <Filter>Header Files\includes</Filter>
+      <Filter>engine\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\DDSTextureLoader11.h">
+      <Filter>engine\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\Direct3D.h">
+      <Filter>engine\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\ShaderManager.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\TextureManager.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\d3d.h">
+      <Filter>engine\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\ImmutableBuffer.h">
+      <Filter>engine\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\objects\Skybox.h">
+      <Filter>engine\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\DynamicBuffer.h">
+      <Filter>engine\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\CubeMesh.h">
+      <Filter>engine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imconfig.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imgui.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imgui_impl_dx11.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imgui_impl_win32.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imgui_internal.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imstb_rectpack.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imstb_textedit.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\imstb_truetype.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\imgui\ImGuiManager.h">
+      <Filter>engine\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\win32\Window.h">
+      <Filter>engine\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\win32\WinListener.h">
+      <Filter>engine\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\wchar_algorithms.h">
+      <Filter>engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\vertex.hlsl">
+    <FxCompile Include="shaders\default.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\pixel.hlsl">
+    <FxCompile Include="shaders\sky.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\globals.hlsli">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

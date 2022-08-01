@@ -67,3 +67,4 @@ inline void clamp_to_horizon(const vec3& norm, vec3& dir, float min_cos)
 	if(cosNoD < 0.f) 
 		dir = (dir + norm * (min_cos - cosNoD)).normalized();
 }
+

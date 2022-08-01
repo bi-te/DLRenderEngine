@@ -1,28 +1,22 @@
 #pragma once
 #include <cstdint>
+#include <iostream>
 
 #include "Scene.h"
 #include "math/math.h"
-
-enum BUTTON { PRESSED, MDOWN, RELEASED, MUP };
+#include "win32/Window.h"
+#include "win32/WinListener.h"
 
 struct Mouse
 {
-    int16_t lmb_x, lmb_y;
-	int16_t prev_x, prev_y;
-	int16_t x, y;
-    int16_t wheel;
+    int32_t lmb_x, lmb_y;
+    int32_t prev_x, prev_y;
+    int32_t x, y;
+    int32_t wheel;
 
-	BUTTON rmb{ MUP };
-	BUTTON lmb{ MUP };
+    BUTTON rmb;
+    BUTTON lmb;
 
-};
-
-enum Key
-{
-    SHIFT = 0x10, CTRL = 0x11, ESCAPE = 0x1B, SPACE = 0x20, LEFT = 0x25, UP = 0x26, RIGHT = 0x27, DOWN = 0x28,
-    A = 0x41, C = 0x43, D = 0x44, E = 0x45, G = 0x47, P = 0x50, Q = 0x51, R = 0x52, S = 0x53, W = 0x57,
-    PLUS = 0xBB, MINUS = 0xBD
 };
 
 struct Keyboard
@@ -30,10 +24,10 @@ struct Keyboard
     const uint8_t key_number = 254;
     std::vector<bool> keys;
 
-	Keyboard() 
-	{
+    Keyboard()
+    {
         keys.resize(key_number + 1);
-	}
+    }
 };
 
 struct InputState
@@ -42,9 +36,9 @@ struct InputState
     Keyboard keyboard;
 };
 
-class  Controller
+class  Controller: public IWinListener
 {
-    const float movement_speed = 50.f,
+    const float movement_speed = 20.f,
 				shift = 5.f, dspeed = 1.1f,
 				rotation_speed = 1.f,
 				rotation_speed_mouse = 2.f * PI;
@@ -52,36 +46,33 @@ class  Controller
     IntersectionQuery record;
 
     Scene& scene;
-    Camera& camera;
+    Window& window;
 public:
-
-    explicit Controller(Scene& rscene, Camera& camera): scene(rscene), camera(camera)
+    explicit Controller(Scene& scene, Window& window): scene(scene), window(window)
     {
     }
+
+    InputState is{};
     
-    static ImageSettings& image_settings()
-    {
-        static ImageSettings is{};
-        return is;
-    }
-
-    static InputState& input_state()
-    {
-        static InputState is{};
-        return is;
-    }
-
-
 
     void move_camera(const vec3& offset, const Angles& angles)
     {
-        camera.add_relative_angles(angles);
-        camera.add_relative_offset(offset);
-        camera.update_matrices();
+        scene.camera.add_relative_angles(angles);
+        scene.camera.add_relative_offset(offset);
+        scene.camera.update_matrices();
     }
+    
+    void OnResize(uint32_t width, uint32_t height) override
+    {
+	    scene.init_depth_and_stencil_buffer(width, height);
+        scene.camera.change_aspect(float(width) / height);
+    }
+    void KeyEvent(Key key, bool status) override { is.keyboard.keys[key] = status; } 
+    void MouseWheelEvent(uint32_t count) override { is.mouse.wheel += count; }
+    void MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos) override;
 
     void process_input(float dt);
+    void process_gui_input();
 
     void init_scene();
-
 };
