@@ -7,10 +7,10 @@ class Sphere
 {
 public:
 
-	vec3 center;
+	vec3f center;
 	float radius;
 
-	Sphere(const vec3& origin = { 0, 0, 0 }, float radius = 0)
+	Sphere(const vec3f& origin = { 0, 0, 0 }, float radius = 0)
 		: center(origin),
 		  radius(radius)
 	{

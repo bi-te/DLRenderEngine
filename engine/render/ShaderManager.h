@@ -4,12 +4,20 @@
 #include "wchar_algorithms.h"
 #include "Direct11/Direct3D.h"
 
+struct InputLayout
+{
+	comptr<ID3D11InputLayout> ptr;
+	std::vector<D3D11_INPUT_ELEMENT_DESC> desc;
+};
+
 struct Shader
 {
 	comptr<ID3D11VertexShader> vertexShader;
 	comptr<ID3D11PixelShader> pixelShader;
-	comptr<ID3D11InputLayout> inputLayout;
+	InputLayout inputLayout;
 };
+
+const char PER_INSTANCE_PREFIX[] = "Inst_";
 
 class ShaderManager
 {

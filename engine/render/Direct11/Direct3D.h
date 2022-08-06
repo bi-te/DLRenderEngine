@@ -6,14 +6,14 @@
 
 struct Frustum
 {
-	vec4 bottom_left_point,
+	vec4f bottom_left_point,
 		up_vector,
 		right_vector;
 };
 
 struct PerFrame
 {
-	mat4 view_projection;
+	mat4f view_projection;
 	Frustum frustum;
 };
 

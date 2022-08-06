@@ -4,7 +4,9 @@
 
 #include "Engine.h"
 #include "imgui/ImGuiManager.h"
-#include "math/CubeMesh.h"
+#include "render/MaterialManager.h"
+#include "render/MeshSystem.h"
+#include "render/ModelManager.h"
 #include "render/ShaderManager.h"
 #include "render/TextureManager.h"
 
@@ -18,25 +20,104 @@ void Controller::init_scene()
     texture_manager.add_texture(L"assets/textures/woodm.dds");
     texture_manager.add_texture(L"assets/cubemaps/skyboxbm.dds");
 
+    ModelManager& models = ModelManager::instance();
+    MaterialManager& materials = MaterialManager::instance();
+    materials.add_model("Wood_mat", { {TextureDiffuse, L"assets/textures/woodm.dds"} });
+
+    models.add_model("assets/models/Samurai/Samurai.fbx");
+    models.add_model("assets/models/Knight/Knight.fbx");
+    models.add_model("assets/models/KnightHorse/KnightHorse.fbx");
+    models.add_model("assets/models/SunCityWall/SunCityWall.fbx");
+    models.make_cube();
+    Instance* cube = MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("Wood_mat") });
+    cube->model_world.set_scale({100.f, 10.f, 10.f});
+    cube->model_world.set_world_offset({ 0.f, 0.f, 55.f });
+
+    cube = MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/SunCityWall/Wall_mat") });
+    cube->model_world.set_scale({ 10.f, 50.f, 10.f });
+    cube->model_world.set_world_offset({ -76.f, 0.f, 0.f });
+
+    cube = MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/Knight/Skirt_mat") });
+    cube->model_world.set_scale(10.f);
+    cube->model_world.set_world_offset({ -6.f, 0.f, -16.f });
+
+    Instance* samurai = MeshSystem::instance().opaque_instances.add_model_instance(
+	    models.get_ptr("assets/models/Samurai/Samurai.fbx"),
+	    {
+		    materials.get("assets/models/Samurai/Sword_mat"),
+	    	materials.get("assets/models/Samurai/Head_mat"),
+	    	materials.get("assets/models/Samurai/Eyes_mat"),
+		    materials.get("assets/models/Samurai/Helmet_mat"),
+	    	materials.get("assets/models/Samurai/Skirt_mat"),
+	    	materials.get("assets/models/Samurai/Legs_mat"),
+		    materials.get("assets/models/Samurai/Hands_mat"),
+	    	materials.get("assets/models/Samurai/Torso_mat")
+	    }
+    );
+    samurai->model_world.set_scale(5.f);
+    samurai->model_world.set_world_offset({ 10.f, 0.f, 0.f });
+
+    Instance* knight = MeshSystem::instance().opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/Knight/Knight.fbx"),
+        {
+            materials.get("assets/models/Knight/Fur_mat"),
+        	materials.get("assets/models/Knight/Legs_mat"),
+        	materials.get("assets/models/Knight/Torso_mat"),
+        	materials.get("assets/models/Knight/Head_mat"),
+        	materials.get("assets/models/Knight/Eyes_mat"),
+        	materials.get("assets/models/Knight/Helmet_mat"),
+        	materials.get("assets/models/Knight/Skirt_mat"),
+        	materials.get("assets/models/Knight/Cape_mat"),
+        	materials.get("assets/models/Knight/Gloves_mat")
+        }
+    );
+    knight->model_world.set_scale(5.f);
+    knight->model_world.set_world_offset({ 20.f, 0.f, 0.f });
+
+    Instance* horse = MeshSystem::instance().opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
+        {
+            materials.get("assets/models/KnightHorse/Armor_mat"),
+            materials.get("assets/models/KnightHorse/Horse_mat"),
+            materials.get("assets/models/KnightHorse/Tail_mat")
+        }
+    );
+    horse->model_world.set_scale(5.f);
+    horse->model_world.set_world_offset({ 30.f, 0.f, 0.f });
+
+    Instance* wall = MeshSystem::instance().opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/SunCityWall/SunCityWall.fbx"),
+        {
+            materials.get("assets/models/SunCityWall/Star_mat"),
+            materials.get("assets/models/SunCityWall/Wall_mat"),
+            materials.get("assets/models/SunCityWall/Trims_mat"),
+            materials.get("assets/models/SunCityWall/Statue_mat"),
+            materials.get("assets/models/SunCityWall/Stonework_mat"),
+        }
+    );
+    wall->model_world.set_scale(5.f);
+    wall->model_world.set_world_offset({ 0.f, 0.f, 10.f });
+
     scene.skybox.shader = L"shaders/sky.hlsl";
     scene.skybox.texture = L"assets/cubemaps/skyboxbm.dds";
 
-    std::vector<Mesh>& meshes = Engine::instance().scene.meshes;
-    CubeMesh cube{};
-    meshes.push_back(std::move(cube));
 
-    std::vector<MeshInstance>& instances = Engine::instance().scene.instances;
-    MeshInstance instance;
-    instance.mesh = &meshes[0];
-    instance.render_data.texture = L"assets/textures/woodm.dds";
-    instance.render_data.shader = L"shaders/default.hlsl";
-    instance.render_data.transformation = { sizeof(mat4), Direct3D::instance().device5};
-    instance.transform.set_world_offset({ 0.f, 0.f, 30.5f });
-    instance.transform.set_scale({ 15.f, 15.f, 15.f });
-    instance.transform.add_world_offset({0.f, 0.f, 5.f});
-    instances.push_back(std::move(instance));
 
-    scene.init_objects_buffers();
+    //std::vector<Mesh>& meshes = Engine::instance().scene.meshes;
+    //CubeMesh cube{};
+    //meshes.push_back(std::move(cube));
+
+    //std::vector<MeshInstance>& instances = Engine::instance().scene.instances;
+    //MeshInstance instance;
+    //instance.mesh = &meshes[0];
+    //instance.render_data.texture = L"assets/textures/woodm.dds";
+    //instance.render_data.shader = L"shaders/default.hlsl";
+    //instance.render_data.transformation = { sizeof(mat4f), Direct3D::instance().device5};
+    //instance.transform.set_world_offset({ 0.f, 0.f, 30.5f });
+    //instance.transform.set_scale({ 15.f, 15.f, 15.f });
+    //instance.transform.add_world_offset({0.f, 0.f, 5.f});
+    //instances.push_back(std::move(instance));
+
     scene.init_depth_and_stencil_buffer(window.width(), window.height());
     scene.init_depth_stencil_state();
 }
@@ -109,7 +190,7 @@ void Controller::process_input(float dt)
         is.keyboard.keys[I] = false;
     }
 
-    vec3 move{ 0.f, 0.f, 0.f };
+    vec3f move{ 0.f, 0.f, 0.f };
     Angles rot{};
 
     // movement
@@ -150,10 +231,10 @@ void Controller::process_input(float dt)
 
     bool camera_update = true;
     float dx, dy, h, w, prop;
-    vec4 up, right;
-    vec3 view, tview, trans, offset{ 0.f, 0.f, 0.f };
+    vec4f up, right;
+    vec3f view, tview, trans, offset{ 0.f, 0.f, 0.f };
     Ray mouse_ray;
-    quat rotation;
+    quatf rotation;
 
     switch (is.mouse.rmb)
     {
@@ -182,10 +263,10 @@ void Controller::process_input(float dt)
             if(scene.camera.fps_camera)
             {
                 //FPS
-                rotation = quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
-                rotation *= quat{ Eigen::AngleAxisf{
+                rotation = quatf{ Eigen::AngleAxisf{rot.pitch, vec3f{1.f, 0.f,0.f}} };
+                rotation *= quatf{ Eigen::AngleAxisf{
                     rot.yaw,
-                    vec3{0,1,0} *scene.camera.view.topLeftCorner<3, 3>()} };
+                    vec3f{0,1,0} *scene.camera.view.topLeftCorner<3, 3>()} };
 
                 view = record.intersection.point * scene.camera.view.topLeftCorner<3, 3>() + scene.camera.view.row(3).head<3>();
                 tview = view * rotation.toRotationMatrix();
@@ -202,9 +283,9 @@ void Controller::process_input(float dt)
             } else
             {
                 //spaceship
-                rotation = quat{ Eigen::AngleAxisf{rot.roll, vec3{0.f, 0.f,1.f}} };
-                rotation *= quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
-                rotation *= quat{ Eigen::AngleAxisf{rot.yaw, vec3{0.f, 1.f,0.f}} };
+                rotation = quatf{ Eigen::AngleAxisf{rot.roll, vec3f{0.f, 0.f,1.f}} };
+                rotation *= quatf{ Eigen::AngleAxisf{rot.pitch, vec3f{1.f, 0.f,0.f}} };
+                rotation *= quatf{ Eigen::AngleAxisf{rot.yaw, vec3f{0.f, 1.f,0.f}} };
 
                 view = record.intersection.point * scene.camera.view.topLeftCorner<3, 3>() + scene.camera.view.row(3).head<3>();
                 tview = view * rotation.toRotationMatrix();

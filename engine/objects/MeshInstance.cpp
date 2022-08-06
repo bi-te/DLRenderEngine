@@ -18,13 +18,13 @@ bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Inters
 	bool intersected = false;
 
 	Ray transformed_ray;
-	transformed_ray.origin = (vec4{ ray.origin.x(), ray.origin.y(), ray.origin.z(), 1.f } * transform.mtransform_inv).head<3>();
+	transformed_ray.origin = (vec4f{ ray.origin.x(), ray.origin.y(), ray.origin.z(), 1.f } * transform.mtransform_inv).head<3>();
 	transformed_ray.direction = (ray.direction * transform.mtransform_inv.topLeftCorner<3, 3>());
 
 	Vertex vertex;
-	vec3 a, b, c;
-	vec3 ab, ac, ao;
-	vec3 norm;
+	vec3f a, b, c;
+	vec3f ab, ac, ao;
+	vec3f norm;
 
 	const std::vector<float>& vertices = mesh->vertices;
 	const std::vector<uint32_t>& indices = mesh->indices;
@@ -32,11 +32,11 @@ bool MeshInstance::intersection(const Ray& ray, float t_min, float t_max, Inters
 	for (uint32_t i = 0; i < mesh->indices.size();)
 	{
 		vertex = mesh->get_vertex_coor(indices[i++]);
-		vec3 a = vec3{ vertex.x, vertex.y, vertex.z};
+		vec3f a = vec3f{ vertex.x, vertex.y, vertex.z};
 		vertex = mesh->get_vertex_coor(indices[i++]);
-		vec3 b = vec3{ vertex.x, vertex.y, vertex.z };
+		vec3f b = vec3f{ vertex.x, vertex.y, vertex.z };
 		vertex = mesh->get_vertex_coor(indices[i++]);
-		vec3 c = vec3{ vertex.x, vertex.y, vertex.z };
+		vec3f c = vec3f{ vertex.x, vertex.y, vertex.z };
 
 		ab = b - a;
 		ac = c - a;

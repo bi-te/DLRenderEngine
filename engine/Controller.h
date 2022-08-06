@@ -55,7 +55,7 @@ public:
     InputState is{};
     
 
-    void move_camera(const vec3& offset, const Angles& angles)
+    void move_camera(const vec3f& offset, const Angles& angles)
     {
         scene.camera.add_relative_angles(angles);
         scene.camera.add_relative_offset(offset);

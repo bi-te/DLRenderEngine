@@ -11,7 +11,7 @@ public:
 	{
 	}
 
-	void move(const vec3& offset) override
+	void move(const vec3f& offset) override
 	{
 		transform.add_world_offset(offset);
 		transform.update();

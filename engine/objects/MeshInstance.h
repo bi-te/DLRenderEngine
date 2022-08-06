@@ -54,7 +54,7 @@ public:
 		uint32_t offset = 0;
 		globals.context4->IASetVertexBuffers(0, 1, render_data.vertices.address(), &mesh->stride, &offset);
 		globals.context4->IASetIndexBuffer(render_data.indices.get(), DXGI_FORMAT_R32_UINT, 0);
-		globals.context4->IASetInputLayout(shdr.inputLayout.Get());
+		globals.context4->IASetInputLayout(shdr.inputLayout.ptr.Get());
 		globals.context4->VSSetShader(shdr.vertexShader.Get(), nullptr, NULL);
 		globals.context4->VSSetConstantBuffers(1, 1, render_data.transformation.address());
 		globals.context4->PSSetShader(shdr.pixelShader.Get(), nullptr, NULL);

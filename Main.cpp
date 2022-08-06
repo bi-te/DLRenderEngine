@@ -82,7 +82,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
     ImGuiManager::reset();
 
     window.render_reset();
-    engine.scene.reset_objects_buffers();
     Engine::reset();
 
     return msg.wParam;

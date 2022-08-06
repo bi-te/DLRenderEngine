@@ -5,12 +5,12 @@
 class Plane
 {
 public:
-	vec3 point;
-	vec3 normal;
+	vec3f point;
+	vec3f normal;
 
 	Plane() = default;
 
-	Plane(const vec3& normal, const vec3& point={0, 0, 0})
+	Plane(const vec3f& normal, const vec3f& point={0, 0, 0})
 		: point(point),
 		  normal(normal)
 	{
@@ -22,7 +22,7 @@ public:
 		float denom = normal.dot(-ray.direction);
 		if(fabs(denom) < std::numeric_limits<double>::epsilon()	) return false;
 
-		vec3 op = ray.origin - point;
+		vec3f op = ray.origin - point;
 		float t = normal.dot(op) / denom;
 
 		if (t > t_min && t < t_max && t < record.t)

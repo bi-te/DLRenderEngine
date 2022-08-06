@@ -1,4 +1,8 @@
 #include "Engine.h"
+
+#include "render/MaterialManager.h"
+#include "render/MeshSystem.h"
+#include "render/ModelManager.h"
 #include "render/TextureManager.h"
 Engine* Engine::s_engine;
 
@@ -9,6 +13,9 @@ void Engine::init()
 	Direct3D::init();
 	TextureManager::init();
 	ShaderManager::init();
+	MaterialManager::init();
+	ModelManager::init();
+	MeshSystem::init();
 
 	s_engine = new Engine;
 }
@@ -31,6 +38,9 @@ void Engine::reset()
 	
 	delete s_engine;
 
+	MeshSystem::reset();
+	ModelManager::reset();
+	MaterialManager::reset();
 	ShaderManager::reset();
 	TextureManager::reset();
 	Direct3D::reset();

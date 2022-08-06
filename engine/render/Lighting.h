@@ -3,15 +3,15 @@
 
 struct DirectLight
 {
-	vec3 light;
-	vec3 direction;
+	vec3f light;
+	vec3f direction;
 	float solid_angle;
 };
 
 struct PointLight
 {
-	vec3 light;
-	vec3 position;
+	vec3f light;
+	vec3f position;
 
 	//Phong
 	float light_range;
@@ -19,9 +19,9 @@ struct PointLight
 
 struct Spotlight 
 {
-	vec3 light;
-	vec3 position;
-	vec3 direction;
+	vec3f light;
+	vec3f position;
+	vec3f direction;
 
 	float cutOff, outerCutOff;
 
