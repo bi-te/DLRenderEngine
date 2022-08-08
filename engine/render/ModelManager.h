@@ -41,7 +41,12 @@ struct Model
 class ModelManager
 {
 	static ModelManager* s_manager;
-	ModelManager(){}
+	ModelManager() = default;
+
+	ModelManager(const ModelManager& other) = delete;
+	ModelManager(ModelManager&& other) noexcept = delete;
+	ModelManager& operator=(const ModelManager& other) = delete;
+	ModelManager& operator=(ModelManager&& other) noexcept = delete;
 
 	std::unordered_map<std::string, std::shared_ptr<Model>> models;
 
@@ -59,7 +64,7 @@ public:
 
 	static ModelManager& instance()
 	{
-		assert(s_manager && "TextureManager not initialized");
+		assert(s_manager && "ModelManager not initialized");
 		return *s_manager;
 	}
 

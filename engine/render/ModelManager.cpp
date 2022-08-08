@@ -129,6 +129,8 @@ void ModelManager::parse_tree(const aiScene& scene, Model& model)
 	std::queue<aiNode*> nodes;
 	Model::Node root_node;
 
+	std::vector<mat4f> mesh_model;
+
 	nodes.push(scene.mRootNode);
 	
 	root_node.mesh_matrix = mat4f::Identity();
@@ -142,6 +144,8 @@ void ModelManager::parse_tree(const aiScene& scene, Model& model)
 		Model::Node& tree_node = tree.at(ind);
 
 		tree_node.mesh_matrix *= reinterpret_cast<mat4f&>(node.mTransformation.Transpose());
+		if(ind != 0)
+			mesh_model.push_back(tree_node.mesh_matrix);
 
 		for (int i = 0; i < node.mNumMeshes; ++i)
 			tree_node.meshes.push_back(node.mMeshes[i]);
@@ -152,7 +156,6 @@ void ModelManager::parse_tree(const aiScene& scene, Model& model)
 			uint32_t child_node = visited_nodes + child_ind;
 			tree.at(child_node).mesh_matrix = tree_node.mesh_matrix;
 
-
 			nodes.push(node.mChildren[child_ind]);
 		}
 
@@ -162,6 +165,8 @@ void ModelManager::parse_tree(const aiScene& scene, Model& model)
 
 void ModelManager::make_cube()
 {
+	if (models.count("Cube")) return;
+
 	Model cube;
 	cube.name = "Cube";
 	cube.tree = {

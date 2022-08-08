@@ -13,7 +13,6 @@ struct Material;
 
 struct Instance
 {
-	std::vector<mat4f> mesh_model;
 	Transform model_world;
 };
 
@@ -45,7 +44,9 @@ public:
 	DynamicBuffer<D3D11_BIND_VERTEX_BUFFER> instanceBuffer;
 	std::vector<PerModel> perModels;
 
-	Instance* add_model_instance(const std::shared_ptr<Model>& model, const std::vector<Material>& materials);
+	void add_model_instance(const std::shared_ptr<Model>& model,
+	                        const std::vector<Material>& materials,
+	                        const Instance& instance);
 
 	void update_instance_buffer();
 	void render();

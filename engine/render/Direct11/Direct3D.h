@@ -20,7 +20,12 @@ struct PerFrame
 class Direct3D
 {
 	static Direct3D* direct3d;
-	Direct3D(){};
+	Direct3D() = default;
+
+	Direct3D(const Direct3D& other) = delete;
+	Direct3D(Direct3D&& other) noexcept = delete;
+	Direct3D& operator=(const Direct3D& other) = delete;
+	Direct3D& operator=(Direct3D&& other) noexcept = delete;
 
 public:
 	comptr<IDXGIFactory5> factory5;

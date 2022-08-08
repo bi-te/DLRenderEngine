@@ -69,9 +69,6 @@
     <ClCompile Include="engine\math\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\Direct11\Direct3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -83,9 +80,6 @@
     </ClCompile>
     <ClCompile Include="engine\render\TextureManager.cpp">
       <Filter>engine\render</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\Engine.cpp">
-      <Filter>engine\render\Direct11</Filter>
     </ClCompile>
     <ClCompile Include="engine\imgui\imgui.cpp">
       <Filter>engine\imgui</Filter>
@@ -122,6 +116,12 @@
     </ClCompile>
     <ClCompile Include="engine\render\MaterialManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\Direct3D.cpp">
+      <Filter>engine\render\Direct11</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -503,11 +503,11 @@
     <ClInclude Include="engine\render\ModelManager.h">
       <Filter>engine\render</Filter>
     </ClInclude>
-    <ClInclude Include="engine\render\MeshSystem.h">
-      <Filter>engine</Filter>
-    </ClInclude>
     <ClInclude Include="engine\render\MaterialManager.h">
-      <Filter>engine</Filter>
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\MeshSystem.h">
+      <Filter>engine\render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

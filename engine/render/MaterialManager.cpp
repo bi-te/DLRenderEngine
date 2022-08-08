@@ -2,7 +2,7 @@
 
 MaterialManager* MaterialManager::s_manager;
 
-void MaterialManager::add_model(const std::string& name,
+void MaterialManager::add_material(const std::string& name,
 	const std::vector<std::pair<TextureType, std::wstring>>& textures)
 {
 	if (materials.count(name)) return;

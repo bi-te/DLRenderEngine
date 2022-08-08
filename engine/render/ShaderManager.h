@@ -24,9 +24,12 @@ class ShaderManager
 	std::unordered_map<LPCWSTR, Shader, pwchar_hash, pwchar_comparator> shaders;
 
 	static ShaderManager* s_manager;
-	ShaderManager()
-	{
-	}
+	ShaderManager() = default;
+
+	ShaderManager(const ShaderManager& other) = delete;
+	ShaderManager(ShaderManager&& other) noexcept = delete;
+	ShaderManager& operator=(const ShaderManager& other) = delete;
+	ShaderManager& operator=(ShaderManager&& other) noexcept = delete;
 
 	void compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
 	void compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);

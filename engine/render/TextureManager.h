@@ -10,12 +10,15 @@ enum TextureType{TextureDiffuse, TextureNormals, TextureMetallic, TextureRoughne
 
 class TextureManager
 {
-	std::unordered_map<LPCWSTR, comptr<ID3D11ShaderResourceView>, pwchar_hash, pwchar_comparator> textures2d;
-
 	static TextureManager* s_manager;
-	TextureManager()
-	{
-	}
+	TextureManager() = default;
+
+	TextureManager(const TextureManager& other) = delete;
+	TextureManager(TextureManager&& other) noexcept = delete;
+	TextureManager& operator=(const TextureManager& other) = delete;
+	TextureManager& operator=(TextureManager&& other) noexcept = delete;
+
+	std::unordered_map<LPCWSTR, comptr<ID3D11ShaderResourceView>, pwchar_hash, pwchar_comparator> textures2d;
 public:
 
 	static void init()

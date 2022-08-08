@@ -5,7 +5,7 @@
 class MeshSystem
 {
 	static MeshSystem* s_system;
-	MeshSystem(){}
+	MeshSystem() = default;
 public:
 	OpaqueInstances opaque_instances;
 
@@ -24,7 +24,7 @@ public:
 
 	static MeshSystem& instance()
 	{
-		assert(s_system && "TextureManager not initialized");
+		assert(s_system && "MeshSystem not initialized");
 		return *s_system;
 	}
 

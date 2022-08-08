@@ -7,7 +7,12 @@
 class MaterialManager
 {
 	static MaterialManager* s_manager;
-	MaterialManager() {}
+	MaterialManager() = default;
+
+	MaterialManager(const MaterialManager& other) = delete;
+	MaterialManager(MaterialManager&& other) noexcept = delete;
+	MaterialManager& operator=(const MaterialManager& other) = delete;
+	MaterialManager& operator=(MaterialManager&& other) noexcept = delete;
 
 	std::unordered_map<std::string, Material> materials;
 public:
@@ -21,11 +26,11 @@ public:
 
 	static MaterialManager& instance()
 	{
-		assert(s_manager && "Manager not initialized");
+		assert(s_manager && "MaterialManager not initialized");
 		return *s_manager;
 	}
 
-	void add_model(const std::string& name, const std::vector<std::pair<TextureType, std::wstring>>& textures);
+	void add_material(const std::string& name, const std::vector<std::pair<TextureType, std::wstring>>& textures);
 	void add(const std::string& name, const Material& material);
 
 	Material& get(const std::string& name);

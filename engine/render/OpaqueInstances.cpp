@@ -5,8 +5,9 @@
 #include "TextureManager.h"
 #include "Material.h"
 
-Instance* OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
-                                              const std::vector<Material>& materials)
+void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
+                                         const std::vector<Material>& materials,
+                                         const Instance& instance)
 {
 	assert(model->meshes.size() == materials.size() && "Number of Meshes and materials not equal");
 	
@@ -15,9 +16,7 @@ Instance* OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& mode
 		if(perModel.model.get() == model.get())
 		{
 			uint32_t new_instance = perModel.instances.size();
-			perModel.instances.push_back({});
-			for (uint32_t node_ind = 0; node_ind < model->tree.size(); ++node_ind)
-				perModel.instances.at(new_instance).mesh_model.push_back({ model->tree.at(node_ind).mesh_matrix });
+			perModel.instances.push_back(instance);
 
 			for (uint32_t mesh_ind = 0; mesh_ind < perModel.perMeshes.size(); ++mesh_ind)
 			{
@@ -37,8 +36,6 @@ Instance* OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& mode
 							materials.at(mesh_ind),{new_instance}
 						});					
 			}
-			
-			return &perModel.instances.at(new_instance);
 		} 
 	}
 
@@ -49,16 +46,14 @@ Instance* OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& mode
 	for (int ind = 0; ind < model->meshes.size(); ++ind)
 		perModel.perMeshes.at(ind).perMaterials.push_back({ materials.at(ind), {0u} });
 
-	perModel.instances.resize(1);
+	perModel.instances.push_back(instance);
 	for (int node_ind = 0; node_ind < model->tree.size(); ++node_ind)
 	{
-		perModel.instances.at(0).mesh_model.push_back({ model->tree.at(node_ind).mesh_matrix });
 		for (auto mesh: model->tree.at(node_ind).meshes)
 			perModel.perMeshes.at(mesh).mesh_model_matrices.push_back(node_ind);
 	}
 
 	perModels.push_back(std::move(perModel));
-	return &perModels.back().instances.at(0);
 }
 
 void OpaqueInstances::update_instance_buffer()
@@ -71,7 +66,7 @@ void OpaqueInstances::update_instance_buffer()
 				for (auto& instance : material.instances)
 					for (auto& mesh_node : mesh.mesh_model_matrices)
 					{
-						instances_data.push_back(model.instances[instance].mesh_model[mesh_node]);
+						instances_data.push_back(model.model.get()->tree[mesh_node].mesh_matrix);
 						instances_data.push_back(model.instances[instance].model_world.matrix());						
 					}
 						
@@ -92,6 +87,7 @@ void OpaqueInstances::render()
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &instance_stride, &ioffset);
 
 	update_instance_buffer();
+	DynamicBuffer<D3D11_BIND_CONSTANT_BUFFER> meshModel{ sizeof(mat4f), direct.device5 };
 
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model: perModels)
@@ -102,7 +98,7 @@ void OpaqueInstances::render()
 		direct.context4->IASetVertexBuffers(0, 1, model.vertexBuffer.address(), &stride, &ioffset);
 		direct.context4->IASetIndexBuffer(model.indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
 
-		for (int mesh_ind = 0; mesh_ind < per_model.perMeshes.size(); ++mesh_ind)
+		for (uint32_t mesh_ind = 0; mesh_ind < per_model.perMeshes.size(); ++mesh_ind)
 		{
 			const PerMesh& mesh = per_model.perMeshes[mesh_ind];
 			Model::MeshRange& mrange = model.meshes[mesh_ind];
@@ -110,7 +106,7 @@ void OpaqueInstances::render()
 			for (const auto& perMaterial: mesh.perMaterials)
 			{
 				const Material& material = perMaterial.material;
-				uint32_t instances = perMaterial.instances.size();
+				uint32_t instances = perMaterial.instances.size() * mesh.mesh_model_matrices.size();
 
 				direct.context4->PSSetShaderResources(0, 1,
 					TextureManager::instance().get_texture(material.diffuse.c_str()).GetAddressOf());

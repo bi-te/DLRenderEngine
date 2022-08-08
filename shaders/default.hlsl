@@ -14,7 +14,6 @@ struct vs_out
 	float2 tex_coords: TexCoord;
 };
 
-
 vs_out main(vs_in input)
 {
 	vs_out res;
