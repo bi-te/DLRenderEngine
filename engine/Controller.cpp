@@ -53,9 +53,19 @@ void Controller::init_scene()
     cube.model_world.set_world_offset({ -76.f, 0.f, 0.f });
     MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/SunCityWall/Wall_mat")}, cube);
 
+
     cube.model_world.set_scale(10.f);
-    cube.model_world.set_world_offset({ -6.f, 0.f, -16.f });
-    MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/Knight/Skirt_mat")}, cube);
+    for (int row = 0; row < 4; ++row)
+    {
+	    for (int column = 0; column < 2; ++column)
+	    {
+            cube.model_world.set_world_offset({ column * 11.f, -10.f, row * -11.f });
+            MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/Knight/Skirt_mat") }, cube);
+	    }
+        
+    }
+
+
 
 	Instance samurai;
     samurai.model_world.set_scale(5.f);

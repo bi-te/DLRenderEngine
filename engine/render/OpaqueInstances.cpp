@@ -36,6 +36,8 @@ void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
 							materials.at(mesh_ind),{new_instance}
 						});					
 			}
+
+			return;
 		} 
 	}
 
