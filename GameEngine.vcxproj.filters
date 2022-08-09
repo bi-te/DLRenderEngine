@@ -511,7 +511,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\default.hlsl">
+    <FxCompile Include="shaders\opaque.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\sky.hlsl">

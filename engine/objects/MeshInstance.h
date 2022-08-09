@@ -30,7 +30,7 @@ public:
 	void update_transform_buffer()
 	{
 		transform.update();
-		render_data.transformation.write(transform.mtransform.data(), Direct3D::instance().context4);
+		render_data.transformation.write(transform.mtransform.data());
 	}
 
 	void load_buffers()

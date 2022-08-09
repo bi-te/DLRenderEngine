@@ -319,7 +319,7 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\sky.hlsl" />
-    <FxCompile Include="shaders\default.hlsl" />
+    <FxCompile Include="shaders\opaque.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="engine\assimp\.editorconfig" />

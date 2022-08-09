@@ -5,6 +5,7 @@
 #include "Direct11/DynamicBuffer.h"
 #include "math/math.h"
 #include "Material.h"
+#include "Direct11/Direct3D.h"
 #include "math/Transform.h"
 
 class Model;
@@ -40,8 +41,16 @@ class OpaqueInstances
 	};
 
 public:
+	explicit OpaqueInstances()
+		: instanceBuffer(Direct3D::instance().device5, Direct3D::instance().context4),
+		  meshModel(Direct3D::instance().device5, Direct3D::instance().context4)
+	{
+		meshModel.allocate(sizeof(mat4f));
+	}
 
 	DynamicBuffer<D3D11_BIND_VERTEX_BUFFER> instanceBuffer;
+	DynamicBuffer<D3D11_BIND_CONSTANT_BUFFER> meshModel;
+	std::wstring opaqueShader;
 	std::vector<PerModel> perModels;
 
 	void add_model_instance(const std::shared_ptr<Model>& model,

@@ -8,7 +8,7 @@ namespace ImGuiManager
 {
 	inline bool& active()
 	{
-		static bool act = true;
+		static bool act = false;
 		return act;
 	}
 

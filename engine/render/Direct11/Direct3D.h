@@ -38,16 +38,7 @@ public:
 
 	DynamicBuffer<D3D11_BIND_CONSTANT_BUFFER> per_frame_buffer;
 
-	static void init()
-	{
-		if (direct3d) reset();
-
-		direct3d = new Direct3D;
-		direct3d->init_core();
-		direct3d->init_rasterizer_state();
-		direct3d->init_sampler_state();
-		direct3d->per_frame_buffer.allocate(sizeof(PerFrame), direct3d->device5);
-	}
+	static void init();
 
     static Direct3D& instance()
     {

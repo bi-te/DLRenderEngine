@@ -75,8 +75,6 @@ void Scene::draw(Window& window)
 	Direct3D::instance().context4->RSSetState(Direct3D::instance().rasterizer_state.Get());
 	Direct3D::instance().context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
 
-	Direct3D::instance().context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	MeshSystem::instance().render();
 
 	skybox.draw();

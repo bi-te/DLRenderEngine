@@ -12,16 +12,19 @@
 
 void Controller::init_scene()
 {
+    ModelManager& models = ModelManager::instance();
+    MaterialManager& materials = MaterialManager::instance();
+    MeshSystem& meshes = MeshSystem::instance();
     ShaderManager& shaders = ShaderManager::instance();
-    shaders.add_shader(L"shaders/default.hlsl", "main", "ps_main");
+    TextureManager& texture_manager = TextureManager::instance();
+
+    shaders.add_shader(L"shaders/opaque.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/sky.hlsl", "main", "ps_main");
 
-    TextureManager& texture_manager = TextureManager::instance();
     texture_manager.add_texture(L"assets/textures/woodm.dds");
     texture_manager.add_texture(L"assets/cubemaps/skyboxbm.dds");
 
-    ModelManager& models = ModelManager::instance();
-    MaterialManager& materials = MaterialManager::instance();
+    meshes.opaque_instances.opaqueShader = L"shaders/opaque.hlsl";
     materials.add_material("Wood_mat", { {TextureDiffuse, L"assets/textures/woodm.dds"} });
 
     models.add_model("assets/models/Samurai/Samurai.fbx");
@@ -35,7 +38,7 @@ void Controller::init_scene()
     test.model_world.set_world_offset({ 20.f, 0.f, -20.f });
     test.model_world.set_scale(0.2f);
     test.model_world.set_world_rotation({0.f, 0.f, to_radians(90.f)});
-    MeshSystem::instance().opaque_instances.add_model_instance(
+    meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/InstanceTest/test.fbx"),
         {
         	materials.get("assets/models/InstanceTest/Cube_mat"),
@@ -47,11 +50,11 @@ void Controller::init_scene()
     Instance cube;
     cube.model_world.set_scale({100.f, 10.f, 10.f});
     cube.model_world.set_world_offset({ 0.f, 0.f, 55.f });
-    MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("Wood_mat") }, cube);
+    meshes.opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("Wood_mat") }, cube);
 
     cube.model_world.set_scale({ 10.f, 50.f, 10.f });
     cube.model_world.set_world_offset({ -76.f, 0.f, 0.f });
-    MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/SunCityWall/Wall_mat")}, cube);
+    meshes.opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/SunCityWall/Wall_mat")}, cube);
 
 
     cube.model_world.set_scale(10.f);
@@ -60,17 +63,33 @@ void Controller::init_scene()
 	    for (int column = 0; column < 2; ++column)
 	    {
             cube.model_world.set_world_offset({ column * 11.f, -10.f, row * -11.f });
-            MeshSystem::instance().opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/Knight/Skirt_mat") }, cube);
+            meshes.opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/Knight/Skirt_mat") }, cube);
 	    }
         
     }
 
 
-
 	Instance samurai;
     samurai.model_world.set_scale(5.f);
     samurai.model_world.set_world_offset({ 10.f, 0.f, 0.f });
-    MeshSystem::instance().opaque_instances.add_model_instance(
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/Samurai/Samurai.fbx"),
+        {
+            materials.get("assets/models/Samurai/Sword_mat"),
+            materials.get("assets/models/Samurai/Head_mat"),
+            materials.get("assets/models/Samurai/Eyes_mat"),
+            materials.get("assets/models/Samurai/Helmet_mat"),
+            materials.get("assets/models/Samurai/Skirt_mat"),
+            materials.get("assets/models/Samurai/Legs_mat"),
+            materials.get("assets/models/Samurai/Hands_mat"),
+            materials.get("assets/models/Samurai/Torso_mat")
+        },
+        samurai
+    );
+
+    samurai.model_world.set_scale(5.f);
+    samurai.model_world.set_world_offset({ 5.f, 0.f, 3.f });
+    meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/Samurai/Samurai.fbx"),
         {
             materials.get("assets/models/Samurai/Sword_mat"),
@@ -88,7 +107,7 @@ void Controller::init_scene()
     Instance knight;
     knight.model_world.set_scale(5.f);
     knight.model_world.set_world_offset({ 20.f, 0.f, 0.f });
-    MeshSystem::instance().opaque_instances.add_model_instance(
+    meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/Knight/Knight.fbx"),
         {
             materials.get("assets/models/Knight/Fur_mat"),
@@ -104,10 +123,40 @@ void Controller::init_scene()
         knight
     );
 
+    knight.model_world.set_scale(5.f);
+    knight.model_world.set_world_offset({ 15.f, 0.f, 3.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/Knight/Knight.fbx"),
+        {
+            materials.get("assets/models/Knight/Fur_mat"),
+            materials.get("assets/models/Knight/Legs_mat"),
+            materials.get("assets/models/Knight/Torso_mat"),
+            materials.get("assets/models/Knight/Head_mat"),
+            materials.get("assets/models/Knight/Eyes_mat"),
+            materials.get("assets/models/Knight/Helmet_mat"),
+            materials.get("assets/models/Knight/Skirt_mat"),
+            materials.get("assets/models/Knight/Cape_mat"),
+            materials.get("assets/models/Knight/Gloves_mat")
+        },
+        knight
+    );
+
     Instance horse;
     horse.model_world.set_scale(5.f);
     horse.model_world.set_world_offset({ 30.f, 0.f, 0.f });
-    MeshSystem::instance().opaque_instances.add_model_instance(
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
+        {
+            materials.get("assets/models/KnightHorse/Armor_mat"),
+            materials.get("assets/models/KnightHorse/Horse_mat"),
+            materials.get("assets/models/KnightHorse/Tail_mat")
+        },
+        horse
+    );
+
+    horse.model_world.set_scale(5.f);
+    horse.model_world.set_world_offset({ 25.f, 0.f, 5.f });
+    meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
         {
             materials.get("assets/models/KnightHorse/Armor_mat"),
@@ -119,8 +168,8 @@ void Controller::init_scene()
 
     Instance wall;
     wall.model_world.set_scale(5.f);
-    wall.model_world.set_world_offset({ 0.f, 0.f, 10.f });
-    MeshSystem::instance().opaque_instances.add_model_instance(
+    wall.model_world.set_world_offset({ 0.f, 0.f, 15.f });
+    meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/SunCityWall/SunCityWall.fbx"),
         {
             materials.get("assets/models/SunCityWall/Star_mat"),
@@ -132,25 +181,23 @@ void Controller::init_scene()
         wall
     );
 
+    wall.model_world.set_scale(5.f);
+    wall.model_world.set_world_offset({ -15.82f, 0.f, 15.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/SunCityWall/SunCityWall.fbx"),
+        {
+            materials.get("assets/models/SunCityWall/Star_mat"),
+            materials.get("assets/models/SunCityWall/Wall_mat"),
+            materials.get("assets/models/SunCityWall/Trims_mat"),
+            materials.get("assets/models/SunCityWall/Statue_mat"),
+            materials.get("assets/models/SunCityWall/Stonework_mat"),
+        },
+        wall
+        );
+
+
     scene.skybox.shader = L"shaders/sky.hlsl";
     scene.skybox.texture = L"assets/cubemaps/skyboxbm.dds";
-
-
-
-    //std::vector<Mesh>& meshes = Engine::instance().scene.meshes;
-    //CubeMesh cube{};
-    //meshes.push_back(std::move(cube));
-
-    //std::vector<MeshInstance>& instances = Engine::instance().scene.instances;
-    //MeshInstance instance;
-    //instance.mesh = &meshes[0];
-    //instance.render_data.texture = L"assets/textures/woodm.dds";
-    //instance.render_data.shader = L"shaders/default.hlsl";
-    //instance.render_data.transformation = { sizeof(mat4f), Direct3D::instance().device5};
-    //instance.transform.set_world_offset({ 0.f, 0.f, 30.5f });
-    //instance.transform.set_scale({ 15.f, 15.f, 15.f });
-    //instance.transform.add_world_offset({0.f, 0.f, 5.f});
-    //instances.push_back(std::move(instance));
 
     scene.init_depth_and_stencil_buffer(window.width(), window.height());
     scene.init_depth_stencil_state();
