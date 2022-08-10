@@ -3,6 +3,7 @@
 #include "render/MaterialManager.h"
 #include "render/MeshSystem.h"
 #include "render/ModelManager.h"
+#include "render/ShaderManager.h"
 #include "render/TextureManager.h"
 Engine* Engine::s_engine;
 

@@ -75,9 +75,7 @@ void Direct3D::init()
     direct3d->init_core();
     direct3d->init_rasterizer_state();
     direct3d->init_sampler_state();
-
-    direct3d->per_frame_buffer.set_device(direct3d->device5);
-    direct3d->per_frame_buffer.set_context(direct3d->context4);
+    
     direct3d->per_frame_buffer.allocate(sizeof(PerFrame));
 }
 

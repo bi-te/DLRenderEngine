@@ -34,8 +34,8 @@ struct Model
 	std::string name;
 	std::vector<Node> tree;
 	std::vector<MeshRange> meshes;
-	ImmutableBuffer<D3D11_BIND_VERTEX_BUFFER> vertexBuffer;
-	ImmutableBuffer<D3D11_BIND_INDEX_BUFFER> indexBuffer;
+	ImmutableBuffer vertexBuffer{ D3D11_BIND_VERTEX_BUFFER };
+	ImmutableBuffer indexBuffer{ D3D11_BIND_INDEX_BUFFER };
 };
 
 class ModelManager

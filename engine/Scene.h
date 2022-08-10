@@ -5,7 +5,6 @@
 #include "ImageSettings.h"
 #include "IntersectionQuery.h"
 #include "render/Material.h"
-#include "objects/MeshInstance.h"
 #include "objects/Skybox.h"
 #include "objects/SphereObject.h"
 #include "render/OpaqueInstances.h"

@@ -68,8 +68,8 @@ void ModelManager::add_model(const std::string& path)
 		load_material(*scene->mMaterials[i], dir);
 	}
 
-	model.vertexBuffer.write(vertices.data(), vsize * sizeof(AssimpVertex), Direct3D::instance().device5);
-	model.indexBuffer.write(indices.data(), isize * sizeof(uint32_t), Direct3D::instance().device5);
+	model.vertexBuffer.write(vertices.data(), vsize * sizeof(AssimpVertex));
+	model.indexBuffer.write(indices.data(), isize * sizeof(uint32_t));
 
 	models.insert({ path, s_model });
 
@@ -218,8 +218,8 @@ void ModelManager::make_cube()
 		20, 21, 22, 20, 22, 23
 	};
 
-	cube.vertexBuffer.write(vertices, ARRAYSIZE(vertices) * sizeof(AssimpVertex), Direct3D::instance().device5);
-	cube.indexBuffer.write(indices, ARRAYSIZE(indices) * sizeof(uint32_t), Direct3D::instance().device5);
+	cube.vertexBuffer.write(vertices, ARRAYSIZE(vertices) * sizeof(AssimpVertex));
+	cube.indexBuffer.write(indices, ARRAYSIZE(indices) * sizeof(uint32_t));
 
 	models.insert({ "Cube", std::make_shared<Model>(cube) });
 }

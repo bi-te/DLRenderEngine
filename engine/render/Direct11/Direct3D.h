@@ -36,7 +36,7 @@ public:
 	comptr< ID3D11SamplerState> sampler_state;
 	comptr<ID3D11RasterizerState> rasterizer_state;
 
-	DynamicBuffer<D3D11_BIND_CONSTANT_BUFFER> per_frame_buffer;
+	DynamicBuffer per_frame_buffer{ D3D11_BIND_CONSTANT_BUFFER };
 
 	static void init();
 

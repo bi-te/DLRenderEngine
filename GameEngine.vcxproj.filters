@@ -63,9 +63,6 @@
     <ClCompile Include="engine\math\Sphere.cpp">
       <Filter>engine\math</Filter>
     </ClCompile>
-    <ClCompile Include="engine\objects\MeshInstance.cpp">
-      <Filter>engine\objects</Filter>
-    </ClCompile>
     <ClCompile Include="engine\math\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -123,6 +120,12 @@
     <ClCompile Include="engine\render\Direct11\Direct3D.cpp">
       <Filter>engine\render\Direct11</Filter>
     </ClCompile>
+    <ClCompile Include="engine\render\Direct11\ImmutableBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\DynamicBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
@@ -154,9 +157,6 @@
     </ClInclude>
     <ClInclude Include="engine\math\Transform.h">
       <Filter>engine\math</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Objects\MeshInstance.h">
-      <Filter>engine\objects</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\math.h">
       <Filter>engine\math</Filter>

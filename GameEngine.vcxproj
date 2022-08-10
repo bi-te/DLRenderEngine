@@ -173,10 +173,11 @@
     <ClCompile Include="engine\math\Mesh.cpp" />
     <ClCompile Include="engine\math\Sphere.cpp" />
     <ClCompile Include="engine\math\Transform.cpp" />
-    <ClCompile Include="engine\objects\MeshInstance.cpp" />
     <ClCompile Include="engine\objects\Skybox.cpp" />
     <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp" />
     <ClCompile Include="engine\render\Direct11\Direct3D.cpp" />
+    <ClCompile Include="engine\render\Direct11\DynamicBuffer.cpp" />
+    <ClCompile Include="engine\render\Direct11\ImmutableBuffer.cpp" />
     <ClCompile Include="engine\render\MaterialManager.cpp" />
     <ClCompile Include="engine\render\MeshSystem.cpp" />
     <ClCompile Include="engine\render\OpaqueInstances.cpp" />
@@ -294,7 +295,6 @@
     <ClInclude Include="engine\moving\SphereMover.h" />
     <ClInclude Include="engine\moving\SpotlightMover.h" />
     <ClInclude Include="engine\moving\TransformMover.h" />
-    <ClInclude Include="engine\Objects\MeshInstance.h" />
     <ClInclude Include="engine\objects\LightObjects.h" />
     <ClInclude Include="engine\objects\Skybox.h" />
     <ClInclude Include="engine\objects\SphereObject.h" />

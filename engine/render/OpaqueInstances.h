@@ -42,14 +42,12 @@ class OpaqueInstances
 
 public:
 	explicit OpaqueInstances()
-		: instanceBuffer(Direct3D::instance().device5, Direct3D::instance().context4),
-		  meshModel(Direct3D::instance().device5, Direct3D::instance().context4)
 	{
 		meshModel.allocate(sizeof(mat4f));
 	}
 
-	DynamicBuffer<D3D11_BIND_VERTEX_BUFFER> instanceBuffer;
-	DynamicBuffer<D3D11_BIND_CONSTANT_BUFFER> meshModel;
+	DynamicBuffer instanceBuffer{ D3D11_BIND_VERTEX_BUFFER };
+	DynamicBuffer meshModel{ D3D11_BIND_CONSTANT_BUFFER };
 	std::wstring opaqueShader;
 	std::vector<PerModel> perModels;
 
