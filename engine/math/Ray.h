@@ -4,21 +4,21 @@
 class Ray
 {
 public:
-	vec3 origin;
-	vec3 direction;
+	vec3f origin;
+	vec3f direction;
 
 	Ray(): origin(0, 0, 0), direction(0, 0, 0)
 	{
 		
 	}
 
-	Ray(const vec3& origin, const vec3& direction)
+	Ray(const vec3f& origin, const vec3f& direction)
 		: origin(origin), direction(direction)
 	{
 		this->direction.normalize();
 	}
 
-	vec3 position(float k) const
+	vec3f position(float k) const
 	{
 		return origin + direction * k;
 	}

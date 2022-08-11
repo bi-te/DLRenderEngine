@@ -10,6 +10,7 @@
 #include "moving/PointLightMover.h"
 #include "moving/SpotlightMover.h"
 #include "moving/TransformMover.h"
+#include "render/MeshSystem.h"
 #include "render/Direct11/Direct3D.h"
 
 bool Scene::select_object(const Ray& ray, float t_min, float t_max, IntersectionQuery& record)
@@ -18,39 +19,15 @@ bool Scene::select_object(const Ray& ray, float t_min, float t_max, Intersection
 	objectRef ref;
 	record.intersection = Intersection::infinite();
 
-	for (MeshInstance& mesh : instances)
-		if (mesh.intersection(ray, t_min, t_max, record.intersection)){
-			ref.type = MESH;
-			ref.ptr = &mesh;
-			intersection = true;
-		}
-
 	switch (ref.type)
 	{
 	case SPHERE: record.mover = std::make_unique<SphereMover>(static_cast<SphereObject*>(ref.ptr)->sphere); break;
-	case MESH: record.mover = std::make_unique<TransformMover>(static_cast<MeshInstance*>(ref.ptr)->transform); break;
 	case POINTLIGHT: record.mover = std::make_unique<PointLightMover>(*static_cast<PointLightObject*>(ref.ptr)); break;
 	case SPOTLIGHT: record.mover = std::make_unique<SpotlightMover>(*static_cast<SpotlightObject*>(ref.ptr)); break;
 	case NONE: record.mover = nullptr;
 	}
 
 	return intersection;
-}
-
-void Scene::init_objects_buffers()
-{
-	for (auto & instance : instances)
-	{
-		instance.load_buffers();
-	}
-}
-
-void Scene::reset_objects_buffers()
-{
-	for(auto& instance: instances)
-	{
-		instance.reset_buffers();
-	}
 }
 
 void Scene::init_depth_and_stencil_buffer(uint32_t width, uint32_t height)
@@ -97,13 +74,8 @@ void Scene::draw(Window& window)
 	Direct3D::instance().context4->RSSetState(Direct3D::instance().rasterizer_state.Get());
 	Direct3D::instance().context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
 
-	Direct3D::instance().context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	for (MeshInstance & instance : instances)
-	{
-		instance.update_transform_buffer();
-		instance.draw();
-	}
-	
+	MeshSystem::instance().render();
+
 	skybox.draw();
 
 	if(ImGuiManager::active())

@@ -45,10 +45,19 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 		D3D11_INPUT_ELEMENT_DESC elementDesc;
 		elementDesc.SemanticName = paramDesc.SemanticName;
 		elementDesc.SemanticIndex = paramDesc.SemanticIndex;
-		elementDesc.InputSlot = 0;
 		elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-		elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		elementDesc.InstanceDataStepRate = 0;
+		if (strncmp(paramDesc.SemanticName, PER_INSTANCE_PREFIX, ARRAYSIZE(PER_INSTANCE_PREFIX)- 1) == 0)
+		{
+			elementDesc.InputSlot = 1;
+			elementDesc.InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+			elementDesc.InstanceDataStepRate = 1;
+		}
+		else
+		{
+			elementDesc.InputSlot = 0;
+			elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+			elementDesc.InstanceDataStepRate = 0;
+		}
 
 		if (paramDesc.Mask == 1)
 		{
@@ -79,7 +88,8 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 	}
 
 	HRESULT result = Direct3D::instance().device5->CreateInputLayout(&inputLayoutDesc[0],
-		inputLayoutDesc.size(), vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), &shader.inputLayout);
+		inputLayoutDesc.size(), vs_blob->GetBufferPointer(),
+		vs_blob->GetBufferSize(), &shader.inputLayout.ptr);
 }
 
 void ShaderManager::compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader)
@@ -109,9 +119,7 @@ void ShaderManager::compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, S
 const Shader& ShaderManager::operator()(LPCWSTR shader)
 {
 	if(!shaders.count(shader))
-	{
 		add_shader(shader, "main", "ps_main");
-	}
 	assert(shaders.count(shader) && "Shader is not loaded");
 	return shaders.at(shader);
 }

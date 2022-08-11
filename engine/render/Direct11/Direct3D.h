@@ -6,21 +6,26 @@
 
 struct Frustum
 {
-	vec4 bottom_left_point,
+	vec4f bottom_left_point,
 		up_vector,
 		right_vector;
 };
 
 struct PerFrame
 {
-	mat4 view_projection;
+	mat4f view_projection;
 	Frustum frustum;
 };
 
 class Direct3D
 {
 	static Direct3D* direct3d;
-	Direct3D(){};
+	Direct3D() = default;
+
+	Direct3D(const Direct3D& other) = delete;
+	Direct3D(Direct3D&& other) noexcept = delete;
+	Direct3D& operator=(const Direct3D& other) = delete;
+	Direct3D& operator=(Direct3D&& other) noexcept = delete;
 
 public:
 	comptr<IDXGIFactory5> factory5;
@@ -31,18 +36,9 @@ public:
 	comptr< ID3D11SamplerState> sampler_state;
 	comptr<ID3D11RasterizerState> rasterizer_state;
 
-	DynamicBuffer<D3D11_BIND_CONSTANT_BUFFER> per_frame_buffer;
+	DynamicBuffer per_frame_buffer{ D3D11_BIND_CONSTANT_BUFFER };
 
-	static void init()
-	{
-		if (direct3d) reset();
-
-		direct3d = new Direct3D;
-		direct3d->init_core();
-		direct3d->init_rasterizer_state();
-		direct3d->init_sampler_state();
-		direct3d->per_frame_buffer.allocate(sizeof(PerFrame), direct3d->device5);
-	}
+	static void init();
 
     static Direct3D& instance()
     {

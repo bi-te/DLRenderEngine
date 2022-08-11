@@ -25,7 +25,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    initConsole();
+    //initConsole();
 
     Timer timer(1.f / 60.f);
     uint32_t width = 1366, height = 768;
@@ -44,8 +44,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     controller.init_scene();
     window.listeners.push_back(&controller);
 
-    ImGuiManager::init_render(window.handle(),
-        Direct3D::instance().device5.Get(), Direct3D::instance().context4.Get());
+    ImGuiManager::init_render(window.handle(), Direct3D::instance().device5.Get(), Direct3D::instance().context4.Get());
 
     MSG msg;
     window.show_window(nShowCmd);
@@ -62,14 +61,14 @@ int WINAPI WinMain(HINSTANCE hInstance,
         
         if(timer.frame_time_check())
         {
+            controller.process_input(timer.time_passed());
+            timer.advance_current();
+
             if (ImGuiManager::active())
             {
                 ImGuiManager::new_frame();
                 controller.process_gui_input();
             }
-                
-            controller.process_input(timer.time_passed());
-            timer.advance_current();
 
             if (!IsIconic(window.handle()))
                 engine.render();
@@ -82,7 +81,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
     ImGuiManager::reset();
 
     window.render_reset();
-    engine.scene.reset_objects_buffers();
     Engine::reset();
 
     return msg.wParam;

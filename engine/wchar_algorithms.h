@@ -2,6 +2,14 @@
 #include <cwchar>
 #include <type_traits>
 
+inline wchar_t* char_to_wchar(const char* string)
+{
+	size_t size = strlen(string) + 1, char_converted;
+	wchar_t* result = new wchar_t[size];
+	mbstowcs_s(&char_converted, result, size, string, size - 1);
+	return result;
+}
+
 struct pwchar_hash
 {
 	size_t operator()(const wchar_t* const string) const

@@ -37,6 +37,9 @@
     <Filter Include="engine\win32">
       <UniqueIdentifier>{cec55c35-9b91-4bc0-99b7-aaf1b1bc45b9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="engine\assimp">
+      <UniqueIdentifier>{9dd61ad2-ae55-430e-bbf1-d1445f273ff6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -60,13 +63,7 @@
     <ClCompile Include="engine\math\Sphere.cpp">
       <Filter>engine\math</Filter>
     </ClCompile>
-    <ClCompile Include="engine\objects\MeshInstance.cpp">
-      <Filter>engine\objects</Filter>
-    </ClCompile>
     <ClCompile Include="engine\math\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\render\Direct11\Direct3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp">
@@ -80,12 +77,6 @@
     </ClCompile>
     <ClCompile Include="engine\render\TextureManager.cpp">
       <Filter>engine\render</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\math\CubeMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\Engine.cpp">
-      <Filter>engine\render\Direct11</Filter>
     </ClCompile>
     <ClCompile Include="engine\imgui\imgui.cpp">
       <Filter>engine\imgui</Filter>
@@ -110,6 +101,30 @@
     </ClCompile>
     <ClCompile Include="engine\win32\Window.cpp">
       <Filter>engine\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\ModelManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\OpaqueInstances.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\MeshSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\MaterialManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\Direct3D.cpp">
+      <Filter>engine\render\Direct11</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\ImmutableBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\DynamicBuffer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -142,15 +157,6 @@
     </ClInclude>
     <ClInclude Include="engine\math\Transform.h">
       <Filter>engine\math</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Objects\MeshInstance.h">
-      <Filter>engine\objects</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Objects\PlaneObject.h">
-      <Filter>engine\objects</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Objects\SphereObject.h">
-      <Filter>engine\objects</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\math.h">
       <Filter>engine\math</Filter>
@@ -221,9 +227,6 @@
     <ClInclude Include="engine\render\Direct11\DynamicBuffer.h">
       <Filter>engine\render\Direct11</Filter>
     </ClInclude>
-    <ClInclude Include="engine\math\CubeMesh.h">
-      <Filter>engine\math</Filter>
-    </ClInclude>
     <ClInclude Include="engine\imgui\imconfig.h">
       <Filter>engine\imgui</Filter>
     </ClInclude>
@@ -260,9 +263,255 @@
     <ClInclude Include="engine\wchar_algorithms.h">
       <Filter>engine</Filter>
     </ClInclude>
+    <ClInclude Include="engine\assimp\aabb.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\ai_assert.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\anim.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Base64.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\BaseImporter.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Bitmap.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\BlobIOSystem.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\ByteSwapper.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\camera.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\cexport.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\cfileio.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\cimport.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\ColladaMetaData.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\color4.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\commonMetaData.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\config.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\CreateAnimMesh.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\DefaultIOStream.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\DefaultIOSystem.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\DefaultLogger.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\defs.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Exceptional.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Exporter.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\fast_atof.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\GenericProperty.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\GltfMaterial.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Hash.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Importer.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\importerdesc.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\IOStream.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\IOStreamBuffer.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\IOSystem.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\light.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\LineSplitter.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\LogAux.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Logger.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\LogStream.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\material.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\MathFunctions.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\matrix3x3.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\matrix4x4.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\MemoryIOWrapper.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\mesh.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\metadata.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\NullLogger.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\ObjMaterial.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\ParsingUtils.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\pbrmaterial.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\postprocess.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Profiler.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\ProgressHandler.hpp">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\qnan.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\quaternion.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\RemoveComments.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\scene.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\SceneCombiner.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\SGSpatialSort.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\SkeletonMeshBuilder.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\SmallVector.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\SmoothingGroups.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\SpatialSort.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\StandardShapes.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\StreamReader.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\StreamWriter.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\StringComparison.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\StringUtils.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Subdivision.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\texture.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\TinyFormatter.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\types.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\vector2.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\vector3.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\version.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\Vertex.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\XmlParser.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\XMLTools.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\assimp\ZipArchiveIOSystem.h">
+      <Filter>engine\assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\objects\SphereObject.h">
+      <Filter>engine\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\OpaqueInstances.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\ModelManager.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\MaterialManager.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\MeshSystem.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\default.hlsl">
+    <FxCompile Include="shaders\opaque.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\sky.hlsl">
@@ -272,6 +521,36 @@
   <ItemGroup>
     <None Include="shaders\globals.hlsli">
       <Filter>shaders</Filter>
+    </None>
+    <None Include="engine\assimp\.editorconfig">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\color4.inl">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\config.h.in">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\material.inl">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\matrix3x3.inl">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\matrix4x4.inl">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\quaternion.inl">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\SmoothingGroups.inl">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\vector2.inl">
+      <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="engine\assimp\vector3.inl">
+      <Filter>engine\assimp</Filter>
     </None>
   </ItemGroup>
 </Project>

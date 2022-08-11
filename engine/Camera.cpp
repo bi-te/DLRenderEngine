@@ -1,15 +1,15 @@
 #include "Camera.h"
 
-mat4 invert_to_view(mat4& src)
+mat4f invert_to_view(mat4f& src)
 {
-	mat4 res{};
+	mat4f res{};
 
 	res.block<3, 3>(0, 0) = src.block<3, 3>(0, 0).transpose();
 
 	auto pos = src.row(3);
 
 	res.row(3) = -pos(0) * res.row(0) - pos(1) * res.row(1) - pos(2) * res.row(2);
-	res.col(3) = vec4{ 0, 0, 0, 1 };
+	res.col(3) = vec4f{ 0, 0, 0, 1 };
 	return res;
 }
 
@@ -33,9 +33,9 @@ void Camera::set_perspective(float fov, float aspect, float zn, float zf)
 void Camera::set_world_angles(const Angles& angles)
 {
 	basis_update = true;
-	rotation = quat{ Eigen::AngleAxisf{angles.roll, vec3{0.f, 0.f,1.f}} };
-	rotation *= quat{ Eigen::AngleAxisf{angles.pitch, vec3{1.f, 0.f,0.f}} };
-	rotation *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}} };
+	rotation = quatf{ Eigen::AngleAxisf{angles.roll, vec3f{0.f, 0.f,1.f}} };
+	rotation *= quatf{ Eigen::AngleAxisf{angles.pitch, vec3f{1.f, 0.f,0.f}} };
+	rotation *= quatf{ Eigen::AngleAxisf{angles.yaw, vec3f{0.f, 1.f,0.f}} };
 
 	rotation.normalize();
 }
@@ -43,9 +43,9 @@ void Camera::set_world_angles(const Angles& angles)
 void Camera::add_world_angles(const Angles& angles)
 {
 	basis_update = true;
-	rotation *= quat{ Eigen::AngleAxisf{angles.roll, vec3{0.f, 0.f,1.f}} };
-	rotation *= quat{ Eigen::AngleAxisf{angles.pitch, vec3{1.f, 0.f,0.f}} };
-	rotation *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}} };
+	rotation *= quatf{ Eigen::AngleAxisf{angles.roll, vec3f{0.f, 0.f,1.f}} };
+	rotation *= quatf{ Eigen::AngleAxisf{angles.pitch, vec3f{1.f, 0.f,0.f}} };
+	rotation *= quatf{ Eigen::AngleAxisf{angles.yaw, vec3f{0.f, 1.f,0.f}} };
 
 	rotation.normalize();
 }
@@ -58,14 +58,14 @@ void Camera::add_relative_angles(const Angles& angles)
 	if(fps_camera)
 	{
 		//FPS
-		rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
-		rotation *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}}};
+		rotation *= quatf{ Eigen::AngleAxisf{angles.pitch, right()} };
+		rotation *= quatf{ Eigen::AngleAxisf{angles.yaw, vec3f{0.f, 1.f,0.f}}};
 	}else
 	{
 		//spaceship
-		rotation *= quat{ Eigen::AngleAxisf{angles.roll, forward()} };
-		rotation *= quat{ Eigen::AngleAxisf{angles.pitch, right()} };
-		rotation *= quat{ Eigen::AngleAxisf{angles.yaw, up()} };
+		rotation *= quatf{ Eigen::AngleAxisf{angles.roll, forward()} };
+		rotation *= quatf{ Eigen::AngleAxisf{angles.pitch, right()} };
+		rotation *= quatf{ Eigen::AngleAxisf{angles.yaw, up()} };
 
 	}
 
@@ -97,14 +97,14 @@ void Camera::update_matrices()
 
 void Camera::update_frustum_points()
 {
-	blnear_fpoint = vec4{ -1, -1, 1, 1 } * view_proj_inv;
+	blnear_fpoint = vec4f{ -1, -1, 1, 1 } * view_proj_inv;
 	blnear_fpoint /= blnear_fpoint.w();
 
-	vec4 tlnear_fpoint = vec4{ -1, 1, 1, 1 } * view_proj_inv;
+	vec4f tlnear_fpoint = vec4f{ -1, 1, 1, 1 } * view_proj_inv;
 	tlnear_fpoint /= tlnear_fpoint.w();
 	frustrum_up = tlnear_fpoint - blnear_fpoint;
 
-	vec4 brnear_fpoint = vec4{ 1, -1, 1, 1 } * view_proj_inv;
+	vec4f brnear_fpoint = vec4f{ 1, -1, 1, 1 } * view_proj_inv;
 	brnear_fpoint /= brnear_fpoint.w();
 	frustrum_right = brnear_fpoint - blnear_fpoint;
 }

@@ -2,7 +2,7 @@
 
 bool Sphere::intersection(const Ray& ray, float t_min, float t_max, Intersection& record) const
 {
-	vec3 oc = ray.origin - center;
+	vec3f oc = ray.origin - center;
 	float b = 2 * ray.direction.dot(oc);
 	float c = oc.dot(oc) - powf(radius, 2);
 

@@ -4,39 +4,201 @@
 
 #include "Engine.h"
 #include "imgui/ImGuiManager.h"
-#include "math/CubeMesh.h"
+#include "render/MaterialManager.h"
+#include "render/MeshSystem.h"
+#include "render/ModelManager.h"
 #include "render/ShaderManager.h"
 #include "render/TextureManager.h"
 
 void Controller::init_scene()
 {
+    ModelManager& models = ModelManager::instance();
+    MaterialManager& materials = MaterialManager::instance();
+    MeshSystem& meshes = MeshSystem::instance();
     ShaderManager& shaders = ShaderManager::instance();
-    shaders.add_shader(L"shaders/default.hlsl", "main", "ps_main");
+    TextureManager& texture_manager = TextureManager::instance();
+
+    shaders.add_shader(L"shaders/opaque.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/sky.hlsl", "main", "ps_main");
 
-    TextureManager& texture_manager = TextureManager::instance();
     texture_manager.add_texture(L"assets/textures/woodm.dds");
     texture_manager.add_texture(L"assets/cubemaps/skyboxbm.dds");
+
+    meshes.opaque_instances.opaqueShader = L"shaders/opaque.hlsl";
+    materials.add_material("Wood_mat", { {TextureDiffuse, L"assets/textures/woodm.dds"} });
+
+    models.add_model("assets/models/Samurai/Samurai.fbx");
+    models.add_model("assets/models/Knight/Knight.fbx");
+    models.add_model("assets/models/KnightHorse/KnightHorse.fbx");
+    models.add_model("assets/models/SunCityWall/SunCityWall.fbx");
+    models.make_cube();
+
+    models.add_model("assets/models/InstanceTest/test.fbx");
+    Instance test;
+    test.model_world.set_world_offset({ 20.f, 0.f, -20.f });
+    test.model_world.set_scale(0.2f);
+    test.model_world.set_world_rotation({0.f, 0.f, to_radians(90.f)});
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/InstanceTest/test.fbx"),
+        {
+        	materials.get("assets/models/InstanceTest/Cube_mat"),
+            materials.get("assets/models/InstanceTest/Sphere_mat")
+        },
+        test
+    );
+
+    Instance cube;
+    cube.model_world.set_scale({100.f, 10.f, 10.f});
+    cube.model_world.set_world_offset({ 0.f, 0.f, 55.f });
+    meshes.opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("Wood_mat") }, cube);
+
+    cube.model_world.set_scale({ 10.f, 50.f, 10.f });
+    cube.model_world.set_world_offset({ -76.f, 0.f, 0.f });
+    meshes.opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/SunCityWall/Wall_mat")}, cube);
+
+
+    cube.model_world.set_scale(10.f);
+    for (int row = 0; row < 4; ++row)
+    {
+	    for (int column = 0; column < 2; ++column)
+	    {
+            cube.model_world.set_world_offset({ column * 11.f, -10.f, row * -11.f });
+            meshes.opaque_instances.add_model_instance(models.get_ptr("Cube"), { materials.get("assets/models/Knight/Skirt_mat") }, cube);
+	    }
+        
+    }
+
+
+	Instance samurai;
+    samurai.model_world.set_scale(5.f);
+    samurai.model_world.set_world_offset({ 10.f, 0.f, 0.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/Samurai/Samurai.fbx"),
+        {
+            materials.get("assets/models/Samurai/Sword_mat"),
+            materials.get("assets/models/Samurai/Head_mat"),
+            materials.get("assets/models/Samurai/Eyes_mat"),
+            materials.get("assets/models/Samurai/Helmet_mat"),
+            materials.get("assets/models/Samurai/Skirt_mat"),
+            materials.get("assets/models/Samurai/Legs_mat"),
+            materials.get("assets/models/Samurai/Hands_mat"),
+            materials.get("assets/models/Samurai/Torso_mat")
+        },
+        samurai
+    );
+
+    samurai.model_world.set_scale(5.f);
+    samurai.model_world.set_world_offset({ 5.f, 0.f, 3.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/Samurai/Samurai.fbx"),
+        {
+            materials.get("assets/models/Samurai/Sword_mat"),
+            materials.get("assets/models/Samurai/Head_mat"),
+            materials.get("assets/models/Samurai/Eyes_mat"),
+            materials.get("assets/models/Samurai/Helmet_mat"),
+            materials.get("assets/models/Samurai/Skirt_mat"),
+            materials.get("assets/models/Samurai/Legs_mat"),
+            materials.get("assets/models/Samurai/Hands_mat"),
+            materials.get("assets/models/Samurai/Torso_mat")
+        },
+        samurai
+    );
+
+    Instance knight;
+    knight.model_world.set_scale(5.f);
+    knight.model_world.set_world_offset({ 20.f, 0.f, 0.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/Knight/Knight.fbx"),
+        {
+            materials.get("assets/models/Knight/Fur_mat"),
+        	materials.get("assets/models/Knight/Legs_mat"),
+        	materials.get("assets/models/Knight/Torso_mat"),
+        	materials.get("assets/models/Knight/Head_mat"),
+        	materials.get("assets/models/Knight/Eyes_mat"),
+        	materials.get("assets/models/Knight/Helmet_mat"),
+        	materials.get("assets/models/Knight/Skirt_mat"),
+        	materials.get("assets/models/Knight/Cape_mat"),
+        	materials.get("assets/models/Knight/Gloves_mat")
+        },
+        knight
+    );
+
+    knight.model_world.set_scale(5.f);
+    knight.model_world.set_world_offset({ 15.f, 0.f, 3.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/Knight/Knight.fbx"),
+        {
+            materials.get("assets/models/Knight/Fur_mat"),
+            materials.get("assets/models/Knight/Legs_mat"),
+            materials.get("assets/models/Knight/Torso_mat"),
+            materials.get("assets/models/Knight/Head_mat"),
+            materials.get("assets/models/Knight/Eyes_mat"),
+            materials.get("assets/models/Knight/Helmet_mat"),
+            materials.get("assets/models/Knight/Skirt_mat"),
+            materials.get("assets/models/Knight/Cape_mat"),
+            materials.get("assets/models/Knight/Gloves_mat")
+        },
+        knight
+    );
+
+    Instance horse;
+    horse.model_world.set_scale(5.f);
+    horse.model_world.set_world_offset({ 30.f, 0.f, 0.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
+        {
+            materials.get("assets/models/KnightHorse/Armor_mat"),
+            materials.get("assets/models/KnightHorse/Horse_mat"),
+            materials.get("assets/models/KnightHorse/Tail_mat")
+        },
+        horse
+    );
+
+    horse.model_world.set_scale(5.f);
+    horse.model_world.set_world_offset({ 25.f, 0.f, 5.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
+        {
+            materials.get("assets/models/KnightHorse/Armor_mat"),
+            materials.get("assets/models/KnightHorse/Horse_mat"),
+            materials.get("assets/models/KnightHorse/Tail_mat")
+        },
+        horse
+    );
+
+    Instance wall;
+    wall.model_world.set_scale(5.f);
+    wall.model_world.set_world_offset({ 0.f, 0.f, 15.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/SunCityWall/SunCityWall.fbx"),
+        {
+            materials.get("assets/models/SunCityWall/Star_mat"),
+            materials.get("assets/models/SunCityWall/Wall_mat"),
+            materials.get("assets/models/SunCityWall/Trims_mat"),
+            materials.get("assets/models/SunCityWall/Statue_mat"),
+            materials.get("assets/models/SunCityWall/Stonework_mat"),
+        }, 
+        wall
+    );
+
+    wall.model_world.set_scale(5.f);
+    wall.model_world.set_world_offset({ -15.82f, 0.f, 15.f });
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/SunCityWall/SunCityWall.fbx"),
+        {
+            materials.get("assets/models/SunCityWall/Star_mat"),
+            materials.get("assets/models/SunCityWall/Wall_mat"),
+            materials.get("assets/models/SunCityWall/Trims_mat"),
+            materials.get("assets/models/SunCityWall/Statue_mat"),
+            materials.get("assets/models/SunCityWall/Stonework_mat"),
+        },
+        wall
+        );
+
 
     scene.skybox.shader = L"shaders/sky.hlsl";
     scene.skybox.texture = L"assets/cubemaps/skyboxbm.dds";
 
-    std::vector<Mesh>& meshes = Engine::instance().scene.meshes;
-    CubeMesh cube{};
-    meshes.push_back(std::move(cube));
-
-    std::vector<MeshInstance>& instances = Engine::instance().scene.instances;
-    MeshInstance instance;
-    instance.mesh = &meshes[0];
-    instance.render_data.texture = L"assets/textures/woodm.dds";
-    instance.render_data.shader = L"shaders/default.hlsl";
-    instance.render_data.transformation = { sizeof(mat4), Direct3D::instance().device5};
-    instance.transform.set_world_offset({ 0.f, 0.f, 30.5f });
-    instance.transform.set_scale({ 15.f, 15.f, 15.f });
-    instance.transform.add_world_offset({0.f, 0.f, 5.f});
-    instances.push_back(std::move(instance));
-
-    scene.init_objects_buffers();
     scene.init_depth_and_stencil_buffer(window.width(), window.height());
     scene.init_depth_stencil_state();
 }
@@ -109,7 +271,7 @@ void Controller::process_input(float dt)
         is.keyboard.keys[I] = false;
     }
 
-    vec3 move{ 0.f, 0.f, 0.f };
+    vec3f move{ 0.f, 0.f, 0.f };
     Angles rot{};
 
     // movement
@@ -150,10 +312,10 @@ void Controller::process_input(float dt)
 
     bool camera_update = true;
     float dx, dy, h, w, prop;
-    vec4 up, right;
-    vec3 view, tview, trans, offset{ 0.f, 0.f, 0.f };
+    vec4f up, right;
+    vec3f view, tview, trans, offset{ 0.f, 0.f, 0.f };
     Ray mouse_ray;
-    quat rotation;
+    quatf rotation;
 
     switch (is.mouse.rmb)
     {
@@ -182,10 +344,10 @@ void Controller::process_input(float dt)
             if(scene.camera.fps_camera)
             {
                 //FPS
-                rotation = quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
-                rotation *= quat{ Eigen::AngleAxisf{
+                rotation = quatf{ Eigen::AngleAxisf{rot.pitch, vec3f{1.f, 0.f,0.f}} };
+                rotation *= quatf{ Eigen::AngleAxisf{
                     rot.yaw,
-                    vec3{0,1,0} *scene.camera.view.topLeftCorner<3, 3>()} };
+                    vec3f{0,1,0} *scene.camera.view.topLeftCorner<3, 3>()} };
 
                 view = record.intersection.point * scene.camera.view.topLeftCorner<3, 3>() + scene.camera.view.row(3).head<3>();
                 tview = view * rotation.toRotationMatrix();
@@ -202,9 +364,9 @@ void Controller::process_input(float dt)
             } else
             {
                 //spaceship
-                rotation = quat{ Eigen::AngleAxisf{rot.roll, vec3{0.f, 0.f,1.f}} };
-                rotation *= quat{ Eigen::AngleAxisf{rot.pitch, vec3{1.f, 0.f,0.f}} };
-                rotation *= quat{ Eigen::AngleAxisf{rot.yaw, vec3{0.f, 1.f,0.f}} };
+                rotation = quatf{ Eigen::AngleAxisf{rot.roll, vec3f{0.f, 0.f,1.f}} };
+                rotation *= quatf{ Eigen::AngleAxisf{rot.pitch, vec3f{1.f, 0.f,0.f}} };
+                rotation *= quatf{ Eigen::AngleAxisf{rot.yaw, vec3f{0.f, 1.f,0.f}} };
 
                 view = record.intersection.point * scene.camera.view.topLeftCorner<3, 3>() + scene.camera.view.row(3).head<3>();
                 tview = view * rotation.toRotationMatrix();

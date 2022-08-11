@@ -5,6 +5,6 @@
 class ObjectMover
 {
 public:
-	virtual void move(const vec3& offset) = 0;
+	virtual void move(const vec3f& offset) = 0;
 };
 

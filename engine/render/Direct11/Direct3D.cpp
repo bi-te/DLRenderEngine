@@ -62,10 +62,23 @@ void Direct3D::init_sampler_state(D3D11_FILTER filter, uint8_t anisotropy)
 
 void Direct3D::bind_globals(const PerFrame& per_frame_data)
 {
-    per_frame_buffer.write(&per_frame_data, context4);
+    per_frame_buffer.write(&per_frame_data);
     context4->VSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
 }
+
+void Direct3D::init() 
+{
+    if (direct3d) reset();
+
+    direct3d = new Direct3D;
+    direct3d->init_core();
+    direct3d->init_rasterizer_state();
+    direct3d->init_sampler_state();
+    
+    direct3d->per_frame_buffer.allocate(sizeof(PerFrame));
+}
+
 
 void Direct3D::reset()
 {

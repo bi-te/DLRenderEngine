@@ -4,21 +4,32 @@
 #include "wchar_algorithms.h"
 #include "Direct11/Direct3D.h"
 
+struct InputLayout
+{
+	comptr<ID3D11InputLayout> ptr;
+	std::vector<D3D11_INPUT_ELEMENT_DESC> desc;
+};
+
 struct Shader
 {
 	comptr<ID3D11VertexShader> vertexShader;
 	comptr<ID3D11PixelShader> pixelShader;
-	comptr<ID3D11InputLayout> inputLayout;
+	InputLayout inputLayout;
 };
+
+const char PER_INSTANCE_PREFIX[] = "Inst_";
 
 class ShaderManager
 {
 	std::unordered_map<LPCWSTR, Shader, pwchar_hash, pwchar_comparator> shaders;
 
 	static ShaderManager* s_manager;
-	ShaderManager()
-	{
-	}
+	ShaderManager() = default;
+
+	ShaderManager(const ShaderManager& other) = delete;
+	ShaderManager(ShaderManager&& other) noexcept = delete;
+	ShaderManager& operator=(const ShaderManager& other) = delete;
+	ShaderManager& operator=(ShaderManager&& other) noexcept = delete;
 
 	void compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
 	void compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);

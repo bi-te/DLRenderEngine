@@ -9,7 +9,7 @@ struct ImageSettings
 	bool progressive_gi;
 	GLOBAL_ILLUMINATION global_illumination;
 	uint32_t gi_tests, gi_frame;
-	std::vector<vec3> hemisphere_points;
+	std::vector<vec3f> hemisphere_points;
 
 	void set_gi_tests(uint32_t tests)
 	{

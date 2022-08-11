@@ -18,9 +18,9 @@ void Transform::update()
 
 void Transform::set_world_rotation(const Angles& angles)
 {
-	rotation_ = quat{ Eigen::AngleAxisf{angles.roll, vec3{0.f, 0.f,1.f}} };
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.pitch, vec3{1.f, 0.f,0.f}} };
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}} };
+	rotation_ = quatf{ Eigen::AngleAxisf{angles.roll, vec3f{0.f, 0.f,1.f}} };
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.pitch, vec3f{1.f, 0.f,0.f}} };
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.yaw, vec3f{0.f, 1.f,0.f}} };
 
 	rotation_.normalize();
 	update_transform = true;
@@ -28,9 +28,9 @@ void Transform::set_world_rotation(const Angles& angles)
 
 void Transform::add_world_rotation(const Angles& angles)
 {
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.roll, vec3{0.f, 0.f,1.f}} };
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.pitch, vec3{1.f, 0.f,0.f}} };
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.yaw, vec3{0.f, 1.f,0.f}} };
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.roll, vec3f{0.f, 0.f,1.f}} };
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.pitch, vec3f{1.f, 0.f,0.f}} };
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.yaw, vec3f{0.f, 1.f,0.f}} };
 
 	rotation_.normalize();
 	update_transform = true;
@@ -38,9 +38,9 @@ void Transform::add_world_rotation(const Angles& angles)
 
 void Transform::add_relative_rotation(const Angles& angles)
 {
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.roll, rot_matrix.row(2)}};
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.pitch, rot_matrix.row(0)} };
-	rotation_ *= quat{ Eigen::AngleAxisf{angles.yaw, rot_matrix.row(1)} };
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.roll, rot_matrix.row(2)}};
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.pitch, rot_matrix.row(0)} };
+	rotation_ *= quatf{ Eigen::AngleAxisf{angles.yaw, rot_matrix.row(1)} };
 
 	update_transform = true;
 }

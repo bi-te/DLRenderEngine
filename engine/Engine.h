@@ -26,7 +26,6 @@ private:
 	
 	Engine(const Engine& other) = delete;
 	Engine(Engine&& other) noexcept = delete;
-
 	Engine& operator=(const Engine& other) = delete;
 	Engine& operator=(Engine&& other) noexcept = delete;
 	

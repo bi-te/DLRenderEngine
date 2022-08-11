@@ -13,7 +13,7 @@ public:
 	{
 	}
 
-	void move(const vec3& offset) override
+	void move(const vec3f& offset) override
 	{
 		plobject.sphere.center += offset;
 		plobject.spotlight.position += offset;

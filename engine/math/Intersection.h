@@ -6,8 +6,8 @@
 struct Intersection
 {
 	float t;
-	vec3 point;
-	vec3 norm;
+	vec3f point;
+	vec3f norm;
 
 	Intersection() = default;
 

@@ -7,7 +7,7 @@ struct Frustum
 
 cbuffer perFrame: register(b0)
 {
-	matrix <float, 4, 4> g_viewProj;
+	float4x4 g_viewProj;
 	Frustum frustum;
 }
 
