@@ -108,7 +108,6 @@ void OpaqueInstances::render()
 	uint32_t instance_stride = sizeof(OpaqueInstanceRender), ioffset = 0;
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &instance_stride, &ioffset);
 
-	LightSystem::instance().bind_lights();
 	update_instance_buffer();
 	
 	uint32_t renderedInstances = 0;

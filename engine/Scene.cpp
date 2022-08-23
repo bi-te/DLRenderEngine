@@ -7,6 +7,7 @@
 #include "imgui/ImGuiManager.h"
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
+#include "render/LightSystem.h"
 #include "render/MeshSystem.h"
 #include "render/ShaderManager.h"
 #include "render/Direct11/Direct3D.h"
@@ -64,15 +65,14 @@ void Scene::render(RenderBuffer& target_buffer, const Camera& camera, const Post
 	direct.context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
 
 	direct.bind_globals(camera);
+	LightSystem::instance().bind_lights();
 
 	MeshSystem::instance().render();
-
 	skybox.render();
-
-	if(ImGuiManager::active())
-		ImGuiManager::flush();
 	
 	post_process.resolve(hdr_buffer, target_buffer);
-
 	direct.context4->PSSetShaderResources(0, 1, &NULL_SRV);
+
+	if (ImGuiManager::active())
+		ImGuiManager::flush();
 }
