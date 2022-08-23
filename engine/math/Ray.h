@@ -1,4 +1,5 @@
 #pragma once
+#include "Intersection.h"
 #include "math.h"
 
 class Ray
@@ -22,4 +23,6 @@ public:
 	{
 		return origin + direction * k;
 	}
+
+	bool intersect(const vec3f& v1, const vec3f& v2, const vec3f& v3, Intersection& nearest) const;
 };

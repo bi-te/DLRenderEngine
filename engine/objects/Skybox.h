@@ -6,6 +6,6 @@ struct Skybox
 {
 	std::wstring texture, shader;
 
-	void draw();
+	void render();
 };
 

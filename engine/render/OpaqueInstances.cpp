@@ -1,12 +1,14 @@
 #include "OpaqueInstances.h"
 
+#include "LightSystem.h"
 #include "ModelManager.h"
 #include "ShaderManager.h"
 #include "TextureManager.h"
 #include "Material.h"
+#include "moving/TransformSystem.h"
 
 void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
-                                         const std::vector<Material>& materials,
+                                         const std::vector<OpaqueMaterial>& materials,
                                          const Instance& instance)
 {
 	assert(model->meshes.size() == materials.size() && "Number of Meshes and materials not equal");
@@ -44,15 +46,12 @@ void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
 	PerModel perModel;
 	perModel.model = model;
 	perModel.perMeshes.resize(model->meshes.size());
+	perModel.instances.push_back(instance);
 
 	for (int ind = 0; ind < model->meshes.size(); ++ind)
-		perModel.perMeshes.at(ind).perMaterials.push_back({ materials.at(ind), {0u} });
-
-	perModel.instances.push_back(instance);
-	for (int node_ind = 0; node_ind < model->tree.size(); ++node_ind)
 	{
-		for (auto mesh: model->tree.at(node_ind).meshes)
-			perModel.perMeshes.at(mesh).mesh_model_matrices.push_back(node_ind);
+		perModel.perMeshes.at(ind).perMaterials.push_back({ materials[ind], {0u} });
+		perModel.perMeshes[ind].mesh_model_matrices = model->meshes[ind].mesh_matrices;
 	}
 
 	perModels.push_back(std::move(perModel));
@@ -60,29 +59,38 @@ void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
 
 void OpaqueInstances::update_instance_buffer()
 {
+	solid_vector<Transform>& transforms = TransformSystem::instance().transforms;
 	uint32_t num_instances = 0, num_copied = 0;
 
 	for (auto& model : perModels)
 		for (auto& mesh : model.perMeshes)
 			for (auto& material : mesh.perMaterials)
-				for (auto& instance : material.instances)
-					num_instances += material.instances.size() * mesh.mesh_model_matrices.size();
+				num_instances += material.instances.size() * mesh.mesh_model_matrices.size();
+					
 
-	instanceBuffer.allocate(num_instances * sizeof(mat4f));
+	if (!num_instances) return;
 
-	mat4f* matrices = static_cast<mat4f*>(instanceBuffer.map().pData);
+	instanceBuffer.allocate(num_instances * sizeof(OpaqueInstanceRender));
+
+	OpaqueInstanceRender* matrices = static_cast<OpaqueInstanceRender*>(instanceBuffer.map().pData);
 
 	for (auto& model : perModels)
 		for (auto& mesh : model.perMeshes)
 			for (auto& material : mesh.perMaterials)
 				for (auto& instance : material.instances)
 				{
-					if (mesh.mesh_model_matrices.size() > 1)
+					if (mesh.mesh_model_matrices.size() > 1) {
 						for (auto& mesh_node : mesh.mesh_model_matrices)
-							matrices[num_copied++] = model.model.get()->tree[mesh_node].mesh_matrix *
-								model.instances[instance].model_world.matrix();
-					else
-						matrices[num_copied++] = model.instances[instance].model_world.matrix();					
+						{
+							matrices[num_copied].model_transform = model.model.get()->tree[mesh_node].mesh_matrix *
+								transforms[model.instances[instance].model_world].matrix();
+							matrices[num_copied++].scale = transforms[model.instances[instance].model_world].scale();
+						}
+					}
+					else {
+						matrices[num_copied].model_transform = transforms[model.instances[instance].model_world].matrix();
+						matrices[num_copied++].scale = transforms[model.instances[instance].model_world].scale();
+					}											
 				}
 
 	instanceBuffer.unmap();
@@ -97,12 +105,12 @@ void OpaqueInstances::render()
 	direct.context4->PSSetShader(shader.pixelShader.Get(), nullptr, NULL);
 	direct.context4->IASetInputLayout(shader.inputLayout.ptr.Get());
 
-	uint32_t instance_stride = sizeof(mat4f), ioffset = 0;
+	uint32_t instance_stride = sizeof(OpaqueInstanceRender), ioffset = 0;
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &instance_stride, &ioffset);
 
+	LightSystem::instance().bind_lights();
 	update_instance_buffer();
-
-
+	
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model: perModels)
 	{
@@ -115,7 +123,7 @@ void OpaqueInstances::render()
 		for (uint32_t mesh_ind = 0; mesh_ind < per_model.perMeshes.size(); ++mesh_ind)
 		{
 			const PerMesh& mesh = per_model.perMeshes[mesh_ind];
-			Model::MeshRange& mrange = model.meshes[mesh_ind];
+			Mesh::Range& mrange = model.meshes[mesh_ind].m_range;
 
 			mat4f* matrices = (mat4f*)meshModel.map().pData;
 			if (mesh.mesh_model_matrices.size() > 1) 
@@ -124,15 +132,32 @@ void OpaqueInstances::render()
 				*matrices = model.tree[mesh.mesh_model_matrices.at(0)].mesh_matrix;
 
 			meshModel.unmap();
-			direct.context4->VSSetConstantBuffers(1, 1, meshModel.address());
+			direct.context4->VSSetConstantBuffers(2, 1, meshModel.address());
 
 			for (const auto& perMaterial: mesh.perMaterials)
 			{
-				const Material& material = perMaterial.material;
+				const OpaqueMaterial& material = perMaterial.material;
 				uint32_t instances = perMaterial.instances.size() * mesh.mesh_model_matrices.size();
 
-				direct.context4->PSSetShaderResources(0, 1,
-					TextureManager::instance().get_texture(material.diffuse.c_str()).GetAddressOf());
+				materialBuffer.write(&material.render_data);
+
+				direct.context4->PSSetConstantBuffers(3, 1, materialBuffer.address());
+
+				if(material.render_data.hasDiffuseTexture)
+					direct.context4->PSSetShaderResources(0, 1, 
+						TextureManager::instance().get_texture(material.diffuse.c_str()).GetAddressOf());
+
+				if (material.render_data.hasNormalsTexture)
+					direct.context4->PSSetShaderResources(1, 1,	
+						TextureManager::instance().get_texture(material.normals.c_str()).GetAddressOf());
+
+				if (material.render_data.hasRoughnessTexture)
+					direct.context4->PSSetShaderResources(2, 1, 
+						TextureManager::instance().get_texture(material.roughness.c_str()).GetAddressOf());
+
+				if (material.render_data.hasMetallicTexture)
+					direct.context4->PSSetShaderResources(3, 1, 
+						TextureManager::instance().get_texture(material.metallic.c_str()).GetAddressOf());
 
 				Direct3D::instance().context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

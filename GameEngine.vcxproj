@@ -159,8 +159,8 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="engine\Camera.cpp" />
     <ClCompile Include="engine\Controller.cpp" />
+    <ClCompile Include="engine\data_structures\TriangleOctree.cpp" />
     <ClCompile Include="engine\Engine.cpp" />
     <ClCompile Include="engine\imgui\imgui.cpp" />
     <ClCompile Include="engine\imgui\imgui_demo.cpp" />
@@ -169,15 +169,21 @@
     <ClCompile Include="engine\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="engine\imgui\imgui_tables.cpp" />
     <ClCompile Include="engine\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="engine\math\Camera.cpp" />
     <ClCompile Include="engine\math\math.cpp" />
-    <ClCompile Include="engine\math\Mesh.cpp" />
+    <ClCompile Include="engine\math\Ray.cpp" />
     <ClCompile Include="engine\math\Sphere.cpp" />
     <ClCompile Include="engine\math\Transform.cpp" />
+    <ClCompile Include="engine\moving\TransformSystem.cpp" />
     <ClCompile Include="engine\objects\Skybox.cpp" />
+    <ClCompile Include="engine\PostProcess.cpp" />
     <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp" />
     <ClCompile Include="engine\render\Direct11\Direct3D.cpp" />
     <ClCompile Include="engine\render\Direct11\DynamicBuffer.cpp" />
     <ClCompile Include="engine\render\Direct11\ImmutableBuffer.cpp" />
+    <ClCompile Include="engine\render\Direct11\RenderBuffer.cpp" />
+    <ClCompile Include="engine\render\EmissiveInstances.cpp" />
+    <ClCompile Include="engine\render\LightSystem.cpp" />
     <ClCompile Include="engine\render\MaterialManager.cpp" />
     <ClCompile Include="engine\render\MeshSystem.cpp" />
     <ClCompile Include="engine\render\OpaqueInstances.cpp" />
@@ -266,8 +272,9 @@
     <ClInclude Include="engine\assimp\XmlParser.h" />
     <ClInclude Include="engine\assimp\XMLTools.h" />
     <ClInclude Include="engine\assimp\ZipArchiveIOSystem.h" />
-    <ClInclude Include="engine\Camera.h" />
     <ClInclude Include="engine\Controller.h" />
+    <ClInclude Include="engine\data_structures\solid_vector.h" />
+    <ClInclude Include="engine\data_structures\TriangleOctree.h" />
     <ClInclude Include="engine\Engine.h" />
     <ClInclude Include="engine\ImageSettings.h" />
     <ClInclude Include="engine\imgui\imconfig.h" />
@@ -283,27 +290,29 @@
     <ClInclude Include="engine\includes\win_def.h" />
     <ClInclude Include="engine\includes\win_undef.h" />
     <ClInclude Include="engine\IntersectionQuery.h" />
+    <ClInclude Include="engine\math\AABB.h" />
+    <ClInclude Include="engine\math\Camera.h" />
     <ClInclude Include="engine\math\Intersection.h" />
     <ClInclude Include="engine\math\math.h" />
-    <ClInclude Include="engine\math\Mesh.h" />
     <ClInclude Include="engine\math\Plane.h" />
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\Transform.h" />
-    <ClInclude Include="engine\moving\PointLightMover.h" />
-    <ClInclude Include="engine\moving\ObjectMover.h" />
-    <ClInclude Include="engine\moving\SphereMover.h" />
-    <ClInclude Include="engine\moving\SpotlightMover.h" />
-    <ClInclude Include="engine\moving\TransformMover.h" />
+    <ClInclude Include="engine\moving\TransformSystem.h" />
     <ClInclude Include="engine\objects\LightObjects.h" />
+    <ClInclude Include="engine\objects\Model.h" />
     <ClInclude Include="engine\objects\Skybox.h" />
     <ClInclude Include="engine\objects\SphereObject.h" />
+    <ClInclude Include="engine\PostProcess.h" />
     <ClInclude Include="engine\render\Direct11\ImmutableBuffer.h" />
     <ClInclude Include="engine\render\Direct11\d3d.h" />
     <ClInclude Include="engine\render\Direct11\DDSTextureLoader11.h" />
     <ClInclude Include="engine\render\Direct11\Direct3D.h" />
     <ClInclude Include="engine\render\Direct11\DynamicBuffer.h" />
+    <ClInclude Include="engine\render\Direct11\RenderBuffer.h" />
+    <ClInclude Include="engine\render\EmissiveInstances.h" />
     <ClInclude Include="engine\render\Lighting.h" />
+    <ClInclude Include="engine\render\LightSystem.h" />
     <ClInclude Include="engine\render\Material.h" />
     <ClInclude Include="engine\render\MaterialManager.h" />
     <ClInclude Include="engine\render\MeshSystem.h" />
@@ -318,6 +327,13 @@
     <ClInclude Include="engine\win32\WinListener.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="shaders\emissive.hlsl" />
+    <FxCompile Include="shaders\post_process.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="shaders\sky.hlsl" />
     <FxCompile Include="shaders\opaque.hlsl" />
   </ItemGroup>
@@ -333,6 +349,7 @@
     <None Include="engine\assimp\vector2.inl" />
     <None Include="engine\assimp\vector3.inl" />
     <None Include="shaders\globals.hlsli" />
+    <None Include="shaders\pbr_render.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

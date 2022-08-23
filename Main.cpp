@@ -25,22 +25,19 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    //initConsole();
+    initConsole();
 
     Timer timer(1.f / 60.f);
     uint32_t width = 1366, height = 768;
 
     ImGuiManager::init_context();
     Engine::init();
-    Engine& engine = Engine::instance();
 
     Window window{L"WindowClass", hInstance};
     window.create_window(L"Test21", width, height);
 
-    engine.window = &window;
-    engine.scene.camera.set_perspective(to_radians(55.f), float(width) / height, 0.1f, 400.f);
-
-    Controller controller{engine.scene, window};
+    Controller controller{window};
+    controller.camera.set_perspective(rad(55.f), float(width) / height, 0.1f, 400.f);
     controller.init_scene();
     window.listeners.push_back(&controller);
 
@@ -71,7 +68,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
             }
 
             if (!IsIconic(window.handle()))
-                engine.render();
+                controller.render();
         }
 
 
@@ -80,7 +77,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
     ImGuiManager::reset();
 
-    window.render_reset();
+    controller.render_reset();
     Engine::reset();
 
     return msg.wParam;

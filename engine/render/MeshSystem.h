@@ -1,6 +1,8 @@
 #pragma once
 
+#include "EmissiveInstances.h"
 #include "OpaqueInstances.h"
+#include "math/Ray.h"
 
 class MeshSystem
 {
@@ -8,11 +10,15 @@ class MeshSystem
 	MeshSystem() = default;
 public:
 	OpaqueInstances opaque_instances;
+	EmissiveInstances emissive_instances;
 
+
+	bool select_mesh(const Ray& ray, Intersection& nearest);
 
 	void render()
 	{
 		opaque_instances.render();
+		emissive_instances.render();
 	}
 
 	static void init()

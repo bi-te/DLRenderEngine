@@ -7,6 +7,7 @@
 #include "WinListener.h"
 #include "win32/win.h"
 #include "render/Direct11/d3d.h"
+#include "render/Direct11/RenderBuffer.h"
 
 const FLOAT WINDOW_COLOR[4] { 0.2f, 0.2f, 0.2f, 1.f };
 
@@ -16,11 +17,10 @@ class Window
     HWND window;
 
     uint32_t width_, height_;
-
-    comptr<IDXGISwapChain1> swap_chain;
-    comptr<ID3D11RenderTargetView> target_view;
-
 public:
+    comptr<IDXGISwapChain1> swap_chain;
+    RenderBuffer buffer;
+
     std::vector<IWinListener*> listeners;
 
     Window(LPCWSTR class_name, HINSTANCE hInstance);
@@ -40,12 +40,12 @@ public:
 
     void show_window(int nCmdShow) { ShowWindow(window, nCmdShow); }
     void swap_buffer() { swap_chain->Present(0, 0); }
-    void bind_target(const comptr<ID3D11DepthStencilView>& dsView) const ;
+    
     void clear_buffer();
 
     void render_reset()
     {
         swap_chain.Reset();
-        target_view.Reset();
+        buffer.reset();
     }
 };

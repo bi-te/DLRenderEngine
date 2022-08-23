@@ -1,30 +1,32 @@
 #pragma once
 #include "../math/math.h"
+#include "data_structures/solid_vector.h"
 
 struct DirectLight
 {
-	vec3f light;
-	vec3f direction;
+	vec3f irradiance;
 	float solid_angle;
+
+	vec3f direction;
 };
 
 struct PointLight
 {
-	vec3f light;
-	vec3f position;
+	vec3f irradiance;
+	ID position;
 
-	//Phong
+	float radius;	
 	float light_range;
 };
 
 struct Spotlight 
 {
-	vec3f light;
-	vec3f position;
+	vec3f irradiance;
+	ID position;
+
 	vec3f direction;
+	float radius;
 
-	float cutOff, outerCutOff;
-
-	//Phong
+	float cutOff, outerCutOff;	
 	float light_range;
 };

@@ -3,7 +3,7 @@
 #include "render/TextureManager.h"
 #include "render/ShaderManager.h"
 
-void Skybox::draw()
+void Skybox::render()
 {
 	TextureManager& texture_manager = TextureManager::instance();
 	ShaderManager& shader_manager = ShaderManager::instance();

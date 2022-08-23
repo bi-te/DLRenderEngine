@@ -2,12 +2,10 @@
 
 #include <windowsx.h>
 
-
 #include "imgui/imgui.h"
 #include "Controller.h"
 #include "imgui/ImGuiManager.h"
 #include "imgui/imgui_impl_win32.h"
-
 
 Window::Window(LPCWSTR class_name, HINSTANCE hInstance)
 {
@@ -77,6 +75,8 @@ void Window::init_swap_chain()
         NULL, NULL, &swap_chain);
     assert(result >= 0 && "CreateSwapChainForHwnd");
 
+    buffer.width = width_;
+    buffer.height = height_;
     init_render_target_view();
 }
 
@@ -88,7 +88,7 @@ void Window::init_render_target_view()
     HRESULT result = swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), &back_buffer);
     assert(SUCCEEDED(result) && "GetBuffer");
 
-    result = Direct3D::instance().device5->CreateRenderTargetView(back_buffer.Get(), NULL, &target_view);
+    result = Direct3D::instance().device5->CreateRenderTargetView(back_buffer.Get(), NULL, &buffer.rtv);
     assert(SUCCEEDED(result) && "CreateRenderTargetView");
 }
 
@@ -98,7 +98,9 @@ void Window::resize_buffer(uint32_t new_width, uint32_t new_height)
     if (!swap_chain.Get())
         return;
 
-    target_view.Reset();
+    buffer.width = new_width;
+    buffer.height = new_height;
+    buffer.rtv.Reset();
     HRESULT result = swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
     assert(SUCCEEDED(result) && "ResizeBuffers");
 
@@ -108,17 +110,9 @@ void Window::resize_buffer(uint32_t new_width, uint32_t new_height)
     init_render_target_view();
 }
 
-void Window::bind_target(const comptr<ID3D11DepthStencilView>& dsView) const 
-{
-    D3D11_VIEWPORT viewport = {0.f, 0.f,FLOAT(width_), FLOAT(height_),0.f, 1.f};
-
-    Direct3D::instance().context4->OMSetRenderTargets(1, target_view.GetAddressOf(), dsView.Get());
-    Direct3D::instance().context4->RSSetViewports(1, &viewport);
-}
-
 void Window::clear_buffer()
 {
-    Direct3D::instance().context4->ClearRenderTargetView(target_view.Get(), WINDOW_COLOR);
+    buffer.clear(WINDOW_COLOR);
 }
 
 LRESULT Window::classWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

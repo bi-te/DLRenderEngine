@@ -18,7 +18,7 @@ class TextureManager
 	TextureManager& operator=(const TextureManager& other) = delete;
 	TextureManager& operator=(TextureManager&& other) noexcept = delete;
 
-	std::unordered_map<LPCWSTR, comptr<ID3D11ShaderResourceView>, pwchar_hash, pwchar_comparator> textures2d;
+	std::unordered_map<std::wstring, comptr<ID3D11ShaderResourceView>> textures2d;
 public:
 
 	static void init()

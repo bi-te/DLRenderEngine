@@ -3,6 +3,7 @@
 #include "d3d.h"
 #include "DynamicBuffer.h"
 #include "math/math.h"
+#include "math/Camera.h"
 
 struct Frustum
 {
@@ -15,7 +16,12 @@ struct PerFrame
 {
 	mat4f view_projection;
 	Frustum frustum;
+	vec3f camera_pos;
+	float padding0;
 };
+
+constexpr ID3D11RenderTargetView* NULL_RTV = nullptr;
+constexpr ID3D11ShaderResourceView* NULL_SRV = nullptr;
 
 class Direct3D
 {
@@ -50,7 +56,7 @@ public:
 	void init_rasterizer_state();
 	void init_sampler_state(D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR, uint8_t anisotropy = 0);
 
-	void bind_globals(const PerFrame& per_frame_data);
+	void bind_globals(const Camera& camera);
 
 	static void reset();
 };

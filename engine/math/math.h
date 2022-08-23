@@ -20,16 +20,16 @@ struct Angles
 	float roll, pitch, yaw;
 };
 
-inline float to_radians(float degrees)
+inline float rad(float degrees)
 {
 	return degrees * PI / 180.f;
 }
 	
 inline Angles rotation_from_degrees(float roll, float pitch, float yaw)
 {
-	float r = to_radians(roll);
-	float p = to_radians(pitch);
-	float y = to_radians(yaw);
+	float r = rad(roll);
+	float p = rad(pitch);
+	float y = rad(yaw);
 
 	return { r, p, y };
 }

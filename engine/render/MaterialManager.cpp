@@ -2,12 +2,29 @@
 
 MaterialManager* MaterialManager::s_manager;
 
-void MaterialManager::add_material(const std::string& name,
+void MaterialManager::add(const OpaqueMaterial& material)
+{
+	if (op_materials.count(material.name)) return;
+
+	if(material.render_data.hasDiffuseTexture)
+		TextureManager::instance().add_texture(material.diffuse.c_str());
+	if (material.render_data.hasNormalsTexture)
+		TextureManager::instance().add_texture(material.normals.c_str());
+	if (material.render_data.hasRoughnessTexture)
+		TextureManager::instance().add_texture(material.roughness.c_str());
+	if (material.render_data.hasMetallicTexture)
+		TextureManager::instance().add_texture(material.metallic.c_str());
+
+	op_materials.insert({ material.name, material });
+}
+
+void MaterialManager::add_opaque_material(const std::string& name,
 	const std::vector<std::pair<TextureType, std::wstring>>& textures)
 {
-	if (materials.count(name)) return;
+	if (op_materials.count(name)) return;
 	
-	Material mat;
+	OpaqueMaterial mat;
+	mat.name = name;
 	for (const auto & texture : textures)
 	{
 		switch (texture.first)
@@ -18,17 +35,11 @@ void MaterialManager::add_material(const std::string& name,
 		case (TextureRoughness): mat.roughness = texture.second;
 		}
 	}
-	materials.insert({ name, std::move(mat) });
+	op_materials.insert({ name, std::move(mat) });
 }
 
-void MaterialManager::add(const std::string& name, const Material& material)
+OpaqueMaterial& MaterialManager::get_opaque(const std::string& name)
 {
-	if (materials.count(name)) return;
-	materials.insert({ name, material });
-}
-
-Material& MaterialManager::get(const std::string& name)
-{
-	assert(materials.count(name));
-	return materials.at(name);
+	assert(op_materials.count(name));
+	return op_materials.at(name);
 }

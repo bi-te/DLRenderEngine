@@ -6,24 +6,28 @@
 #include "math/math.h"
 #include "Material.h"
 #include "Direct11/Direct3D.h"
-#include "math/Transform.h"
+#include "data_structures/solid_vector.h"
+#include "objects/Model.h"
 
-class Model;
-class ModelManager;
-struct Material;
-
-struct Instance
+struct OpaqueInstanceRender
 {
-	Transform model_world;
+	mat4f model_transform;
+	vec3f scale;
+	float padding;
 };
 
 class OpaqueInstances
 {
-	friend ModelManager;
+public:
+	struct Instance
+	{
+		ID model_world;
+	};
 
+private:
 	struct PerMaterial
 	{
-		Material material;
+		OpaqueMaterial material;
 		std::vector<uint32_t> instances;
 	};
 
@@ -41,18 +45,22 @@ class OpaqueInstances
 	};
 
 public:
+
 	explicit OpaqueInstances()
 	{
 		meshModel.allocate(sizeof(mat4f));
+		materialBuffer.allocate(sizeof(BufferMaterial));
 	}
 
 	DynamicBuffer instanceBuffer{ D3D11_BIND_VERTEX_BUFFER };
 	DynamicBuffer meshModel{ D3D11_BIND_CONSTANT_BUFFER };
+	DynamicBuffer materialBuffer{ D3D11_BIND_CONSTANT_BUFFER };
+
 	std::wstring opaqueShader;
 	std::vector<PerModel> perModels;
 
 	void add_model_instance(const std::shared_ptr<Model>& model,
-	                        const std::vector<Material>& materials,
+	                        const std::vector<OpaqueMaterial>& materials,
 	                        const Instance& instance);
 
 	void update_instance_buffer();
