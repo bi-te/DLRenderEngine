@@ -105,10 +105,9 @@ void OpaqueInstances::render()
 	direct.context4->PSSetShader(shader.pixelShader.Get(), nullptr, NULL);
 	direct.context4->IASetInputLayout(shader.inputLayout.ptr.Get());
 
+	update_instance_buffer();
 	uint32_t instance_stride = sizeof(OpaqueInstanceRender), ioffset = 0;
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &instance_stride, &ioffset);
-
-	update_instance_buffer();
 	
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model: perModels)

@@ -491,7 +491,7 @@ void Controller::process_input(float dt)
 
                 move_camera(move, rot);
                 camera_update = false;
-
+                 
                 offset = trans;
                 offset += move.x() * camera.right() + move.y() * camera.up() + move.z() * camera.forward();
                 offset += (is.mouse.x - is.mouse.prev_x) * w * prop / screen_width * camera.right();

@@ -70,8 +70,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
             if (!IsIconic(window.handle()))
                 controller.render();
         }
-
-
+        
         std::this_thread::yield();
     }
 

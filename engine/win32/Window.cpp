@@ -131,9 +131,12 @@ LRESULT Window::classWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         for (auto listener : listeners) { listener->MouseEvent(LMOUSE, (BUTTON)((message + 1) % 3), x, y); }
         break;
     case WM_RBUTTONDOWN:
-    case WM_LBUTTONDOWN:
         if (io.WantCaptureMouse) break;
-        for (auto listener : listeners) { listener->MouseEvent((Key)wParam, (BUTTON)((message + 1) % 3), x, y); }
+        for (auto listener : listeners) { listener->MouseEvent(RMOUSE, (BUTTON)((message + 1) % 3), x, y); }
+        break;
+    case WM_LBUTTONDOWN:
+    	if (io.WantCaptureMouse) break;
+        for (auto listener : listeners) { listener->MouseEvent(LMOUSE, (BUTTON)((message + 1) % 3), x, y); }
         break;
     case WM_RBUTTONUP:
         if (io.WantCaptureMouse) break;
