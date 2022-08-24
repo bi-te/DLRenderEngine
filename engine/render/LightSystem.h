@@ -42,6 +42,11 @@ class LightSystem
 	static LightSystem* s_system;
 	LightSystem() = default;
 
+	LightSystem(const LightSystem& other) = delete;
+	LightSystem(LightSystem&& other) noexcept = delete;
+	LightSystem& operator=(const LightSystem& other) = delete;
+	LightSystem& operator=(LightSystem&& other) noexcept = delete;
+
 	DynamicBuffer lightBuffer{ D3D11_BIND_CONSTANT_BUFFER };
 
 	DirectLight dirLight;

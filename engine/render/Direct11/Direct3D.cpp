@@ -56,7 +56,7 @@ void Direct3D::init_sampler_state(D3D11_FILTER filter, uint8_t anisotropy)
     sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.MinLOD = 0.f;
-    sdesc.MaxLOD = 10.f;
+    sdesc.MaxLOD = 12.f;
     device5->CreateSamplerState(&sdesc, &sampler_state);
 }
 

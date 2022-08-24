@@ -68,6 +68,7 @@ void EmissiveInstances::render()
 	update_instance_buffer();
 	uint32_t instance_stride = sizeof(EmissiveInstanceBuffer), ioffset = 0;
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &instance_stride, &ioffset);
+	direct.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model : perModels)
@@ -92,8 +93,6 @@ void EmissiveInstances::render()
 			direct.context4->VSSetConstantBuffers(1, 1, meshModel.address());
 
 			uint32_t instances = per_model.instances.size() * mesh.mesh_model_matrices.size();
-
-			Direct3D::instance().context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 			direct.context4->DrawIndexedInstanced(mrange.numIndices,
 				instances, mrange.indicesOffset,

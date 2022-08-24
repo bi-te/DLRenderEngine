@@ -3,7 +3,7 @@
 #include "MeshSystem.h"
 #include "Direct11/Direct3D.h"
 #include "moving/TransformSystem.h"
-#include <render/ModelManager.h>
+#include "render/ModelManager.h"
 
 LightSystem* LightSystem::s_system;
 
@@ -28,12 +28,14 @@ void LightSystem::set_direct_light(const DirectLight& dirLight)
 void LightSystem::add_point_light(const PointLight & pointLight)
 {
 	pointLights.push_back(pointLight);
+	pointLights.back().radiance = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
 }
 
 void LightSystem::add_point_light(const PointLight& pointLight, const std::string& model)
 {
 	pointLights.push_back(pointLight);
-	
+	pointLights.back().radiance = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
+
 	vec3f emissive_light = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
 
 	MeshSystem::instance().emissive_instances.add_model_instance(
@@ -45,11 +47,13 @@ void LightSystem::add_point_light(const PointLight& pointLight, const std::strin
 void LightSystem::add_spotlight(const Spotlight& spotlight)
 {
 	spotlights.push_back(spotlight);
+	spotlights.back().radiance = irradianceAtDistanceToRadiance(spotlight.irradiance, spotlight.light_range, spotlight.radius);
 }
 
 void LightSystem::add_spotlight(const Spotlight& spotlight, const std::string& model)
 {
 	spotlights.push_back(spotlight);
+	spotlights.back().radiance = irradianceAtDistanceToRadiance(spotlight.irradiance, spotlight.light_range, spotlight.radius);
 	
 	vec3f emissive_light = irradianceAtDistanceToRadiance(spotlight.irradiance, spotlight.light_range, spotlight.radius);
 
@@ -67,21 +71,21 @@ void LightSystem::bind_lights()
 
 	LightBuffer* lBuffer = static_cast<LightBuffer*>(lightBuffer.map().pData);
 	lBuffer->ambient = ambient;
-	lBuffer->pointLightNum = pointLights.size();
-	lBuffer->spotlightNum = spotlights.size();
+	lBuffer->pointLightNum = std::min(static_cast<uint32_t>(pointLights.size()), MAX_LIGHTS_NUMBER);
+	lBuffer->spotlightNum = std::min(static_cast<uint32_t>(spotlights.size()), MAX_LIGHTS_NUMBER);
 	lBuffer->dirLight = dirLight;
 
-	for (int pLight = 0; pLight < pointLights.size(); ++pLight)
+	for (uint32_t pLight = 0; pLight < lBuffer->pointLightNum; ++pLight)
 	{
 		PointLight& p_data = pointLights[pLight];
 		PointLightBuffer& p_buffer = lBuffer->pointLights[pLight];
 
 		p_buffer.radius = p_data.radius;
 		p_buffer.position = t_system.transforms[p_data.position].position();
-		p_buffer.radiance = irradianceAtDistanceToRadiance(p_data.irradiance, p_data.light_range, p_data.radius);
+		p_buffer.radiance = p_data.radiance;
 	}
 
-	for (int sLight = 0; sLight < spotlights.size(); ++sLight)
+	for (uint32_t sLight = 0; sLight < lBuffer->spotlightNum; ++sLight)
 	{
 		Spotlight& s_data = spotlights[sLight];
 		SpotlightBuffer& s_buffer = lBuffer->spotlights[sLight];
@@ -90,7 +94,7 @@ void LightSystem::bind_lights()
 		s_buffer.cutOff = s_data.cutOff;
 		s_buffer.position = t_system.transforms[s_data.position].position();
 		s_buffer.direction = s_data.direction;
-		s_buffer.radiance = irradianceAtDistanceToRadiance(s_data.irradiance, s_data.light_range, s_data.radius);	
+		s_buffer.radiance = s_data.radiance;
 		s_buffer.outerCutOff = s_data.outerCutOff;
 	}
 

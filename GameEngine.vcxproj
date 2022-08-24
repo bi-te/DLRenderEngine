@@ -328,7 +328,7 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\emissive.hlsl" />
-    <FxCompile Include="shaders\post_process.hlsl">
+    <FxCompile Include="shaders\resolve.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -349,7 +349,9 @@
     <None Include="engine\assimp\vector2.inl" />
     <None Include="engine\assimp\vector3.inl" />
     <None Include="shaders\globals.hlsli" />
+    <None Include="shaders\light_calculation.hlsli" />
     <None Include="shaders\pbr_render.hlsli" />
+    <None Include="shaders\post_process_helpers.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

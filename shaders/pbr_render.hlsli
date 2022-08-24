@@ -1,19 +1,22 @@
+#ifndef _PBR_RENDER_
+#define _PBR_RENDER_
 #include "globals.hlsli"
 
 static const float INSULATOR_F0 = 0.04f;
 
+#define MATERIAL_TEXTURE_DIFFUSE 1u
+#define MATERIAL_TEXTURE_NORMAL 2u
+#define MATERIAL_TEXTURE_ROUGHNESS 4u
+#define MATERIAL_TEXTURE_METALLIC 16u
+#define REVERSED_NORMAL_Y 32u
+
 struct Material
 {
-	bool hasDiffuseTexture;
-	bool hasNormalsTexture;
-	bool hasRoughnessTexture;
-	bool hasMetallicTexture;
-
 	float3 diffuse;
-	float roughness;
+	uint textures;
 
+	float roughness;
 	float metallic;
-	bool reverseNormalTextureY;
 	float2 padding0;
 };
 
@@ -43,7 +46,6 @@ float3 cook_torrance_aprox(float3 light, float3 closest_light, float3 normal, fl
 	float3 f0 = lerp(INSULATOR_F0, mat.diffuse, mat.metallic);
 
 	float cosV = clamp(dot(normal, view), 0.f, 1.f);
-	if (cosV <= 0.f) cosV = 0.f;
 	float cosL = dot(normal, light);
 	if (cosL <= 0.f) { return 0.f; }
 	float cosC = dot(normal, closest_light);
@@ -63,3 +65,4 @@ float3 cook_torrance_aprox(float3 light, float3 closest_light, float3 normal, fl
 	float3 color = (diff + spec) * (radiance)*cosL;
 	return color;
 }
+#endif

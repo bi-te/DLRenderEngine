@@ -6,13 +6,13 @@ void MaterialManager::add(const OpaqueMaterial& material)
 {
 	if (op_materials.count(material.name)) return;
 
-	if(material.render_data.hasDiffuseTexture)
+	if (material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
 		TextureManager::instance().add_texture(material.diffuse.c_str());
-	if (material.render_data.hasNormalsTexture)
+	if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
 		TextureManager::instance().add_texture(material.normals.c_str());
-	if (material.render_data.hasRoughnessTexture)
+	if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
 		TextureManager::instance().add_texture(material.roughness.c_str());
-	if (material.render_data.hasMetallicTexture)
+	if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
 		TextureManager::instance().add_texture(material.metallic.c_str());
 
 	op_materials.insert({ material.name, material });
@@ -29,10 +29,10 @@ void MaterialManager::add_opaque_material(const std::string& name,
 	{
 		switch (texture.first)
 		{
-		case (TextureDiffuse): mat.diffuse = texture.second;
-		case (TextureNormals): mat.normals = texture.second;
-		case (TextureMetallic): mat.metallic = texture.second;
-		case (TextureRoughness): mat.roughness = texture.second;
+		case (TextureDiffuse): mat.diffuse = texture.second; break;
+		case (TextureNormals): mat.normals = texture.second; break;
+		case (TextureMetallic): mat.metallic = texture.second; break;
+		case (TextureRoughness): mat.roughness = texture.second; break;
 		}
 	}
 	op_materials.insert({ name, std::move(mat) });

@@ -6,6 +6,11 @@ class TransformSystem
 {
 	static TransformSystem* s_system;
 	TransformSystem() = default;
+
+	TransformSystem(const TransformSystem& other) = delete;
+	TransformSystem(TransformSystem&& other) noexcept = delete;
+	TransformSystem& operator=(const TransformSystem& other) = delete;
+	TransformSystem& operator=(TransformSystem&& other) noexcept = delete;
 public:
 
 	solid_vector<Transform> transforms;

@@ -97,7 +97,7 @@ OpaqueMaterial ModelManager::load_material(aiMaterial& material, std::string& di
 {
 	aiString texture;
 	std::string wtexture;
-	OpaqueMaterial mat;
+	OpaqueMaterial mat{};
 	
 	mat.name = dir + material.GetName().C_Str();
 
@@ -106,47 +106,39 @@ OpaqueMaterial ModelManager::load_material(aiMaterial& material, std::string& di
 		material.GetTexture(aiTextureType_DIFFUSE, 0, &texture);
 		wtexture = dir + texture.C_Str();
 		mat.diffuse = char_to_wchar(wtexture.c_str());
-		mat.render_data.hasDiffuseTexture = true;
+		mat.render_data.textures |= MATERIAL_TEXTURE_DIFFUSE;
 		TextureManager::instance().add_texture(mat.diffuse.c_str());
 	}
-	else mat.render_data.hasDiffuseTexture = false;
 
 	if (material.GetTextureCount(aiTextureType_NORMALS))
 	{
 		material.GetTexture(aiTextureType_NORMALS, 0, &texture);
 		wtexture = dir + texture.C_Str();
 		mat.normals = char_to_wchar(wtexture.c_str());
-		mat.render_data.hasNormalsTexture = true;
+		mat.render_data.textures |= MATERIAL_TEXTURE_NORMAL;
 		TextureManager::instance().add_texture(mat.normals.c_str());
 	}
-	else mat.render_data.hasNormalsTexture = false;
 
 	if (material.GetTextureCount(aiTextureType_METALNESS))
 	{
 		material.GetTexture(aiTextureType_METALNESS, 0, &texture);
 		wtexture = dir + texture.C_Str();
 		mat.metallic = char_to_wchar(wtexture.c_str());
-		mat.render_data.hasMetallicTexture = true;
+		mat.render_data.textures |= MATERIAL_TEXTURE_METALLIC;
 		TextureManager::instance().add_texture(mat.metallic.c_str());
 	}
-	else{
-		mat.render_data.metallic = BASE_METALLIC;
-		mat.render_data.hasMetallicTexture = false;
-	}
+	else mat.render_data.metallic = BASE_METALLIC;
 
 	if (material.GetTextureCount(aiTextureType_SHININESS))
 	{
 		material.GetTexture(aiTextureType_SHININESS, 0, &texture);
 		wtexture = dir + texture.C_Str();
 		mat.roughness = char_to_wchar(wtexture.c_str());
-		mat.render_data.hasRoughnessTexture = true;
+		mat.render_data.textures |= MATERIAL_TEXTURE_ROUGHNESS;
 		TextureManager::instance().add_texture(mat.roughness.c_str());
 	}
-	else {
-		mat.render_data.roughness = BASE_ROUGHNESS;
-		mat.render_data.hasRoughnessTexture = false;
-	}
-	mat.render_data.reverseNormalTextureY = false;
+	else mat.render_data.roughness = BASE_ROUGHNESS;
+	
 	MaterialManager::instance().add(std::move(mat));
 
 	return mat;

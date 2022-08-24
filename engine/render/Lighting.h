@@ -4,7 +4,7 @@
 
 struct DirectLight
 {
-	vec3f irradiance;
+	vec3f radiance;
 	float solid_angle;
 
 	vec3f direction;
@@ -17,6 +17,7 @@ struct PointLight
 
 	float radius;	
 	float light_range;
+	vec3f radiance;
 };
 
 struct Spotlight 
@@ -29,4 +30,5 @@ struct Spotlight
 
 	float cutOff, outerCutOff;	
 	float light_range;
+	vec3f radiance;
 };

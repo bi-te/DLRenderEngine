@@ -4,7 +4,7 @@
 
 struct Skybox
 {
-	std::wstring texture, shader;
+	std::wstring texture, skyshader;
 
 	void render();
 };

@@ -550,7 +550,7 @@
     <FxCompile Include="shaders\emissive.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\post_process.hlsl">
+    <FxCompile Include="shaders\resolve.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -589,6 +589,12 @@
       <Filter>engine\assimp</Filter>
     </None>
     <None Include="shaders\pbr_render.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\post_process_helpers.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\light_calculation.hlsli">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

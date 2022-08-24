@@ -108,6 +108,7 @@ void OpaqueInstances::render()
 	update_instance_buffer();
 	uint32_t instance_stride = sizeof(OpaqueInstanceRender), ioffset = 0;
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &instance_stride, &ioffset);
+	direct.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model: perModels)
@@ -141,23 +142,21 @@ void OpaqueInstances::render()
 
 				direct.context4->PSSetConstantBuffers(3, 1, materialBuffer.address());
 
-				if(material.render_data.hasDiffuseTexture)
+				if(material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
 					direct.context4->PSSetShaderResources(0, 1, 
 						TextureManager::instance().get_texture(material.diffuse.c_str()).GetAddressOf());
 
-				if (material.render_data.hasNormalsTexture)
+				if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
 					direct.context4->PSSetShaderResources(1, 1,	
 						TextureManager::instance().get_texture(material.normals.c_str()).GetAddressOf());
 
-				if (material.render_data.hasRoughnessTexture)
+				if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
 					direct.context4->PSSetShaderResources(2, 1, 
 						TextureManager::instance().get_texture(material.roughness.c_str()).GetAddressOf());
 
-				if (material.render_data.hasMetallicTexture)
+				if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
 					direct.context4->PSSetShaderResources(3, 1, 
 						TextureManager::instance().get_texture(material.metallic.c_str()).GetAddressOf());
-
-				Direct3D::instance().context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 				direct.context4->DrawIndexedInstanced(mrange.numIndices,
 					instances, mrange.indicesOffset,

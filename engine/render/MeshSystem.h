@@ -8,6 +8,12 @@ class MeshSystem
 {
 	static MeshSystem* s_system;
 	MeshSystem() = default;
+
+	MeshSystem(const MeshSystem& other) = delete;
+	MeshSystem(MeshSystem&& other) noexcept = delete;
+	MeshSystem& operator=(const MeshSystem& other) = delete;
+	MeshSystem& operator=(MeshSystem&& other) noexcept = delete;
+
 public:
 	OpaqueInstances opaque_instances;
 	EmissiveInstances emissive_instances;

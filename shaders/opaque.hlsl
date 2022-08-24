@@ -1,5 +1,4 @@
-#include "globals.hlsli"
-#include "pbr_render.hlsli"
+#include "light_calculation.hlsli"
 
 struct vs_in
 {
@@ -56,38 +55,33 @@ vs_out main(vs_in input)
 	world_bitangent = mul(input.model_transform, world_bitangent) / input.model_scale;
 
 	res.tbn_matrix = float3x3(
-		normalize(world_tangent.xyz),
-		normalize(world_bitangent.xyz),
-		normalize(world_normal.xyz));
+		world_tangent.xyz,
+		world_bitangent.xyz,
+		world_normal.xyz
+	);
 	return res;
 }
-
-
-float3 calc_direct_light_pbr(float3 view_vec, float3 mesh_normal, float3 normal, DirectLight dirlight, Material mat);
-float3 calc_point_light_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, PointLight pointLight, Material material);
-float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, Spotlight spotlight, Material material);
-
 
 float3 ps_main(vs_out input) : Sv_Target
 {
 	Material mat;
 
-	mat.diffuse = material.hasDiffuseTexture ? diffuse.Sample(g_sampler, input.tex_coords) : material.diffuse;
-	mat.metallic = material.hasMetallicTexture ? metallic.Sample(g_sampler, input.tex_coords) : material.metallic;
-	mat.roughness = material.hasRoughnessTexture ? roughness.Sample(g_sampler, input.tex_coords) : material.roughness;
+	mat.diffuse = material.textures & MATERIAL_TEXTURE_DIFFUSE ? diffuse.Sample(g_sampler, input.tex_coords) : material.diffuse;
+	mat.metallic = material.textures & MATERIAL_TEXTURE_METALLIC ? metallic.Sample(g_sampler, input.tex_coords) : material.metallic;
+	mat.roughness = material.textures & MATERIAL_TEXTURE_ROUGHNESS ? roughness.Sample(g_sampler, input.tex_coords) : material.roughness;
 
+	input.tbn_matrix[0].xyz = normalize(input.tbn_matrix[0].xyz);
+	input.tbn_matrix[1].xyz = normalize(input.tbn_matrix[1].xyz);
+	input.tbn_matrix[2].xyz = normalize(input.tbn_matrix[2].xyz);
 	
-	float3 normal, mesh_normal = normalize(float3(input.tbn_matrix[2].x, input.tbn_matrix[2].y, input.tbn_matrix[2].z));;
-	if (material.hasNormalsTexture)
+	float3 normal, mesh_normal = input.tbn_matrix[2].xyz;
+	if (material.textures & MATERIAL_TEXTURE_NORMAL)
 	{
 		float3 texNormal = normals.Sample(g_sampler, input.tex_coords) * 2.f - 1.f;
-
-		if (material.reverseNormalTextureY)
-			texNormal.y *= -1.f;
+		texNormal.y *= material.textures & REVERSED_NORMAL_Y ? -1.f : 1.f;
 
 		normal = normalize(mul(texNormal, input.tbn_matrix));
 	}
-
 	else normal = mesh_normal;
 
 	float3 view_vec = normalize(g_cameraPosition - input.world_position);
@@ -103,71 +97,4 @@ float3 ps_main(vs_out input) : Sv_Target
 		res_color += calc_spotlight_pbr(input.world_position, view_vec, mesh_normal, normal, spotlights[sLight_ind], mat);
 
 	return res_color;
-}
-
-float3 closest_sphere_direction(float3 sphere_rel_pos, float3 sphere_dir, float3 reflection, 
-	float sphere_dist, float radius, float cos_sphere)
-{
-	float cosRoS = dot(reflection, sphere_dir);
-
-	if (cosRoS >= cos_sphere) return reflection;
-	if (cosRoS < 0.f) return sphere_dir;
-
-	float3 closes_point_dir = normalize(reflection * sphere_dist * cosRoS - sphere_rel_pos);
-	return normalize(sphere_rel_pos + closes_point_dir * radius);
-}
-
-float3 clamp_to_horizon(float3 norm, float3 dir, float min_cos)
-{
-	float cosNoD = dot(norm, dir);
-	if (cosNoD < 0.f)
-		return normalize(dir + norm * (min_cos - cosNoD));
-	return dir;
-}
-
-float3 calc_direct_light_pbr(float3 view_vec, float3 mesh_normal, float3 normal, DirectLight dirlight, Material mat)
-{
-	if (dot(-dirLight.direction, mesh_normal) < 0.f) return 0.f;
-	return cook_torrance_aprox(-dirlight.direction, -dirlight.direction, normal, view_vec, dirlight.radiance, dirlight.solid_angle / (2 * PI), mat);
-}
-
-float3 calc_point_light_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, PointLight pointLight, Material material)
-{
-	float3 light_vec = pointLight.position - position;
-	float light_dist = max(length(light_vec), pointLight.radius);
-	light_vec = normalize(light_vec);
-
-	if (dot(light_vec, mesh_normal) < 0.f) return 0.f;
-
-	float cosPhi = sqrt(light_dist * light_dist - pointLight.radius * pointLight.radius) / light_dist;
-	float attenuation = 1 - cosPhi;
-
-	float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
-		reflect(-view_vec, normal), light_dist, pointLight.radius, cosPhi);
-
-	closest_vec = clamp_to_horizon(normal, closest_vec, 0.01f);
-
-	return cook_torrance_aprox(light_vec, closest_vec, normal, view_vec, pointLight.radiance, attenuation, material);
-}
-
-float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, Spotlight spotlight, Material material)
-{
-	float3 light_vec = spotlight.position - position;
-	float dist = max(length(light_vec), spotlight.radius);
-	light_vec = normalize(light_vec);
-
-	if (dot(light_vec, mesh_normal) < 0.f) return 0.f;
-
-	float cosDSL = dot(spotlight.direction , -light_vec);
-	float intensity = smoothstep(spotlight.outerCutOff, spotlight.cutOff, cosDSL);
-	if (intensity == 0.f) return 0.f;
-
-	float cosPhi = sqrt(dist * dist - spotlight.radius * spotlight.radius) / dist;
-	float attenuation = (1.f - cosPhi) * intensity;
-
-	float3 closest_vec = closest_sphere_direction(light_vec * dist, light_vec,
-		reflect(-view_vec, normal), dist, spotlight.radius, cosPhi);
-	clamp_to_horizon(normal, closest_vec, 0.01f);
-
-	return cook_torrance_aprox(light_vec, closest_vec, normal, view_vec, spotlight.radiance, attenuation, material);
 }

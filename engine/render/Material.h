@@ -7,33 +7,22 @@ const float BASE_METALLIC  = 0.f;
 
 enum MaterialType{LIGHT_SOURCE, SURFACE};
 
-struct OldMaterial{
-	MaterialType type;
-	vec3f albedo;
-	vec3f emission;
-
-	// Phong
-	float specular;
-	float glossiness;
-
-	// PBR
-	vec3f f0;
-	float roughness;
-	float metalness;
+enum MaterialTexture : uint32_t
+{
+	MATERIAL_TEXTURE_DIFFUSE = 1,
+	MATERIAL_TEXTURE_NORMAL = 2,
+	MATERIAL_TEXTURE_ROUGHNESS = 4,
+	MATERIAL_TEXTURE_METALLIC = 16,
+	MATERIAL_REVERSED_NORMAL_Y = 32
 };
 
 struct BufferMaterial
 {
-	uint32_t hasDiffuseTexture;
-	uint32_t hasNormalsTexture;
-	uint32_t hasRoughnessTexture;
-	uint32_t hasMetallicTexture;
-
-	vec3f diffuse;	
-	float roughness;
-	
+	vec3f diffuse;
+	uint32_t textures;
+		
+	float roughness;	
 	float metallic;
-	uint32_t reverseNormalTextureY;
 	float padding[2];
 };
 
@@ -51,8 +40,7 @@ struct OpaqueMaterial
 	{
 		name = "";
 		diffuse = normals = metallic = roughness = L"";
-		render_data.hasNormalsTexture = render_data.hasDiffuseTexture = 
-			render_data.hasMetallicTexture = render_data.hasRoughnessTexture = false;
+		render_data.textures = 0;
 		render_data.metallic = render_data.roughness = 0.f;
 		render_data.diffuse = {};
 	}
