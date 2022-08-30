@@ -119,19 +119,19 @@ void Controller::init_scene()
     models.init_flat_cube_sphere(20);
     
     lights.set_ambient({ 0.1f, 0.1f, 0.1f });
-    lights.set_direct_light({ {50.f, 50.f, 50.f}, 0.1f, vec3f{0.f, -1.f, 10.f}.normalized() });
+    lights.set_direct_light({ {5.f, 5.f, 5.f}, 0.1f, vec3f{0.f, -1.f, 10.f}.normalized() });
 
     Transform the_sun;
     the_sun.set_scale(0.5f);
     the_sun.set_world_offset({ 15.f, 11.f, 5.f });
     PointLight minisun = {
-        {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(the_sun), 1.f, 10.f
+        {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(the_sun), 0.5f, 5.f
     };
     lights.add_point_light(minisun, "FlatCubeSphere");
     
     the_sun.set_world_offset({ 0.f, 20.f, -5.f });
     PointLight greensun = {
-    {0.5f, 1.3f, 0.75f}, transforms.transforms.insert(the_sun), 1.f, 5.f
+    {0.2f, 0.75f, 0.4f}, transforms.transforms.insert(the_sun), 0.5f, 3.f
     };
     lights.add_point_light(greensun, "FlatCubeSphere");
 
@@ -139,8 +139,8 @@ void Controller::init_scene()
     flashlight.set_scale(0.5f);
     flashlight.set_world_offset({ 11.f, 10.f, -15.f });
     Spotlight flash = {
-        {1.f, 1.f, 1.f}, transforms.transforms.insert(flashlight),
-    	{0.f, 0.f, 1.f}, 1.f, cosf(rad(12.f)), cosf(rad(17.f)), 10.f
+        {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
+    	{0.f, 0.f, 1.f}, 0.5f, cosf(rad(12.f)), cosf(rad(17.f)), 10.f
     };
     lights.add_spotlight(flash, "FlatCubeSphere");
 

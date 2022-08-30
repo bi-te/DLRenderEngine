@@ -26,7 +26,66 @@ float3 clamp_to_horizon(float3 norm, float3 dir, float min_cos)
 float3 calc_direct_light_pbr(float3 view_vec, float3 mesh_normal, float3 normal, DirectLight dirlight, Material mat)
 {
 	if (dot(-dirlight.direction, mesh_normal) <= 0.f) return 0.f;
-	return cook_torrance_aprox(-dirlight.direction, -dirlight.direction, normal, view_vec, dirlight.radiance, dirlight.solid_angle / (2 * PI), mat);
+
+	float3 h = normalize(view_vec - dirlight.direction);
+	float3 f0 = lerp(INSULATOR_F0, mat.diffuse, mat.metallic);
+
+	float cosNV = max(saturate(dot(normal, view_vec)), 0.001f);
+	float cosNL = max(dot(normal, -dirlight.direction), 0.001f);
+	float cosNH = max(dot(normal, h), 0.001f);
+	float cosHL = max(dot(h, -dirlight.direction), 0.001f);
+
+	float rough2 = mat.roughness * mat.roughness;
+
+	float g = ggx_smith(rough2, cosNV, cosNL);
+	float d = min(ggx_distribution(rough2, cosNH) * dirlight.solid_angle * 0.25f / cosNV, 1.f);
+	float3 f = fresnel(f0, cosHL);
+
+	float3 diffK = float3(1.f, 1.f, 1.f) - fresnel(f0, cosNL);
+
+	float3 spec = f * g * d;
+	float3 diff = (1 - mat.metallic) * diffK * mat.diffuse * dirlight.solid_angle * cosNL / PI;
+
+	float3 color = (diff + spec) * dirlight.radiance;
+
+	return color;
+}
+
+float3 pbr_point(float3 light, float3 closest_light, float light_dist, float3 normal, float3 mesh_normal, float3 view,
+	float3 radiance, float radius, float attenuation, Material mat)
+{
+	float3 h = normalize(closest_light + view);
+	float3 f0 = lerp(INSULATOR_F0, mat.diffuse, mat.metallic);
+
+	float cosNL = dot(normal, light);
+	float cosMNL = dot(mesh_normal, light);
+
+	float lightMicroHeight = cosNL * light_dist;
+	float lightMacroHeight = cosMNL * light_dist;
+
+	float fadingMicro = saturate((lightMicroHeight + radius) / (2.f * radius));
+	float fadingMacro = saturate((lightMacroHeight + radius) / (2.f * radius));
+	float sphereSin = radius / light_dist;
+
+	cosNL = max(cosNL, fadingMicro * sphereSin);
+	float cosNV = max(saturate(dot(normal, view)), 0.001f);
+	float cosNCL = max(dot(normal, closest_light), 0.001f);
+	float cosNH = max(dot(normal, h), 0.001f);
+	float cosHCL = max(dot(h, closest_light), 0.001f);
+
+	float rough2 = mat.roughness * mat.roughness;
+
+	float g = ggx_smith(rough2, cosNV, cosNCL);
+	float d = min(ggx_distribution(rough2, cosNH) * attenuation * 0.25f / cosNV, 1.f);
+	float3 f = fresnel(f0, cosHCL);
+
+	float3 diffK = float3(1.f, 1.f, 1.f) - fresnel(f0, cosNL);
+
+	float3 spec = f * g * d;
+	float3 diff =  (1 - mat.metallic) * diffK * mat.diffuse * attenuation * cosNL / PI;
+
+	float3 color = fadingMacro * fadingMicro * (diff + spec) * radiance;
+	return color;
 }
 
 float3 calc_point_light_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, PointLight pointLight, Material material)
@@ -34,24 +93,22 @@ float3 calc_point_light_pbr(float3 position, float3 view_vec, float3 mesh_normal
 	float3 light_vec = pointLight.position - position;
 	float light_dist = max(length(light_vec), pointLight.radius);
 	light_vec = normalize(light_vec);
-
-	if (dot(light_vec, mesh_normal) <= 0.f) return 0.f;
-
-	float cosPhi = sqrt(light_dist * light_dist - pointLight.radius * pointLight.radius) / light_dist;
-	float attenuation = (1 - cosPhi) * 2.f * PI;
+	
+	float sphereCos = sqrt(light_dist * light_dist - pointLight.radius * pointLight.radius) / light_dist;
+	float attenuation = (1 - sphereCos) * 2.f * PI;
 
 	float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
-		reflect(-view_vec, normal), light_dist, pointLight.radius, cosPhi);
-
+		reflect(-view_vec, normal), light_dist, pointLight.radius, sphereCos);
 	closest_vec = clamp_to_horizon(normal, closest_vec, 0.001f);
 
-	return cook_torrance_aprox(light_vec, closest_vec, normal, view_vec, pointLight.radiance, attenuation, material);
+	return pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec, 
+		pointLight.radiance, pointLight.radius, attenuation, material);
 }
 
 float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, Spotlight spotlight, Material material)
 {
 	float3 light_vec = spotlight.position - position;
-	float dist = max(length(light_vec), spotlight.radius);
+	float light_dist = max(length(light_vec), spotlight.radius);
 	light_vec = normalize(light_vec);
 
 	if (dot(light_vec, mesh_normal) <= 0.f) return 0.f;
@@ -60,14 +117,15 @@ float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, 
 	float intensity = smoothstep(spotlight.outerCutOff, spotlight.cutOff, cosDSL);
 	if (intensity == 0.f) return 0.f;
 
-	float cosPhi = sqrt(dist * dist - spotlight.radius * spotlight.radius) / dist;
-	float attenuation = (1.f - cosPhi) * 2.f * PI * intensity;
+	float sphereCos = sqrt(light_dist * light_dist - spotlight.radius * spotlight.radius) / light_dist;
+	float attenuation = (1.f - sphereCos) * 2.f * PI * intensity;
 
-	float3 closest_vec = closest_sphere_direction(light_vec * dist, light_vec,
-		reflect(-view_vec, normal), dist, spotlight.radius, cosPhi);
+	float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
+		reflect(-view_vec, normal), light_dist, spotlight.radius, sphereCos);
 	clamp_to_horizon(normal, closest_vec, 0.001f);
 
-	return cook_torrance_aprox(light_vec, closest_vec, normal, view_vec, spotlight.radiance, attenuation, material);
+	return pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec,
+		spotlight.radiance, spotlight.radius, attenuation, material);
 }
 
 #endif
