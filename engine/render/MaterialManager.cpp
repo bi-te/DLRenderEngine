@@ -4,7 +4,7 @@ MaterialManager* MaterialManager::s_manager;
 
 void MaterialManager::add(const OpaqueMaterial& material)
 {
-	if (op_materials.count(material.name)) return;
+	if (op_materials.find(material.name) != op_materials.end()) return;
 
 	if (material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
 		TextureManager::instance().add_texture(material.diffuse.c_str());
@@ -21,7 +21,7 @@ void MaterialManager::add(const OpaqueMaterial& material)
 void MaterialManager::add_opaque_material(const std::string& name,
 	const std::vector<std::pair<TextureType, std::wstring>>& textures)
 {
-	if (op_materials.count(name)) return;
+	if (op_materials.find(name) != op_materials.end()) return;
 	
 	OpaqueMaterial mat;
 	mat.name = name;
@@ -40,6 +40,6 @@ void MaterialManager::add_opaque_material(const std::string& name,
 
 OpaqueMaterial& MaterialManager::get_opaque(const std::string& name)
 {
-	assert(op_materials.count(name));
+	assert(op_materials.find(name) != op_materials.end());
 	return op_materials.at(name);
 }

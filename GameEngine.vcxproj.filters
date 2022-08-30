@@ -72,9 +72,6 @@
     <ClCompile Include="engine\objects\Skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\TextureManager.cpp">
-      <Filter>engine\render</Filter>
-    </ClCompile>
     <ClCompile Include="engine\imgui\imgui.cpp">
       <Filter>engine\imgui</Filter>
     </ClCompile>
@@ -146,6 +143,9 @@
     </ClCompile>
     <ClCompile Include="engine\render\Direct11\RenderBuffer.cpp">
       <Filter>engine\render\Direct11</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\TextureManager.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -551,6 +551,9 @@
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\resolve.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\fullscreen.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>

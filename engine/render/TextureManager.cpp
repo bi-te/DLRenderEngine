@@ -4,21 +4,21 @@ TextureManager* TextureManager::s_manager;
 
 const comptr<ID3D11ShaderResourceView>& TextureManager::get_texture(LPCWSTR texture)
 {
-	if (textures2d.count({texture}))
+	if (textures2d.find({ texture }) == textures2d.end())
 		add_texture(texture);
 	return textures2d.at({texture});
 }
 
 const comptr<ID3D11ShaderResourceView>& TextureManager::get_cubemap(LPCWSTR texture)
 {
-	if (!textures2d.count({texture}))
+	if (textures2d.find({texture}) == textures2d.end())
 		add_cubemap(texture);
 	return textures2d.at({texture});
 }
 
 void TextureManager::add_texture(LPCWSTR filename)
 {
-	if (textures2d.count({filename})) return;
+	if (textures2d.find({filename}) != textures2d.end()) return;
 
 	comptr<ID3D11ShaderResourceView> texture;
 	CreateDDSTextureFromFileEx(Direct3D::instance().device5.Get(), filename, 0,
@@ -30,7 +30,7 @@ void TextureManager::add_texture(LPCWSTR filename)
 
 void TextureManager::add_cubemap(LPCWSTR filename)
 {
-	if (textures2d.count({filename})) return;
+	if (textures2d.find({ filename }) != textures2d.end()) return;
 
 	comptr<ID3D11ShaderResourceView> texture;
 	CreateDDSTextureFromFileEx(Direct3D::instance().device5.Get(), filename, 0,

@@ -118,18 +118,30 @@ void ShaderManager::compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, S
 
 const Shader& ShaderManager::operator()(LPCWSTR shader)
 {
-	if(!shaders.count(shader))
+	if(shaders.find(shader) == shaders.end())
 		add_shader(shader, "main", "ps_main");
-	assert(shaders.count(shader) && "Shader is not loaded");
+
+	assert(shaders.find(shader) != shaders.end() && "Shader is not loaded");
 	return shaders.at(shader);
 }
 
 void ShaderManager::add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry)
 {
-	if (shaders.count(filename)) return;
+	if (shaders.find(filename) != shaders.end()) return;
 
 	Shader shader;
 	compile_vertex_shader(filename, vertex_shader_entry, shader);
 	compile_pixel_shader(filename, pixel_shader_entry, shader);
 	shaders.insert({filename, std::move(shader)});
+}
+
+void ShaderManager::add_shader(LPCWSTR shader_name, LPCWSTR vertex_shader, LPCSTR vertex_shader_entry,
+	LPCWSTR pixel_shader, LPCSTR pixel_shader_entry)
+{
+	if (shaders.find(shader_name) != shaders.end()) return;
+
+	Shader shader;
+	compile_vertex_shader(vertex_shader, vertex_shader_entry, shader);
+	compile_pixel_shader(pixel_shader, pixel_shader_entry, shader);
+	shaders.insert({ shader_name, std::move(shader) });
 }

@@ -1,41 +1,8 @@
 #pragma once
 
 #include "Lighting.h"
+#include "Direct11/Direct3D.h"
 #include "Direct11/DynamicBuffer.h"
-
-struct PointLightBuffer
-{
-	vec3f radiance;
-	float radius;
-
-	vec3f position;
-	float padding;
-};
-
-struct SpotlightBuffer
-{
-	vec3f radiance;
-	float radius;
-
-	vec3f position;
-	float cutOff;
-
-	vec3f direction;
-	float outerCutOff;
-};
-
-const uint32_t MAX_LIGHTS_NUMBER = 10;
-struct LightBuffer
-{
-	vec3f ambient;
-	uint32_t pointLightNum;
-
-	DirectLight dirLight;
-	uint32_t spotlightNum;
-
-	PointLightBuffer pointLights[MAX_LIGHTS_NUMBER];
-	SpotlightBuffer spotlights[MAX_LIGHTS_NUMBER];
-};
 
 class LightSystem
 {
@@ -62,7 +29,7 @@ public:
 	void add_spotlight(const Spotlight& spotlight);
 	void add_spotlight(const Spotlight& spotlight, const std::string& model);
 
-	void bind_lights();
+	void bind_lights(LightBuffer* lBuffer);
 
 	static void init()
 	{

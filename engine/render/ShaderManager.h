@@ -57,6 +57,8 @@ public:
 	const Shader& operator() (LPCWSTR shader);
 
 	void add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry);
-
+	void add_shader(LPCWSTR shader_name, 
+					LPCWSTR vertex_shader, LPCSTR vertex_shader_entry,
+					LPCWSTR pixel_shader, LPCSTR pixel_shader_entry);
 };
 

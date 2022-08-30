@@ -15,13 +15,13 @@ struct vs_out
 
 cbuffer EmmisiveInstanceBuffer: register(b1)
 {
-	float4x4 mesh_transform;
+	float4x4 g_mesh_transform;
 }
 
 vs_out main(vs_in input)
 {
 	vs_out res;
-	res.pos = mul(mesh_transform, float4(input.pos, 1.f));
+	res.pos = mul(g_mesh_transform, float4(input.pos, 1.f));
 	res.pos = mul(input.model_transform, res.pos);
 	res.pos = mul(g_viewProj, res.pos);
 	res.emissive_color = input.emissive_color;

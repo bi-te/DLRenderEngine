@@ -3,5 +3,6 @@
 
 struct IntersectionQuery
 {
+	uint32_t transormId;
 	Intersection intersection;
 };

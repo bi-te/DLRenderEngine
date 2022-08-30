@@ -33,10 +33,10 @@ void LightSystem::add_point_light(const PointLight & pointLight)
 
 void LightSystem::add_point_light(const PointLight& pointLight, const std::string& model)
 {
-	pointLights.push_back(pointLight);
-	pointLights.back().radiance = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
-
 	vec3f emissive_light = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
+
+	pointLights.push_back(pointLight);
+	pointLights.back().radiance = emissive_light;
 
 	MeshSystem::instance().emissive_instances.add_model_instance(
 		ModelManager::instance().get_ptr(model), 
@@ -52,10 +52,10 @@ void LightSystem::add_spotlight(const Spotlight& spotlight)
 
 void LightSystem::add_spotlight(const Spotlight& spotlight, const std::string& model)
 {
-	spotlights.push_back(spotlight);
-	spotlights.back().radiance = irradianceAtDistanceToRadiance(spotlight.irradiance, spotlight.light_range, spotlight.radius);
-	
 	vec3f emissive_light = irradianceAtDistanceToRadiance(spotlight.irradiance, spotlight.light_range, spotlight.radius);
+
+	spotlights.push_back(spotlight);
+	spotlights.back().radiance = emissive_light;
 
 	MeshSystem::instance().emissive_instances.add_model_instance(
 		ModelManager::instance().get_ptr(model),
@@ -63,13 +63,10 @@ void LightSystem::add_spotlight(const Spotlight& spotlight, const std::string& m
 	);
 }
 
-void LightSystem::bind_lights()
+void LightSystem::bind_lights(LightBuffer* lBuffer)
 {
 	TransformSystem& t_system = TransformSystem::instance();
 
-	lightBuffer.allocate(sizeof(LightBuffer));
-
-	LightBuffer* lBuffer = static_cast<LightBuffer*>(lightBuffer.map().pData);
 	lBuffer->ambient = ambient;
 	lBuffer->pointLightNum = std::min(static_cast<uint32_t>(pointLights.size()), MAX_LIGHTS_NUMBER);
 	lBuffer->spotlightNum = std::min(static_cast<uint32_t>(spotlights.size()), MAX_LIGHTS_NUMBER);
@@ -97,8 +94,4 @@ void LightSystem::bind_lights()
 		s_buffer.radiance = s_data.radiance;
 		s_buffer.outerCutOff = s_data.outerCutOff;
 	}
-
-	lightBuffer.unmap();
-
-	Direct3D::instance().context4->PSSetConstantBuffers(1, 1, lightBuffer.address());
 }

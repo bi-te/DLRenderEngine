@@ -73,12 +73,7 @@ public:
         camera.update_matrices();
     }
     
-    void OnResize(uint32_t width, uint32_t height) override
-    {
-        scene.init_hdr_buffer(width, height);
-	    scene.init_depth_and_stencil_buffer(width, height);
-        camera.change_aspect(float(width) / height);
-    }
+    void OnResize(uint32_t width, uint32_t height) override;
     void KeyEvent(Key key, bool status) override { is.keyboard.keys[key] = status; } 
     void MouseWheelEvent(uint32_t count) override { is.mouse.wheel += count; }
     void MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos) override;

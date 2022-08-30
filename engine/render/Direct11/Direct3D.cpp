@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "render/LightSystem.h"
+
 extern "C"
 {
     _declspec(dllexport) uint32_t NvOptimusEnablement = 1;
@@ -70,6 +72,8 @@ void Direct3D::bind_globals(const Camera& camera)
     per_frame->frustum.right_vector = camera.frustrum_right;
     per_frame->camera_pos = camera.position();
 
+    LightSystem::instance().bind_lights(&per_frame->light_buffer);
+
     per_frame_buffer.unmap();
     context4->VSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetConstantBuffers(0, 1, per_frame_buffer.address());
@@ -87,7 +91,6 @@ void Direct3D::init()
     
     direct3d->per_frame_buffer.allocate(sizeof(PerFrame));
 }
-
 
 void Direct3D::reset()
 {

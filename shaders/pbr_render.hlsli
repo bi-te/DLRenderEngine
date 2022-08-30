@@ -45,24 +45,24 @@ float3 cook_torrance_aprox(float3 light, float3 closest_light, float3 normal, fl
 	float3 h = normalize(closest_light + view);
 	float3 f0 = lerp(INSULATOR_F0, mat.diffuse, mat.metallic);
 
-	float cosV = clamp(dot(normal, view), 0.f, 1.f);
-	float cosL = dot(normal, light);
-	if (cosL <= 0.f) { return 0.f; }
-	float cosC = dot(normal, closest_light);
-	float cosH = dot(normal, h);
-	float cosHL = dot(h, closest_light);
+	float cosNV = max(saturate(dot(normal, view)), 0.001f);
+	float cosNL = dot(normal, light);
+	if (cosNL <= 0.f) { return 0.f; }
+	float cosNC = max(dot(normal, closest_light), 0.001f);
+	float cosNH = max(dot(normal, h), 0.001f);
+	float cosHL = max(dot(h, closest_light), 0.001f);
 
 	float rough2 = mat.roughness * mat.roughness;
 
-	float g = ggx_smith(rough2, cosV, cosC);
-	float d = min(ggx_distribution(rough2, cosH) * solid_angle * 0.25f / (cosV * cosL), 1.f);
+	float g = ggx_smith(rough2, cosNV, cosNC);
+	float d = min(ggx_distribution(rough2, cosNH) * solid_angle * 0.25f / (cosNV * cosNL), 1.f);
 	float3 f = fresnel(f0, cosHL);
-	float3 diffK = float3(1.f, 1.f, 1.f) - fresnel(f0, cosL);
+	float3 diffK = float3(1.f, 1.f, 1.f) - fresnel(f0, cosNL);
 
 	float3 spec = f * g * d;
 	float3 diff = (1 - mat.metallic) * diffK * (mat.diffuse) * solid_angle / PI;
 
-	float3 color = (diff + spec) * (radiance)*cosL;
+	float3 color = (diff + spec) * (radiance)*cosNL;
 	return color;
 }
 #endif

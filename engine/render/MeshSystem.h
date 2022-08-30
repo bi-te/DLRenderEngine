@@ -2,7 +2,7 @@
 
 #include "EmissiveInstances.h"
 #include "OpaqueInstances.h"
-#include "math/Ray.h"
+#include "IntersectionQuery.h"
 
 class MeshSystem
 {
@@ -19,7 +19,7 @@ public:
 	EmissiveInstances emissive_instances;
 
 
-	bool select_mesh(const Ray& ray, Intersection& nearest);
+	bool select_mesh(const Ray& ray, IntersectionQuery& record);
 
 	void render()
 	{

@@ -73,7 +73,7 @@ void Window::init_swap_chain()
 
     HRESULT result = globals.factory5->CreateSwapChainForHwnd(globals.device5.Get(), window, &desc,
         NULL, NULL, &swap_chain);
-    assert(result >= 0 && "CreateSwapChainForHwnd");
+    assert(SUCCEEDED(result) && "CreateSwapChainForHwnd");
 
     buffer.width = width_;
     buffer.height = height_;

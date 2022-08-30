@@ -10,23 +10,6 @@ struct Frustum
 	float3 right_vector;
 };
 
-cbuffer perFrame: register(b0)
-{
-	float4x4 g_viewProj;
-	Frustum g_frustum;
-	float3 g_cameraPosition;
-}
-
-SamplerState g_sampler: register(s0);
-
-float3 irradianceAtDistanceToRadiance(float3 irradiance, float distance, float radius)
-{
-	float angleSin = min(1.f, radius / distance);
-	float angleCos = sqrt(1.f - angleSin * angleSin);
-	float occupation = 1.f - angleCos;
-	return irradiance / occupation;
-}
-
 struct DirectLight
 {
 	float3 radiance;
@@ -57,7 +40,7 @@ struct Spotlight
 };
 
 static const uint MAX_LIGHTS_NUMBER = 10;
-cbuffer LightBuffer: register(b1)
+struct LightBuffer
 {
 	float3 ambient;
 	uint pointLightNum;
@@ -65,8 +48,29 @@ cbuffer LightBuffer: register(b1)
 	DirectLight dirLight;
 	uint spotlightNum;
 
-	PointLight pointLights[MAX_LIGHTS_NUMBER];
 	Spotlight spotlights[MAX_LIGHTS_NUMBER];
+	PointLight pointLights[MAX_LIGHTS_NUMBER];
+};
+
+SamplerState g_sampler: register(s0);
+
+cbuffer perFrame: register(b0)
+{
+	float4x4 g_viewProj;
+	Frustum g_frustum;
+
+	float3 g_cameraPosition;
+	float padding0;
+
+	LightBuffer g_lighting;
+}
+
+float3 irradianceAtDistanceToRadiance(float3 irradiance, float distance, float radius)
+{
+	float angleSin = min(1.f, radius / distance);
+	float angleCos = sqrt(1.f - angleSin * angleSin);
+	float occupation = 1.f - angleCos;
+	return irradiance / occupation;
 }
 
 #endif

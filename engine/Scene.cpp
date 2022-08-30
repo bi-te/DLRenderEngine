@@ -65,7 +65,6 @@ void Scene::render(RenderBuffer& target_buffer, const Camera& camera, const Post
 	direct.context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
 
 	direct.bind_globals(camera);
-	LightSystem::instance().bind_lights();
 
 	MeshSystem::instance().render();
 	skybox.render();

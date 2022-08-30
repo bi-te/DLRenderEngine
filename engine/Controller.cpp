@@ -60,25 +60,25 @@ void Controller::init_scene()
     scene.skybox.texture = L"assets/cubemaps/night_street.dds";
 
     shaders.add_shader(L"shaders/opaque.hlsl", "main", "ps_main");
+    shaders.add_shader(L"shaders/emissive.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/sky.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/resolve.hlsl", "main", "ps_main");
 
-    //texture_manager.add_texture(L"assets/textures/woodm.dds");
     texture_manager.add_texture(L"assets/cubemaps/night_street.dds");
     texture_manager.add_texture(L"assets/textures/SphereBaseColor.dds");
 
     meshes.opaque_instances.opaqueShader = L"shaders/opaque.hlsl";
     meshes.emissive_instances.emissiceShader = L"shaders/emissive.hlsl";
 
-    OpaqueMaterial material{};
+    OpaqueMaterial material;
     
     material = {};
     material.name = "Crystal_mat";
     material.diffuse = L"assets/textures/Crystal/Crystal_BaseColor.dds";
     material.normals = L"assets/textures/Crystal/Crystal_Normal.dds";
-    material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_REVERSED_NORMAL_Y;
+	material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_REVERSED_NORMAL_Y;
     material.render_data.metallic = 0.f;
-    material.render_data.roughness = 0.2f;
+    material.render_data.roughness = 0.1f;
     materials.add(std::move(material));
 
     material = {};
@@ -119,19 +119,19 @@ void Controller::init_scene()
     models.init_flat_cube_sphere(20);
     
     lights.set_ambient({ 0.1f, 0.1f, 0.1f });
-    lights.set_direct_light({ {50.f, 50.f, 50.f}, 0.1f, vec3f{0.f, -1.f, 1.f}.normalized() });
+    lights.set_direct_light({ {50.f, 50.f, 50.f}, 0.1f, vec3f{0.f, -1.f, 10.f}.normalized() });
 
     Transform the_sun;
     the_sun.set_scale(0.5f);
-    the_sun.set_world_offset({ 25.f, 21.f, 5.f });
+    the_sun.set_world_offset({ 15.f, 11.f, 5.f });
     PointLight minisun = {
-        {10.f, 10.f, 10.f}, transforms.transforms.insert(the_sun), 1.f, 10.f
+        {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(the_sun), 1.f, 10.f
     };
     lights.add_point_light(minisun, "FlatCubeSphere");
     
-    the_sun.set_world_offset({ 0.f, 20.f, -10.f });
+    the_sun.set_world_offset({ 0.f, 20.f, -5.f });
     PointLight greensun = {
-    {3.f, 10.f, 5.f}, transforms.transforms.insert(the_sun), 1.f, 5.f
+    {0.5f, 1.3f, 0.75f}, transforms.transforms.insert(the_sun), 1.f, 5.f
     };
     lights.add_point_light(greensun, "FlatCubeSphere");
 
@@ -139,7 +139,7 @@ void Controller::init_scene()
     flashlight.set_scale(0.5f);
     flashlight.set_world_offset({ 11.f, 10.f, -15.f });
     Spotlight flash = {
-        {10.f, 10.f, 10.f}, transforms.transforms.insert(flashlight),
+        {1.f, 1.f, 1.f}, transforms.transforms.insert(flashlight),
     	{0.f, 0.f, 1.f}, 1.f, cosf(rad(12.f)), cosf(rad(17.f)), 10.f
     };
     lights.add_spotlight(flash, "FlatCubeSphere");
@@ -358,6 +358,13 @@ void Controller::process_gui_input()
     ImGui::End();
 }
 
+void Controller::OnResize(uint32_t width, uint32_t height)
+{
+    scene.init_hdr_buffer(width, height);
+    scene.init_depth_and_stencil_buffer(width, height);
+    camera.change_aspect(float(width) / height);
+}
+
 void Controller::MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos)
 {
     switch (button)
@@ -447,7 +454,7 @@ void Controller::process_input(float dt)
         mouse_ray.direction = ((camera.blnear_fpoint + right * dx + up * dy).head<3>() - mouse_ray.origin).normalized();
 
         record.intersection.reset(camera.zn, camera.zf);
-        MeshSystem::instance().select_mesh(mouse_ray, record.intersection);
+        MeshSystem::instance().select_mesh(mouse_ray, record);
 
         is.mouse.rmb = MDOWN;
 
@@ -502,7 +509,7 @@ void Controller::process_input(float dt)
             
             record.intersection.point += offset;
 
-            TransformSystem::instance().transforms[record.intersection.transormId].add_world_offset(offset);
+            TransformSystem::instance().transforms[record.transormId].add_world_offset(offset);
         }
 
         break;

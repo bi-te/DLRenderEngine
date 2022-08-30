@@ -7,13 +7,30 @@
 #include "wchar_algorithms.h"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
-#include "Direct11/Direct3D.h"
 
 ModelManager* ModelManager::s_manager;
 
+void calculate_tangent_bitangent(AssimpVertex& v1, AssimpVertex& v2, AssimpVertex& v3)
+{
+	vec3f edge1 = v2.coor - v1.coor;
+	vec3f edge2 = v3.coor - v1.coor;
+	vec2f uv1 = v2.texcoor - v1.texcoor;
+	vec2f uv2 = v3.texcoor - v1.texcoor;
+
+	float f = 1.f / (uv1.x() * uv2.y() - uv2.x() * uv1.y());
+
+	v1.tangent.x() = v2.tangent.x() = v3.tangent.x() = f * (uv2.y() * edge1.x() - uv1.y() * edge2.x());
+	v1.tangent.y() = v2.tangent.y() = v3.tangent.y() = f * (uv2.y() * edge1.y() - uv1.y() * edge2.y());
+	v1.tangent.z() = v2.tangent.z() = v3.tangent.z() = f * (uv2.y() * edge1.z() - uv1.y() * edge2.z());
+
+	v1.bitangent.x() = v2.bitangent.x() = v3.bitangent.x() = f * (-uv2.x() * edge1.x() + uv1.x() * edge2.x());
+	v1.bitangent.y() = v2.bitangent.y() = v3.bitangent.y() = f * (-uv2.x() * edge1.y() + uv1.x() * edge2.y());
+	v1.bitangent.z() = v2.bitangent.z() = v3.bitangent.z() = f * (-uv2.x() * edge1.z() + uv1.x() * edge2.z());
+};
+
 void ModelManager::add_model(const std::string& path)
 {
-	if (models.count(path)) return;
+	if (models.find(path) != models.end()) return;
 
 	std::string dir = path.substr(0, path.find_last_of("\\/") + 1);
 	
@@ -79,7 +96,7 @@ void ModelManager::add_model(const std::string& path)
 
 Model& ModelManager::get_model(const std::string& model)
 {
-	if (!models.count(model))
+	if (models.find(model) == models.end())
 		add_model(model);
 
 	return *models.at(model);
@@ -87,7 +104,7 @@ Model& ModelManager::get_model(const std::string& model)
 
 std::shared_ptr<Model> ModelManager::get_ptr(const std::string& model)
 {
-	if (!models.count(model))
+	if (models.find(model) == models.end())
 		add_model(model);
 
 	return models.at(model);
@@ -181,12 +198,13 @@ void ModelManager::parse_tree(const aiScene& scene, Model& model)
 
 void ModelManager::init_cube()
 {
-	if (models.count("Cube")) return;
+	const char* model_name = "Cube";
+	if (models.find(model_name) != models.end()) return;
 
 	std::shared_ptr<Model> cube_model{ new Model };
 	Model& cube = *cube_model.get();
 
-	cube.name = "Cube";
+	cube.name = model_name;
 	cube.tree = {
 		{mat4f::Identity(), mat4f::Identity()}
 	};
@@ -242,17 +260,18 @@ void ModelManager::init_cube()
 	cube.vertexBuffer.write(cube.vertices.data(), cube.vertices.size() * sizeof(AssimpVertex));
 	cube.indexBuffer.write(cube.indices.data(), cube.indices.size() * sizeof(uint32_t));
 
-	models.insert({ "Cube", cube_model });
+	models.insert({ model_name, cube_model });
 }
 
 void ModelManager::init_quad()
 {
-	if (models.count("Quad")) return;
+	const char* model_name = "Quad";
+	if (models.find(model_name) != models.end()) return;
 
 	std::shared_ptr<Model> quad_model{ new Model };
 	Model& quad = *quad_model.get();
 
-	quad.name = "Quad";
+	quad.name = model_name;
 	quad.tree = {
 		{mat4f::Identity(), mat4f::Identity()}
 	};
@@ -262,10 +281,10 @@ void ModelManager::init_quad()
 	};
 
 	quad.vertices = {
-	{{-0.5f,  0.0f, -0.5f},   {0.f,  1.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f, -1.f}},
-	{{-0.5f,  0.0f,  0.5f},   {0.f,  0.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f, -1.f}},
-	{{ 0.5f,  0.0f,  0.5f},   {1.f,  0.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f, -1.f}},
-	{{ 0.5f,  0.0f, -0.5f},   {1.f,  1.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f, -1.f}},
+	{{-0.5f,  0.0f, -0.5f},   {0.f,  1.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f,  -1.f}},
+	{{-0.5f,  0.0f,  0.5f},   {0.f,  0.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f,  -1.f}},
+	{{ 0.5f,  0.0f,  0.5f},   {1.f,  0.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f,  -1.f}},
+	{{ 0.5f,  0.0f, -0.5f},   {1.f,  1.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f,  -1.f}}
 	};
 
 	quad.indices = {
@@ -278,7 +297,7 @@ void ModelManager::init_quad()
 	quad.vertexBuffer.write(quad.vertices.data(), quad.vertices.size() * sizeof(AssimpVertex));
 	quad.indexBuffer.write(quad.indices.data(), quad.indices.size() * sizeof(uint32_t));
 
-	models.insert({ "Quad", quad_model });
+	models.insert({ model_name, quad_model });
 }
 
 void ModelManager::init_flat_cube_sphere(uint32_t grid_size)
@@ -288,7 +307,7 @@ void ModelManager::init_flat_cube_sphere(uint32_t grid_size)
 	const uint32_t VERT_PER_SIDE = 3 * TRIANGLES_PER_SIDE;
 
 	const char* model_name = "FlatCubeSphere";
-	if (models.count(model_name)) return;
+	if (models.find(model_name) != models.end()) return;
 
 	uint32_t num_vertices = VERT_PER_SIDE * SIDES;
 	uint32_t num_indices = num_vertices;
@@ -404,7 +423,7 @@ void ModelManager::init_flat_cube_sphere(uint32_t grid_size)
 void ModelManager::init_sphere(uint32_t sectors, uint32_t stacks)
 {
 	const char* model_name = "Sphere";
-	if (models.count(model_name)) return;
+	if (models.find(model_name) != models.end()) return;
 
 	uint32_t num_vertices = (stacks + 1) * (sectors + 1);
 	uint32_t num_indices = (stacks - 1) * sectors * 6;
@@ -443,8 +462,6 @@ void ModelManager::init_sphere(uint32_t sectors, uint32_t stacks)
 		{
 			pvertex->coor = { rc * sinf(sector_angle),  sinf(stack_angle), rc * cosf(sector_angle) };
 			pvertex->normal = pvertex->coor;
-			pvertex->tangent = { 1.f, 0.f, 0.f };
-			pvertex->bitangent = { 0.f, - 1.f, 0.f };
 
 			if (stack == 0)
 				pvertex->texcoor = { (sector - 0.5f) / float(sectors), stack / float(stacks) };
@@ -483,6 +500,13 @@ void ModelManager::init_sphere(uint32_t sectors, uint32_t stacks)
 		}
 	}
 
+	for (uint32_t triangle = 0; triangle < sphere.indices.size(); triangle += 3)
+		calculate_tangent_bitangent(
+			sphere.vertices[sphere.indices[triangle]],
+			sphere.vertices[sphere.indices[triangle + 1]],
+			sphere.vertices[sphere.indices[triangle + 2]]
+		);
+
 	sphere.octrees.emplace_back();
 	sphere.octrees.back().initialize(sphere.meshes.back());
 
@@ -495,7 +519,7 @@ void ModelManager::init_sphere(uint32_t sectors, uint32_t stacks)
 void ModelManager::init_flat_sphere(uint32_t sectors, uint32_t stacks)
 {
 	const char* model_name = "FlatSphere";
-	if (models.count(model_name)) return;
+	if (models.find(model_name) != models.end()) return;
 
 	uint32_t num_vertices = (4u * stacks - 2u) * sectors,
 		num_indices = 6u * sectors * (stacks - 1u);
@@ -569,6 +593,8 @@ void ModelManager::init_flat_sphere(uint32_t sectors, uint32_t stacks)
 		vi1.normal = (vk1.coor - vi1.coor).cross(vk.coor - vi1.coor).normalized();
 		vk1.normal = (vk.coor - vk1.coor).cross(vi1.coor - vk1.coor).normalized();
 
+		calculate_tangent_bitangent(vk, vi, vi1);
+
 		pvertex[0] = vk;
 		pvertex[1] = vi1;
 		pvertex[2] = vk1;
@@ -594,6 +620,9 @@ void ModelManager::init_flat_sphere(uint32_t sectors, uint32_t stacks)
 			vi1.normal = (vk1.coor - vi1.coor).cross(vi.coor - vi1.coor).normalized();
 			vk1.normal = (vk.coor - vk1.coor).cross(vi1.coor - vk1.coor).normalized();
 
+			calculate_tangent_bitangent(vk, vi, vi1);
+			calculate_tangent_bitangent(vk, vi1, vk1);
+
 			pvertex[0] = vk;
 			pvertex[1] = vi;
 			pvertex[2] = vi1;
@@ -616,6 +645,8 @@ void ModelManager::init_flat_sphere(uint32_t sectors, uint32_t stacks)
 		vk.normal = (vi.coor - vk.coor).cross(vi1.coor - vk.coor).normalized();
 		vi.normal = (vi1.coor - vi.coor).cross(vk.coor - vi.coor).normalized();
 		vi1.normal = (vk.coor - vk1.coor).cross(vi.coor - vk1.coor).normalized();
+
+		calculate_tangent_bitangent(vk, vi1, vk1);
 
 		pvertex[0] = vk;
 		pvertex[1] = vi;

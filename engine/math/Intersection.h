@@ -8,8 +8,7 @@ struct Intersection
 	float t;
 	vec3f point;
 	vec3f norm;
-	uint32_t transormId;
-	//uint32_t triangle;
+
 	float near_limit;
 	float far_limit;
 

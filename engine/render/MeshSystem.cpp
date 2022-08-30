@@ -5,7 +5,7 @@
 
 MeshSystem* MeshSystem::s_system;
 
-bool MeshSystem::select_mesh(const Ray& ray, Intersection& nearest)
+bool MeshSystem::select_mesh(const Ray& ray, IntersectionQuery& record)
 {
 	TransformSystem& transforms = TransformSystem::instance();
 
@@ -33,11 +33,11 @@ bool MeshSystem::select_mesh(const Ray& ray, Intersection& nearest)
 					tray.origin = (vec4f{ transformed_ray.origin.x(), transformed_ray.origin.y(), transformed_ray.origin.z(), 1.f } *mesh_inv).head<3>();
 					tray.direction = (transformed_ray.direction * mesh_inv.topLeftCorner<3, 3>());
 
-					if (octree.intersect(tray, nearest))
+					if (octree.intersect(tray, record.intersection))
 					{
-						nearest.transormId = instance.model_world;
-						nearest.point = ray.position(nearest.t);
-						nearest.norm = nearest.norm *  mesh_inv.topLeftCorner<3, 3>() * to_model.normal_matrix;
+						record.transormId = instance.model_world;
+						record.intersection.point = ray.position(record.intersection.t);
+						record.intersection.norm = record.intersection.norm *  mesh_inv.topLeftCorner<3, 3>() * to_model.normal_matrix;
 						intersected = true;
 					}
 				}
@@ -65,11 +65,11 @@ bool MeshSystem::select_mesh(const Ray& ray, Intersection& nearest)
 					tray.origin = (vec4f{ transformed_ray.origin.x(), transformed_ray.origin.y(), transformed_ray.origin.z(), 1.f } *mesh_inv).head<3>();
 					tray.direction = (transformed_ray.direction * mesh_inv.topLeftCorner<3, 3>());
 
-					if (octree.intersect(tray, nearest))
+					if (octree.intersect(tray, record.intersection))
 					{
-						nearest.transormId = instance.model_world;
-						nearest.point = ray.position(nearest.t);
-						nearest.norm = nearest.norm * mesh_inv.topLeftCorner<3, 3>() * to_model.normal_matrix;
+						record.transormId = instance.model_world;
+						record.intersection.point = ray.position(record.intersection.t);
+						record.intersection.norm = record.intersection.norm * mesh_inv.topLeftCorner<3, 3>() * to_model.normal_matrix;
 						intersected = true;
 					}
 				}

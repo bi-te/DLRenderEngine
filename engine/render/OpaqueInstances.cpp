@@ -131,7 +131,7 @@ void OpaqueInstances::render()
 				*matrices = model.tree[mesh.mesh_model_matrices.at(0)].mesh_matrix;
 
 			meshModel.unmap();
-			direct.context4->VSSetConstantBuffers(2, 1, meshModel.address());
+			direct.context4->VSSetConstantBuffers(1, 1, meshModel.address());
 
 			for (const auto& perMaterial: mesh.perMaterials)
 			{
@@ -140,7 +140,7 @@ void OpaqueInstances::render()
 
 				materialBuffer.write(&material.render_data);
 
-				direct.context4->PSSetConstantBuffers(3, 1, materialBuffer.address());
+				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
 
 				if(material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
 					direct.context4->PSSetShaderResources(0, 1, 
