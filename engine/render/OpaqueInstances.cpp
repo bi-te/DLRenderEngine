@@ -99,11 +99,10 @@ void OpaqueInstances::update_instance_buffer()
 void OpaqueInstances::render()
 {
 	Direct3D& direct = Direct3D::instance();
-
-	const Shader& shader = ShaderManager::instance().operator()(opaqueShader.c_str());
-	direct.context4->VSSetShader(shader.vertexShader.Get(), nullptr, NULL);
-	direct.context4->PSSetShader(shader.pixelShader.Get(), nullptr, NULL);
-	direct.context4->IASetInputLayout(shader.inputLayout.ptr.Get());
+	
+	direct.context4->VSSetShader(opaqueShader->vertexShader.Get(), nullptr, NULL);
+	direct.context4->PSSetShader(opaqueShader->pixelShader.Get(), nullptr, NULL);
+	direct.context4->IASetInputLayout(opaqueShader->inputLayout.ptr.Get());
 
 	update_instance_buffer();
 	uint32_t instance_stride = sizeof(OpaqueInstanceRender), ioffset = 0;
@@ -143,20 +142,16 @@ void OpaqueInstances::render()
 				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
 
 				if(material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
-					direct.context4->PSSetShaderResources(0, 1, 
-						TextureManager::instance().get_texture(material.diffuse.c_str()).GetAddressOf());
+					direct.context4->PSSetShaderResources(0, 1, material.diffuse.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
-					direct.context4->PSSetShaderResources(1, 1,	
-						TextureManager::instance().get_texture(material.normals.c_str()).GetAddressOf());
+					direct.context4->PSSetShaderResources(1, 1,	material.normals.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
-					direct.context4->PSSetShaderResources(2, 1, 
-						TextureManager::instance().get_texture(material.roughness.c_str()).GetAddressOf());
+					direct.context4->PSSetShaderResources(2, 1, material.roughness.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
-					direct.context4->PSSetShaderResources(3, 1, 
-						TextureManager::instance().get_texture(material.metallic.c_str()).GetAddressOf());
+					direct.context4->PSSetShaderResources(3, 1, material.metallic.GetAddressOf());
 
 				direct.context4->DrawIndexedInstanced(mrange.numIndices,
 					instances, mrange.indicesOffset,

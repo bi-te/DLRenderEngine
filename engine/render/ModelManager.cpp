@@ -112,6 +112,7 @@ std::shared_ptr<Model> ModelManager::get_ptr(const std::string& model)
 
 OpaqueMaterial ModelManager::load_material(aiMaterial& material, std::string& dir)
 {
+	TextureManager& texture_manager = TextureManager::instance();
 	aiString texture;
 	std::string wtexture;
 	OpaqueMaterial mat{};
@@ -122,27 +123,24 @@ OpaqueMaterial ModelManager::load_material(aiMaterial& material, std::string& di
 	{
 		material.GetTexture(aiTextureType_DIFFUSE, 0, &texture);
 		wtexture = dir + texture.C_Str();
-		mat.diffuse = char_to_wchar(wtexture.c_str());
+		mat.diffuse = texture_manager.add_texture(char_to_wchar(wtexture.c_str()));
 		mat.render_data.textures |= MATERIAL_TEXTURE_DIFFUSE;
-		TextureManager::instance().add_texture(mat.diffuse.c_str());
 	}
 
 	if (material.GetTextureCount(aiTextureType_NORMALS))
 	{
 		material.GetTexture(aiTextureType_NORMALS, 0, &texture);
 		wtexture = dir + texture.C_Str();
-		mat.normals = char_to_wchar(wtexture.c_str());
+		mat.normals = texture_manager.add_texture(char_to_wchar(wtexture.c_str()));
 		mat.render_data.textures |= MATERIAL_TEXTURE_NORMAL;
-		TextureManager::instance().add_texture(mat.normals.c_str());
 	}
 
 	if (material.GetTextureCount(aiTextureType_METALNESS))
 	{
 		material.GetTexture(aiTextureType_METALNESS, 0, &texture);
 		wtexture = dir + texture.C_Str();
-		mat.metallic = char_to_wchar(wtexture.c_str());
+		mat.metallic = texture_manager.add_texture(char_to_wchar(wtexture.c_str()));
 		mat.render_data.textures |= MATERIAL_TEXTURE_METALLIC;
-		TextureManager::instance().add_texture(mat.metallic.c_str());
 	}
 	else mat.render_data.metallic = BASE_METALLIC;
 
@@ -150,9 +148,8 @@ OpaqueMaterial ModelManager::load_material(aiMaterial& material, std::string& di
 	{
 		material.GetTexture(aiTextureType_SHININESS, 0, &texture);
 		wtexture = dir + texture.C_Str();
-		mat.roughness = char_to_wchar(wtexture.c_str());
-		mat.render_data.textures |= MATERIAL_TEXTURE_ROUGHNESS;
-		TextureManager::instance().add_texture(mat.roughness.c_str());
+		mat.roughness = texture_manager.add_texture(char_to_wchar(wtexture.c_str()));
+		mat.render_data.textures |= MATERIAL_TEXTURE_ROUGHNESS;		
 	}
 	else mat.render_data.roughness = BASE_ROUGHNESS;
 	

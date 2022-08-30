@@ -1,7 +1,12 @@
 #include "globals.hlsli"
-#include "fullscreen.hlsl"
+#include "fullscreen.hlsli"
 
 TextureCube cubemap: register(t0);
+
+vs_out main(uint index: SV_VertexID)
+{
+	return fullscreenVertex(index);
+}
 
 float4 ps_main(vs_out input): SV_Target{
 	return cubemap.Sample(g_sampler, input.texcoord);

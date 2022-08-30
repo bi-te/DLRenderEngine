@@ -52,7 +52,7 @@ float3 calc_direct_light_pbr(float3 view_vec, float3 mesh_normal, float3 normal,
 }
 
 float3 pbr_point(float3 light, float3 closest_light, float light_dist, float3 normal, float3 mesh_normal, float3 view,
-	float3 radiance, float radius, float attenuation, Material mat)
+	float3 radiance, float radius, float solidAngle, Material mat)
 {
 	float3 h = normalize(closest_light + view);
 	float3 f0 = lerp(INSULATOR_F0, mat.diffuse, mat.metallic);
@@ -76,13 +76,13 @@ float3 pbr_point(float3 light, float3 closest_light, float light_dist, float3 no
 	float rough2 = mat.roughness * mat.roughness;
 
 	float g = ggx_smith(rough2, cosNV, cosNCL);
-	float d = min(ggx_distribution(rough2, cosNH) * attenuation * 0.25f / cosNV, 1.f);
+	float d = min(ggx_distribution(rough2, cosNH) * solidAngle * 0.25f / cosNV, 1.f);
 	float3 f = fresnel(f0, cosHCL);
 
 	float3 diffK = float3(1.f, 1.f, 1.f) - fresnel(f0, cosNL);
 
 	float3 spec = f * g * d;
-	float3 diff =  (1 - mat.metallic) * diffK * mat.diffuse * attenuation * cosNL / PI;
+	float3 diff =  (1 - mat.metallic) * diffK * mat.diffuse * solidAngle * cosNL / PI;
 
 	float3 color = fadingMacro * fadingMicro * (diff + spec) * radiance;
 	return color;
@@ -95,14 +95,14 @@ float3 calc_point_light_pbr(float3 position, float3 view_vec, float3 mesh_normal
 	light_vec = normalize(light_vec);
 	
 	float sphereCos = sqrt(light_dist * light_dist - pointLight.radius * pointLight.radius) / light_dist;
-	float attenuation = (1 - sphereCos) * 2.f * PI;
+	float solidAngle = (1 - sphereCos) * 2.f * PI;
 
 	float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
 		reflect(-view_vec, normal), light_dist, pointLight.radius, sphereCos);
 	closest_vec = clamp_to_horizon(normal, closest_vec, 0.001f);
 
 	return pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec, 
-		pointLight.radiance, pointLight.radius, attenuation, material);
+		pointLight.radiance, pointLight.radius, solidAngle, material);
 }
 
 float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, Spotlight spotlight, Material material)
@@ -118,14 +118,14 @@ float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, 
 	if (intensity == 0.f) return 0.f;
 
 	float sphereCos = sqrt(light_dist * light_dist - spotlight.radius * spotlight.radius) / light_dist;
-	float attenuation = (1.f - sphereCos) * 2.f * PI * intensity;
+	float solidAngle = (1.f - sphereCos) * 2.f * PI * intensity;
 
 	float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
 		reflect(-view_vec, normal), light_dist, spotlight.radius, sphereCos);
 	clamp_to_horizon(normal, closest_vec, 0.001f);
 
 	return pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec,
-		spotlight.radiance, spotlight.radius, attenuation, material);
+		spotlight.radiance, spotlight.radius, solidAngle, material);
 }
 
 #endif

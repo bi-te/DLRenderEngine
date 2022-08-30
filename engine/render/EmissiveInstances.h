@@ -1,9 +1,10 @@
 #pragma once
-#include "Material.h"
 #include "objects/Model.h"
 #include "data_structures/solid_vector.h"
 #include "Direct11/DynamicBuffer.h"
 #include "math/math.h"
+
+struct Shader;
 
 struct EmissiveInstanceBuffer
 {
@@ -42,7 +43,7 @@ public:
 
 	DynamicBuffer instanceBuffer{ D3D11_BIND_VERTEX_BUFFER };
 	DynamicBuffer meshModel{ D3D11_BIND_CONSTANT_BUFFER };
-	std::wstring emissiceShader;
+	std::shared_ptr<Shader> emissiveShader;
 	std::vector<PerModel> perModels;
 
 	void add_model_instance(const std::shared_ptr<Model>& model, const Instance& instance);

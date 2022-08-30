@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../math/math.h"
+#include "math/math.h"
+#include "Direct11/d3d.h"
 
 const float BASE_ROUGHNESS = 0.7f;
 const float BASE_METALLIC  = 0.f;
@@ -29,17 +30,20 @@ struct BufferMaterial
 struct OpaqueMaterial
 {
 	std::string name;
-	std::wstring diffuse;
-	std::wstring normals;
-	std::wstring metallic;
-	std::wstring roughness;
+	comptr<ID3D11ShaderResourceView> diffuse;
+	comptr<ID3D11ShaderResourceView> normals;
+	comptr<ID3D11ShaderResourceView> metallic;
+	comptr<ID3D11ShaderResourceView> roughness;
 
 	BufferMaterial render_data;
 
 	void clear()
 	{
 		name = "";
-		diffuse = normals = metallic = roughness = L"";
+		diffuse.Reset();
+		normals.Reset();
+		metallic.Reset();
+		roughness.Reset();
 		render_data.textures = 0;
 		render_data.metallic = render_data.roughness = 0.f;
 		render_data.diffuse = {};

@@ -39,10 +39,9 @@ public:
 		delete s_manager;
 	}
 
-	const comptr<ID3D11ShaderResourceView>& get_texture(LPCWSTR filename);
-	const comptr<ID3D11ShaderResourceView>& get_cubemap(LPCWSTR filename);
+	comptr<ID3D11ShaderResourceView>& get(LPCWSTR filename);
 
-	void add_texture(LPCWSTR filename);
-	void add_cubemap(LPCWSTR filename);
+	comptr<ID3D11ShaderResourceView> add_texture(LPCWSTR filename);
+	comptr<ID3D11ShaderResourceView> add_cubemap(LPCWSTR filename);
 };
 

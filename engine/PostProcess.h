@@ -4,6 +4,8 @@
 #include "render/Direct11/RenderBuffer.h"
 #include "render/Direct11/DynamicBuffer.h"
 
+struct Shader;
+
 struct PostProcessBuffer
 {
 	float ev100;
@@ -15,7 +17,7 @@ class PostProcess
 	DynamicBuffer postProcessBuffer{ D3D11_BIND_CONSTANT_BUFFER };
 public:
 	float ev100;
-	std::wstring post_process_shader;
+	std::shared_ptr<Shader> post_process_shader;
 
 	PostProcess()
 	{

@@ -553,9 +553,6 @@
     <FxCompile Include="shaders\resolve.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\fullscreen.hlsl">
-      <Filter>shaders</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\globals.hlsli">
@@ -598,6 +595,9 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\light_calculation.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\fullscreen.hlsli">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

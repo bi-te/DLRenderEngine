@@ -45,14 +45,14 @@ vs_out main(vs_in input)
 
 	float3 world_normal, world_tangent, world_bitangent;
 
-	world_normal = mul(g_mesh_transform, float4(input.normal, 0.f));
-	world_normal = mul(input.model_transform, world_normal) / input.model_scale;
+	world_normal = mul(g_mesh_transform, float4(input.normal, 0.f)) / input.model_scale;
+	world_normal = mul(input.model_transform, world_normal);
 
-	world_tangent = mul(g_mesh_transform, float4(input.tangent, 0.f));
-	world_tangent = mul(input.model_transform, world_tangent) / input.model_scale;
+	world_tangent = mul(g_mesh_transform, float4(input.tangent, 0.f)) / input.model_scale;
+	world_tangent = mul(input.model_transform, world_tangent) ;
 
-	world_bitangent = mul(g_mesh_transform, float4(input.bitangent, 0.f));
-	world_bitangent = mul(input.model_transform, world_bitangent) / input.model_scale;
+	world_bitangent = mul(g_mesh_transform, float4(input.bitangent, 0.f)) / input.model_scale;
+	world_bitangent = mul(input.model_transform, world_bitangent) ;
 
 	res.tbn_matrix = float3x3(
 		world_tangent.xyz,

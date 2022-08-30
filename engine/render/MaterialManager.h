@@ -32,8 +32,8 @@ public:
 
 	void add(const OpaqueMaterial& material);
 
-	void add_opaque_material(const std::string& name, const std::vector<std::pair<TextureType, std::wstring>>& textures);
-	void add_emissive_material(const std::string& name, const vec3f& color);
+	void add_opaque_material(const std::string& name, 
+		const std::vector<std::pair<TextureType, comptr<ID3D11ShaderResourceView>>>& textures);
 
 	OpaqueMaterial& get_opaque(const std::string& name);
 

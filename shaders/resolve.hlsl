@@ -1,5 +1,10 @@
 #include "post_process_helpers.hlsli"
-#include "fullscreen.hlsl"
+#include "fullscreen.hlsli"
+
+vs_out main(uint index: SV_VertexID)
+{
+	return fullscreenVertex(index);
+}
 
 cbuffer PostProcessing: register(b1){
 	float g_ev100;

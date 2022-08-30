@@ -56,26 +56,25 @@ void Controller::init_scene()
     TransformSystem& transforms = TransformSystem::instance();
     TextureManager& texture_manager = TextureManager::instance();
 
-    scene.skybox.skyshader = L"shaders/sky.hlsl";
-    scene.skybox.texture = L"assets/cubemaps/night_street.dds";
+    scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
+    scene.skybox.texture = texture_manager.add_cubemap(L"assets/cubemaps/night_street.dds");
 
     shaders.add_shader(L"shaders/opaque.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/emissive.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/sky.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/resolve.hlsl", "main", "ps_main");
-
-    texture_manager.add_texture(L"assets/cubemaps/night_street.dds");
+    
     texture_manager.add_texture(L"assets/textures/SphereBaseColor.dds");
 
-    meshes.opaque_instances.opaqueShader = L"shaders/opaque.hlsl";
-    meshes.emissive_instances.emissiceShader = L"shaders/emissive.hlsl";
+    meshes.opaque_instances.opaqueShader = shaders.get_ptr(L"shaders/opaque.hlsl");
+    meshes.emissive_instances.emissiveShader =  shaders.get_ptr(L"shaders/emissive.hlsl");
 
     OpaqueMaterial material;
     
     material = {};
     material.name = "Crystal_mat";
-    material.diffuse = L"assets/textures/Crystal/Crystal_BaseColor.dds";
-    material.normals = L"assets/textures/Crystal/Crystal_Normal.dds";
+    material.diffuse = texture_manager.add_texture(L"assets/textures/Crystal/Crystal_BaseColor.dds");
+    material.normals = texture_manager.add_texture(L"assets/textures/Crystal/Crystal_Normal.dds");
 	material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_REVERSED_NORMAL_Y;
     material.render_data.metallic = 0.f;
     material.render_data.roughness = 0.1f;
@@ -83,27 +82,27 @@ void Controller::init_scene()
 
     material = {};
     material.name = "Cobblestone_mat";
-    material.diffuse = L"assets/textures/Cobblestone/Cobblestone_BaseColor.dds";
-    material.normals = L"assets/textures/Cobblestone/Cobblestone_Normal.dds";
-    material.roughness = L"assets/textures/Cobblestone/Cobblestone_Roughness.dds";
+    material.diffuse = texture_manager.add_texture(L"assets/textures/Cobblestone/Cobblestone_BaseColor.dds");
+    material.normals = texture_manager.add_texture(L"assets/textures/Cobblestone/Cobblestone_Normal.dds");
+    material.roughness = texture_manager.add_texture(L"assets/textures/Cobblestone/Cobblestone_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS;
     material.render_data.metallic = 0.f;
     materials.add(std::move(material));
 
     material = {};
     material.name = "Stone_mat";
-    material.diffuse = L"assets/textures/Stone/Stone_BaseColor.dds";
-    material.normals = L"assets/textures/Stone/Stone_Normal.dds";
-    material.roughness = L"assets/textures/Stone/Stone_Roughness.dds";
+    material.diffuse = texture_manager.add_texture(L"assets/textures/Stone/Stone_BaseColor.dds");
+    material.normals = texture_manager.add_texture(L"assets/textures/Stone/Stone_Normal.dds");
+    material.roughness = texture_manager.add_texture(L"assets/textures/Stone/Stone_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS | MATERIAL_REVERSED_NORMAL_Y;
     material.render_data.metallic = 0.f;
     materials.add(std::move(material));
 
     material = {};
     material.name = "CastleBrick_mat";
-    material.diffuse = L"assets/textures/CastleBrick/CastleBrick_BaseColor.dds";
-    material.normals = L"assets/textures/CastleBrick/CastleBrick_Normal.dds";
-    material.roughness = L"assets/textures/CastleBrick/CastleBrick_Roughness.dds";
+    material.diffuse = texture_manager.add_texture(L"assets/textures/CastleBrick/CastleBrick_BaseColor.dds");
+    material.normals = texture_manager.add_texture(L"assets/textures/CastleBrick/CastleBrick_Normal.dds");
+    material.roughness = texture_manager.add_texture(L"assets/textures/CastleBrick/CastleBrick_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS;
     material.render_data.metallic = 0.f;
     materials.add(std::move(material));
@@ -179,7 +178,7 @@ void Controller::init_scene()
     //);
 
     Transform samurai;
-    samurai.set_scale(5.f);
+    samurai.set_scale({15.f, 5.f, 10.f});
     samurai.set_world_offset({ 10.f, 0.f, 0.f });
     meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/Samurai/Samurai.fbx"),
@@ -312,7 +311,7 @@ void Controller::init_scene()
     
     camera.set_world_offset({ 0.f, 10.f, -10.f });
 
-    postProcess.post_process_shader = L"shaders/resolve.hlsl";
+    postProcess.post_process_shader = shaders.get_ptr(L"shaders/resolve.hlsl");
     postProcess.ev100 = 0.f;
     postProcess.update();
 }

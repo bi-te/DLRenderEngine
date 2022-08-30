@@ -9,6 +9,8 @@
 #include "data_structures/solid_vector.h"
 #include "objects/Model.h"
 
+struct Shader;
+
 struct OpaqueInstanceRender
 {
 	mat4f model_transform;
@@ -56,7 +58,7 @@ public:
 	DynamicBuffer meshModel{ D3D11_BIND_CONSTANT_BUFFER };
 	DynamicBuffer materialBuffer{ D3D11_BIND_CONSTANT_BUFFER };
 
-	std::wstring opaqueShader;
+	std::shared_ptr<Shader> opaqueShader;
 	std::vector<PerModel> perModels;
 
 	void add_model_instance(const std::shared_ptr<Model>& model,

@@ -6,20 +6,11 @@ void MaterialManager::add(const OpaqueMaterial& material)
 {
 	if (op_materials.find(material.name) != op_materials.end()) return;
 
-	if (material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
-		TextureManager::instance().add_texture(material.diffuse.c_str());
-	if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
-		TextureManager::instance().add_texture(material.normals.c_str());
-	if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
-		TextureManager::instance().add_texture(material.roughness.c_str());
-	if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
-		TextureManager::instance().add_texture(material.metallic.c_str());
-
 	op_materials.insert({ material.name, material });
 }
 
 void MaterialManager::add_opaque_material(const std::string& name,
-	const std::vector<std::pair<TextureType, std::wstring>>& textures)
+                                          const std::vector<std::pair<TextureType, comptr<ID3D11ShaderResourceView>>>& textures)
 {
 	if (op_materials.find(name) != op_materials.end()) return;
 	
