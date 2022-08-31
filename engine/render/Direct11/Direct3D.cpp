@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "render/LightSystem.h"
+
 extern "C"
 {
     _declspec(dllexport) uint32_t NvOptimusEnablement = 1;
@@ -56,14 +58,25 @@ void Direct3D::init_sampler_state(D3D11_FILTER filter, uint8_t anisotropy)
     sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.MinLOD = 0.f;
-    sdesc.MaxLOD = 10.f;
+    sdesc.MaxLOD = 12.f;
     device5->CreateSamplerState(&sdesc, &sampler_state);
 }
 
-void Direct3D::bind_globals(const PerFrame& per_frame_data)
+void Direct3D::bind_globals(const Camera& camera)
 {
-    per_frame_buffer.write(&per_frame_data);
+    PerFrame* per_frame = static_cast<PerFrame*>(per_frame_buffer.map().pData);
+
+    per_frame->view_projection = camera.view_proj;
+    per_frame->frustum.bottom_left_point = camera.blnear_fpoint - camera.view_inv.row(3);
+    per_frame->frustum.up_vector = camera.frustrum_up;
+    per_frame->frustum.right_vector = camera.frustrum_right;
+    per_frame->camera_pos = camera.position();
+
+    LightSystem::instance().bind_lights(&per_frame->light_buffer);
+
+    per_frame_buffer.unmap();
     context4->VSSetConstantBuffers(0, 1, per_frame_buffer.address());
+    context4->PSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
 }
 
@@ -78,7 +91,6 @@ void Direct3D::init()
     
     direct3d->per_frame_buffer.allocate(sizeof(PerFrame));
 }
-
 
 void Direct3D::reset()
 {

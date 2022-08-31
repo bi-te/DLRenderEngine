@@ -14,7 +14,7 @@ class MaterialManager
 	MaterialManager& operator=(const MaterialManager& other) = delete;
 	MaterialManager& operator=(MaterialManager&& other) noexcept = delete;
 
-	std::unordered_map<std::string, Material> materials;
+	std::unordered_map<std::string, OpaqueMaterial> op_materials;
 public:
 
 	static void init()
@@ -30,10 +30,12 @@ public:
 		return *s_manager;
 	}
 
-	void add_material(const std::string& name, const std::vector<std::pair<TextureType, std::wstring>>& textures);
-	void add(const std::string& name, const Material& material);
+	void add(const OpaqueMaterial& material);
 
-	Material& get(const std::string& name);
+	void add_opaque_material(const std::string& name, 
+		const std::vector<std::pair<TextureType, comptr<ID3D11ShaderResourceView>>>& textures);
+
+	OpaqueMaterial& get_opaque(const std::string& name);
 
 	static void reset()
 	{

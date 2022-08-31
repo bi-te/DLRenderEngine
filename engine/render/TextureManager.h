@@ -18,7 +18,7 @@ class TextureManager
 	TextureManager& operator=(const TextureManager& other) = delete;
 	TextureManager& operator=(TextureManager&& other) noexcept = delete;
 
-	std::unordered_map<LPCWSTR, comptr<ID3D11ShaderResourceView>, pwchar_hash, pwchar_comparator> textures2d;
+	std::unordered_map<std::wstring, comptr<ID3D11ShaderResourceView>> textures2d;
 public:
 
 	static void init()
@@ -39,10 +39,9 @@ public:
 		delete s_manager;
 	}
 
-	const comptr<ID3D11ShaderResourceView>& get_texture(LPCWSTR filename);
-	const comptr<ID3D11ShaderResourceView>& get_cubemap(LPCWSTR filename);
+	comptr<ID3D11ShaderResourceView>& get(LPCWSTR filename);
 
-	void add_texture(LPCWSTR filename);
-	void add_cubemap(LPCWSTR filename);
+	comptr<ID3D11ShaderResourceView> add_texture(LPCWSTR filename);
+	comptr<ID3D11ShaderResourceView> add_cubemap(LPCWSTR filename);
 };
 

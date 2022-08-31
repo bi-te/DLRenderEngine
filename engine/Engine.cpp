@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#include "moving/TransformSystem.h"
+#include "render/LightSystem.h"
 #include "render/MaterialManager.h"
 #include "render/MeshSystem.h"
 #include "render/ModelManager.h"
@@ -15,22 +17,12 @@ void Engine::init()
 	TextureManager::init();
 	ShaderManager::init();
 	MaterialManager::init();
+	TransformSystem::init();
 	ModelManager::init();
 	MeshSystem::init();
+	LightSystem::init();
 
 	s_engine = new Engine;
-}
-
-void Engine::render()
-{
-	PerFrame per_frame;
-	per_frame.view_projection = scene.camera.view_proj;
-	per_frame.frustum.bottom_left_point = scene.camera.blnear_fpoint - scene.camera.view_inv.row(3);
-	per_frame.frustum.up_vector = scene.camera.frustrum_up;
-	per_frame.frustum.right_vector = scene.camera.frustrum_right;
-	Direct3D::instance().bind_globals(per_frame);
-
-	scene.draw(*window);
 }
 
 void Engine::reset()
@@ -39,8 +31,10 @@ void Engine::reset()
 	
 	delete s_engine;
 
+	LightSystem::reset();
 	MeshSystem::reset();
 	ModelManager::reset();
+	TransformSystem::reset();
 	MaterialManager::reset();
 	ShaderManager::reset();
 	TextureManager::reset();

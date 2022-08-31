@@ -40,6 +40,9 @@
     <Filter Include="engine\assimp">
       <UniqueIdentifier>{9dd61ad2-ae55-430e-bbf1-d1445f273ff6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="engine\data_structures">
+      <UniqueIdentifier>{01221eb6-cf74-4f76-b7db-49dbf16778a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -51,9 +54,6 @@
     <ClCompile Include="engine\Controller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="engine\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="engine\math\Transform.cpp">
       <Filter>engine\math</Filter>
     </ClCompile>
@@ -63,9 +63,6 @@
     <ClCompile Include="engine\math\Sphere.cpp">
       <Filter>engine\math</Filter>
     </ClCompile>
-    <ClCompile Include="engine\math\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -74,9 +71,6 @@
     </ClCompile>
     <ClCompile Include="engine\objects\Skybox.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="engine\render\TextureManager.cpp">
-      <Filter>engine\render</Filter>
     </ClCompile>
     <ClCompile Include="engine\imgui\imgui.cpp">
       <Filter>engine\imgui</Filter>
@@ -126,6 +120,33 @@
     <ClCompile Include="engine\render\Direct11\DynamicBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="engine\render\EmissiveInstances.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\moving\TransformSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\LightSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\data_structures\TriangleOctree.cpp">
+      <Filter>engine\data_structures</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\Ray.cpp">
+      <Filter>engine\data_structures</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\math\Camera.cpp">
+      <Filter>engine\math</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\PostProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\Direct11\RenderBuffer.cpp">
+      <Filter>engine\render\Direct11</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\TextureManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
@@ -138,9 +159,6 @@
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\Controller.h">
-      <Filter>engine</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\Camera.h">
       <Filter>engine</Filter>
     </ClInclude>
     <ClInclude Include="engine\math\Ray.h">
@@ -169,24 +187,6 @@
     </ClInclude>
     <ClInclude Include="engine\objects\LightObjects.h">
       <Filter>engine\objects</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\moving\ObjectMover.h">
-      <Filter>engine\moving</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\moving\SphereMover.h">
-      <Filter>engine\moving</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\moving\TransformMover.h">
-      <Filter>engine\moving</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\moving\PointLightMover.h">
-      <Filter>engine\moving</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\moving\SpotlightMover.h">
-      <Filter>engine\moving</Filter>
-    </ClInclude>
-    <ClInclude Include="engine\math\Mesh.h">
-      <Filter>engine\math</Filter>
     </ClInclude>
     <ClInclude Include="engine\IntersectionQuery.h">
       <Filter>engine</Filter>
@@ -509,12 +509,48 @@
     <ClInclude Include="engine\render\MeshSystem.h">
       <Filter>engine\render</Filter>
     </ClInclude>
+    <ClInclude Include="engine\render\EmissiveInstances.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\data_structures\solid_vector.h">
+      <Filter>engine\data_structures</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\moving\TransformSystem.h">
+      <Filter>engine\moving</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\data_structures\TriangleOctree.h">
+      <Filter>engine\data_structures</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\AABB.h">
+      <Filter>engine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\objects\Model.h">
+      <Filter>engine\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\LightSystem.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\Camera.h">
+      <Filter>engine\math</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\PostProcess.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\Direct11\RenderBuffer.h">
+      <Filter>engine\render\Direct11</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\opaque.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\sky.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\emissive.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\resolve.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -551,6 +587,18 @@
     </None>
     <None Include="engine\assimp\vector3.inl">
       <Filter>engine\assimp</Filter>
+    </None>
+    <None Include="shaders\pbr_render.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\post_process_helpers.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\light_calculation.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\fullscreen.hlsli">
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

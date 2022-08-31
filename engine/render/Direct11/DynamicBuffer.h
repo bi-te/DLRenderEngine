@@ -20,7 +20,7 @@ public:
 	void unmap();
 
 	ID3D11Buffer* get() { return buffer.Get(); }
-	ID3D11Buffer* const* address() { return buffer.GetAddressOf(); }
+	ID3D11Buffer* const* address() const { return buffer.GetAddressOf(); }
 
 	void free() { buffer.Reset(); }
 };

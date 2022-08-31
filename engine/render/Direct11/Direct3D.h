@@ -3,19 +3,62 @@
 #include "d3d.h"
 #include "DynamicBuffer.h"
 #include "math/math.h"
+#include "math/Camera.h"
+#include "render/Lighting.h"
 
 struct Frustum
 {
-	vec4f bottom_left_point,
-		up_vector,
-		right_vector;
+	vec4f bottom_left_point, up_vector,	right_vector;
+};
+
+struct PointLightBuffer
+{
+	vec3f radiance;
+	float radius;
+
+	vec3f position;
+	float padding;
+};
+
+struct SpotlightBuffer
+{
+	vec3f radiance;
+	float radius;
+
+	vec3f position;
+	float cutOff;
+
+	vec3f direction;
+	float outerCutOff;
+};
+
+const uint32_t MAX_LIGHTS_NUMBER = 10;
+struct LightBuffer
+{
+	vec3f ambient;
+	uint32_t pointLightNum;
+
+	DirectLight dirLight;
+	uint32_t spotlightNum;
+
+	SpotlightBuffer spotlights[MAX_LIGHTS_NUMBER];
+	PointLightBuffer pointLights[MAX_LIGHTS_NUMBER];
 };
 
 struct PerFrame
 {
 	mat4f view_projection;
+
 	Frustum frustum;
+
+	vec3f camera_pos;
+	float padding0;
+
+	LightBuffer light_buffer;
 };
+
+constexpr ID3D11RenderTargetView* NULL_RTV = nullptr;
+constexpr ID3D11ShaderResourceView* NULL_SRV = nullptr;
 
 class Direct3D
 {
@@ -50,7 +93,7 @@ public:
 	void init_rasterizer_state();
 	void init_sampler_state(D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR, uint8_t anisotropy = 0);
 
-	void bind_globals(const PerFrame& per_frame_data);
+	void bind_globals(const Camera& camera);
 
 	static void reset();
 };

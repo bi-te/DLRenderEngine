@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Scene.h"
+#include "PostProcess.h"
 #include "math/math.h"
 #include "win32/Window.h"
 #include "win32/WinListener.h"
@@ -45,28 +46,34 @@ class  Controller: public IWinListener
 
     IntersectionQuery record;
 
-    Scene& scene;
-    Window& window;
 public:
-    explicit Controller(Scene& scene, Window& window): scene(scene), window(window)
+    Scene scene;
+    Camera camera;
+    Window& window;
+    PostProcess postProcess;
+
+    explicit Controller(Window& window): window(window)
     {
     }
 
     InputState is{};
-    
+
+    void render();
+    void render_reset()
+    {
+        scene.render_reset();
+        window.render_reset();
+        postProcess.render_reset();
+    }
 
     void move_camera(const vec3f& offset, const Angles& angles)
     {
-        scene.camera.add_relative_angles(angles);
-        scene.camera.add_relative_offset(offset);
-        scene.camera.update_matrices();
+        camera.add_relative_angles(angles);
+        camera.add_relative_offset(offset);
+        camera.update_matrices();
     }
     
-    void OnResize(uint32_t width, uint32_t height) override
-    {
-	    scene.init_depth_and_stencil_buffer(width, height);
-        scene.camera.change_aspect(float(width) / height);
-    }
+    void OnResize(uint32_t width, uint32_t height) override;
     void KeyEvent(Key key, bool status) override { is.keyboard.keys[key] = status; } 
     void MouseWheelEvent(uint32_t count) override { is.mouse.wheel += count; }
     void MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos) override;

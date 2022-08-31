@@ -1,18 +1,30 @@
 #pragma once
 
+#include "EmissiveInstances.h"
 #include "OpaqueInstances.h"
+#include "IntersectionQuery.h"
 
 class MeshSystem
 {
 	static MeshSystem* s_system;
 	MeshSystem() = default;
+
+	MeshSystem(const MeshSystem& other) = delete;
+	MeshSystem(MeshSystem&& other) noexcept = delete;
+	MeshSystem& operator=(const MeshSystem& other) = delete;
+	MeshSystem& operator=(MeshSystem&& other) noexcept = delete;
+
 public:
 	OpaqueInstances opaque_instances;
+	EmissiveInstances emissive_instances;
 
+
+	bool select_mesh(const Ray& ray, IntersectionQuery& record);
 
 	void render()
 	{
 		opaque_instances.render();
+		emissive_instances.render();
 	}
 
 	static void init()

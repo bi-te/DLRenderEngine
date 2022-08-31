@@ -1,9 +1,8 @@
 #pragma once
 #include "math/Intersection.h"
-#include "moving/ObjectMover.h"
 
 struct IntersectionQuery
 {
+	uint32_t transormId;
 	Intersection intersection;
-	std::unique_ptr<ObjectMover> mover;
 };

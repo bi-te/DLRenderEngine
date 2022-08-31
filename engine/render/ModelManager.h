@@ -1,42 +1,14 @@
 #pragma once
+
 #include <unordered_map>
 
-#include "render/OpaqueInstances.h"
-#include "assimp/scene.h"
-#include "math/math.h"
-#include "Direct11/ImmutableBuffer.h"
 #include "Material.h"
 #include "TextureManager.h"
 
-struct AssimpVertex
-{
-	vec3f coor;
-	vec2f texcoor;
-	vec3f normal;
-	vec3f tangent;
-	vec3f bitangent;
-};
+#include "assimp/scene.h"
+#include "objects/Model.h"
+#include "render/OpaqueInstances.h"
 
-struct Model
-{
-	struct MeshRange
-	{
-		uint32_t numIndices, numVertices;
-		uint32_t indicesOffset, verticesOffset;
-	};
-
-	struct Node
-	{
-		mat4f mesh_matrix;
-		std::vector<uint32_t> meshes;
-	};
-	
-	std::string name;
-	std::vector<Node> tree;
-	std::vector<MeshRange> meshes;
-	ImmutableBuffer vertexBuffer{ D3D11_BIND_VERTEX_BUFFER };
-	ImmutableBuffer indexBuffer{ D3D11_BIND_INDEX_BUFFER };
-};
 
 class ModelManager
 {
@@ -51,8 +23,7 @@ class ModelManager
 	std::unordered_map<std::string, std::shared_ptr<Model>> models;
 
 	void parse_tree(const aiScene& scene, Model& model);
-	Material load_material(aiMaterial& material, std::string& path);
-	std::wstring load_texture(aiTextureType type, aiMaterial& material, const std::string& directory);
+	OpaqueMaterial load_material(aiMaterial& material, std::string& dir);
 public:
 
 	static void init()
@@ -73,7 +44,11 @@ public:
 		delete s_manager;
 	}
 
-	void make_cube();
+	void init_cube();
+	void init_quad();
+	void init_flat_cube_sphere(uint32_t grid_size);
+	void init_sphere(uint32_t sectors, uint32_t stacks);
+	void init_flat_sphere(uint32_t sectors, uint32_t stacks);
 
 	void add_model(const std::string& path);
 	Model& get_model(const std::string& model);

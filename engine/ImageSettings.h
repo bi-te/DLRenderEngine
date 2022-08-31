@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+#include "math/math.h"
+
 enum GLOBAL_ILLUMINATION { GI_OFF, GI_ON, GI_COMPLETED };
 struct ImageSettings
 {

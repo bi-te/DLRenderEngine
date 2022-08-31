@@ -2,33 +2,35 @@
 
 MaterialManager* MaterialManager::s_manager;
 
-void MaterialManager::add_material(const std::string& name,
-	const std::vector<std::pair<TextureType, std::wstring>>& textures)
+void MaterialManager::add(const OpaqueMaterial& material)
 {
-	if (materials.count(name)) return;
+	if (op_materials.find(material.name) != op_materials.end()) return;
+
+	op_materials.insert({ material.name, material });
+}
+
+void MaterialManager::add_opaque_material(const std::string& name,
+                                          const std::vector<std::pair<TextureType, comptr<ID3D11ShaderResourceView>>>& textures)
+{
+	if (op_materials.find(name) != op_materials.end()) return;
 	
-	Material mat;
+	OpaqueMaterial mat;
+	mat.name = name;
 	for (const auto & texture : textures)
 	{
 		switch (texture.first)
 		{
-		case (TextureDiffuse): mat.diffuse = texture.second;
-		case (TextureNormals): mat.normals = texture.second;
-		case (TextureMetallic): mat.metallic = texture.second;
-		case (TextureRoughness): mat.roughness = texture.second;
+		case (TextureDiffuse): mat.diffuse = texture.second; break;
+		case (TextureNormals): mat.normals = texture.second; break;
+		case (TextureMetallic): mat.metallic = texture.second; break;
+		case (TextureRoughness): mat.roughness = texture.second; break;
 		}
 	}
-	materials.insert({ name, std::move(mat) });
+	op_materials.insert({ name, std::move(mat) });
 }
 
-void MaterialManager::add(const std::string& name, const Material& material)
+OpaqueMaterial& MaterialManager::get_opaque(const std::string& name)
 {
-	if (materials.count(name)) return;
-	materials.insert({ name, material });
-}
-
-Material& MaterialManager::get(const std::string& name)
-{
-	assert(materials.count(name));
-	return materials.at(name);
+	assert(op_materials.find(name) != op_materials.end());
+	return op_materials.at(name);
 }

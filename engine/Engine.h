@@ -7,12 +7,8 @@ class Engine
 	static Engine* s_engine;
 
 public:
-	Scene scene;
-	Window* window;
 
 	static void init();
-
-	void render();
 
 	static Engine& instance()
 	{

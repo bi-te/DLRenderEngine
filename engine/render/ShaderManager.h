@@ -21,8 +21,6 @@ const char PER_INSTANCE_PREFIX[] = "Inst_";
 
 class ShaderManager
 {
-	std::unordered_map<LPCWSTR, Shader, pwchar_hash, pwchar_comparator> shaders;
-
 	static ShaderManager* s_manager;
 	ShaderManager() = default;
 
@@ -30,6 +28,8 @@ class ShaderManager
 	ShaderManager(ShaderManager&& other) noexcept = delete;
 	ShaderManager& operator=(const ShaderManager& other) = delete;
 	ShaderManager& operator=(ShaderManager&& other) noexcept = delete;
+
+	std::unordered_map<LPCWSTR, std::shared_ptr<Shader>, pwchar_hash, pwchar_comparator> shaders;
 
 	void compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
 	void compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
@@ -54,9 +54,12 @@ public:
 		delete s_manager;
 	}
 
-	const Shader& operator() (LPCWSTR shader);
+	Shader& get_shader(LPCWSTR shader);
+	std::shared_ptr<Shader> get_ptr(LPCWSTR shader);
 
 	void add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry);
-
+	void add_shader(LPCWSTR shader_name, 
+					LPCWSTR vertex_shader, LPCSTR vertex_shader_entry,
+					LPCWSTR pixel_shader, LPCSTR pixel_shader_entry);
 };
 
