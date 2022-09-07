@@ -39,4 +39,9 @@ float3 fresnel(float3 f0, float cosNL)
 	return f0 + (1.f - f0) * pow(1.f - cosNL, 5.f);
 }
 
+float3 fresnel_roughness(float3 f0, float cosNL, float roughness)
+{
+	return f0 + (max(1.f - roughness, f0) - f0) * pow(1.f - cosNL, 5.f);
+}
+
 #endif

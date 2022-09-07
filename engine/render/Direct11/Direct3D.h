@@ -76,7 +76,8 @@ public:
 	comptr<ID3D11DeviceContext4> context4;
 	comptr<ID3D11Debug> devdebug;
 
-	comptr< ID3D11SamplerState> sampler_state;
+	comptr<ID3D11SamplerState> sampler_state;
+	comptr<ID3D11SamplerState> linear_clamp_sampler_state;
 	comptr<ID3D11RasterizerState> rasterizer_state;
 
 	DynamicBuffer per_frame_buffer{ D3D11_BIND_CONSTANT_BUFFER };
@@ -92,6 +93,7 @@ public:
 	void init_core();
 	void init_rasterizer_state();
 	void init_sampler_state(D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR, uint8_t anisotropy = 0);
+	void init_linear_clamp_sampler();
 
 	void bind_globals(const Camera& camera);
 

@@ -45,6 +45,7 @@ void Direct3D::init_rasterizer_state()
     rasterizer.CullMode = D3D11_CULL_BACK;
     rasterizer.DepthClipEnable = true;
     rasterizer.FrontCounterClockwise = false;
+    rasterizer.MultisampleEnable = true;
     HRESULT result = device5->CreateRasterizerState(&rasterizer, &rasterizer_state);
     assert(SUCCEEDED(result) && "CreateRasterizerState");
 }
@@ -55,11 +56,23 @@ void Direct3D::init_sampler_state(D3D11_FILTER filter, uint8_t anisotropy)
     sdesc.Filter = filter;
     sdesc.MaxAnisotropy = anisotropy;
     sdesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.MinLOD = 0.f;
     sdesc.MaxLOD = 12.f;
     device5->CreateSamplerState(&sdesc, &sampler_state);
+}
+
+void Direct3D::init_linear_clamp_sampler()
+{
+    D3D11_SAMPLER_DESC sdesc{};
+    sdesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sdesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.MinLOD = 0.f;
+    sdesc.MaxLOD = 12.f;
+    device5->CreateSamplerState(&sdesc, &linear_clamp_sampler_state);
 }
 
 void Direct3D::bind_globals(const Camera& camera)
@@ -78,6 +91,7 @@ void Direct3D::bind_globals(const Camera& camera)
     context4->VSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
+    context4->PSSetSamplers(1, 1, linear_clamp_sampler_state.GetAddressOf());
 }
 
 void Direct3D::init() 
@@ -88,6 +102,7 @@ void Direct3D::init()
     direct3d->init_core();
     direct3d->init_rasterizer_state();
     direct3d->init_sampler_state();
+    direct3d->init_linear_clamp_sampler();
     
     direct3d->per_frame_buffer.allocate(sizeof(PerFrame));
 }

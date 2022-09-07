@@ -53,6 +53,11 @@ struct LightBuffer
 };
 
 SamplerState g_sampler: register(s0);
+SamplerState g_linear_clamp_sampler: register(s1);
+
+Texture2D g_reflectance: register(t0);
+TextureCube g_irradiance: register(t1);
+TextureCube g_reflection: register(t2);
 
 cbuffer perFrame: register(b0)
 {
@@ -64,13 +69,4 @@ cbuffer perFrame: register(b0)
 
 	LightBuffer g_lighting;
 }
-
-float3 irradianceAtDistanceToRadiance(float3 irradiance, float distance, float radius)
-{
-	float angleSin = min(1.f, radius / distance);
-	float angleCos = sqrt(1.f - angleSin * angleSin);
-	float occupation = 1.f - angleCos;
-	return irradiance / occupation;
-}
-
 #endif

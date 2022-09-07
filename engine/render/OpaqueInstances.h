@@ -14,8 +14,7 @@ struct Shader;
 struct OpaqueInstanceRender
 {
 	mat4f model_transform;
-	vec3f scale;
-	float padding;
+	mat3f scale;
 };
 
 class OpaqueInstances

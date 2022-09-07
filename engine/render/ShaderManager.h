@@ -15,6 +15,13 @@ struct Shader
 	comptr<ID3D11VertexShader> vertexShader;
 	comptr<ID3D11PixelShader> pixelShader;
 	InputLayout inputLayout;
+
+	void reset()
+	{
+		vertexShader.Reset();
+		pixelShader.Reset();
+		inputLayout.ptr.Reset();
+	}
 };
 
 const char PER_INSTANCE_PREFIX[] = "Inst_";
@@ -51,6 +58,8 @@ public:
 
 	static void reset()
 	{
+		for (auto shader : s_manager->shaders)
+			shader.second->reset();
 		delete s_manager;
 	}
 

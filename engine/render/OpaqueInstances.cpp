@@ -84,13 +84,14 @@ void OpaqueInstances::update_instance_buffer()
 						{
 							matrices[num_copied].model_transform = model.model.get()->tree[mesh_node].mesh_matrix *
 								transforms[model.instances[instance].model_world].matrix();
-							matrices[num_copied++].scale = transforms[model.instances[instance].model_world].scale();
+							matrices[num_copied++].scale = model.model.get()->tree[mesh_node].mesh_matrix.topLeftCorner<3,3>() *
+								transforms[model.instances[instance].model_world].normal_matrix;
 						}
 					}
 					else {
 						matrices[num_copied].model_transform = transforms[model.instances[instance].model_world].matrix();
-						matrices[num_copied++].scale = transforms[model.instances[instance].model_world].scale();
-					}											
+						matrices[num_copied++].scale = transforms[model.instances[instance].model_world].normal_matrix;
+					}
 				}
 
 	instanceBuffer.unmap();
@@ -142,16 +143,16 @@ void OpaqueInstances::render()
 				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
 
 				if(material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
-					direct.context4->PSSetShaderResources(0, 1, material.diffuse.GetAddressOf());
+					direct.context4->PSSetShaderResources(3, 1, material.diffuse.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
-					direct.context4->PSSetShaderResources(1, 1,	material.normals.GetAddressOf());
+					direct.context4->PSSetShaderResources(4, 1,	material.normals.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
-					direct.context4->PSSetShaderResources(2, 1, material.roughness.GetAddressOf());
+					direct.context4->PSSetShaderResources(5, 1, material.roughness.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
-					direct.context4->PSSetShaderResources(3, 1, material.metallic.GetAddressOf());
+					direct.context4->PSSetShaderResources(6, 1, material.metallic.GetAddressOf());
 
 				direct.context4->DrawIndexedInstanced(mrange.numIndices,
 					instances, mrange.indicesOffset,

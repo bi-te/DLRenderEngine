@@ -22,7 +22,7 @@ void Scene::init_depth_and_stencil_buffer(uint32_t width, uint32_t height)
 	depthBufferDesc.MipLevels = 1;
 	depthBufferDesc.ArraySize = 1;
 	depthBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	depthBufferDesc.SampleDesc.Count = 1;
+	depthBufferDesc.SampleDesc.Count = 4;
 	depthBufferDesc.SampleDesc.Quality = 0;
 	HRESULT result = Direct3D::instance().device5->CreateTexture2D(&depthBufferDesc, nullptr,
 		&depth_stencil.buffer);
@@ -30,7 +30,7 @@ void Scene::init_depth_and_stencil_buffer(uint32_t width, uint32_t height)
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthViewDesc{};
 	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	depthViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depthViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 	depthViewDesc.Texture2D.MipSlice = 0;
 
 	result = Direct3D::instance().device5->CreateDepthStencilView(depth_stencil.buffer.Get(),
@@ -66,6 +66,9 @@ void Scene::render(RenderBuffer& target_buffer, const Camera& camera, const Post
 
 	direct.bind_globals(camera);
 
+	direct.context4->PSSetShaderResources(0, 1, skybox.reflectance_map.GetAddressOf());
+	direct.context4->PSSetShaderResources(1, 1, skybox.irradiance_map.GetAddressOf());
+	direct.context4->PSSetShaderResources(2, 1, skybox.reflection_map.GetAddressOf());
 	MeshSystem::instance().render();
 	skybox.render();
 	

@@ -9,15 +9,22 @@ vs_out main(uint index: SV_VertexID)
 cbuffer PostProcessing: register(b1){
 	float g_ev100;
 }
-Texture2D g_hdr: register(t0);
+Texture2DMS<float4, 4> g_hdr: register(t0);
 
 float4 ps_main(vs_out input) : SV_Target
 {
-	float4 color = g_hdr.Load(int3(input.pos.x, input.pos.y, 0));
+	uint msaa = 4;
+	float3 colorSum;
+	for (int i = 0; i < msaa; ++i)
+	{
+		float3 color= g_hdr.Load(input.pos.xy, i);
+		color = adjust_exposure(color, g_ev100);
+		color = aces_tonemap(color);
+		colorSum += color;
+	}
 
-	color.xyz = adjust_exposure(color.xyz, g_ev100);
-	color.xyz = aces_tonemap(color.xyz);
-	color.xyz = gamma_correction(color.xyz);
+	colorSum /= msaa;
+	colorSum = gamma_correction(colorSum);
 
-	return color;
+	return float4(colorSum, 1.f);
 }

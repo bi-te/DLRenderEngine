@@ -57,6 +57,7 @@ public:
 	{
 		depth_stencil.reset();
 		hdr_buffer.reset();
+		skybox.reset();
 	}
 };
 

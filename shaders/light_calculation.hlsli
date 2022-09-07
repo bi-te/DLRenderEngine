@@ -128,4 +128,25 @@ float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, 
 		spotlight.radiance, spotlight.radius, solidAngle, material);
 }
 
+float3 calc_environment_light(float3 view_vec, float3 normal, Material mat)
+{
+	float3 diffuse = mat.diffuse * (1.f - mat.metallic) * g_irradiance.Sample(g_linear_clamp_sampler, normal.xyz);
+
+	float cosNV = dot(normal, view_vec);
+	if (cosNV < 0) return diffuse;
+
+	cosNV = max(cosNV, 0.0001f);
+
+	float3 f0 = lerp(INSULATOR_F0, mat.diffuse, mat.metallic);
+	float3 reflection = reflect(-view_vec, normal);
+	uint max_reflection_mip = 8;
+
+	float2 lut_coor = float2(mat.roughness, 1.f - cosNV);
+	float2 reflectanceLUT = g_reflectance.Sample(g_linear_clamp_sampler, lut_coor);
+	float3 reflectance = f0 * reflectanceLUT.x + reflectanceLUT.y;
+	float3 specular = reflectance * g_reflection.SampleLevel(g_linear_clamp_sampler, reflection, mat.roughness * max_reflection_mip);
+
+	return diffuse + specular;
+}
+
 #endif

@@ -57,7 +57,11 @@ void Controller::init_scene()
     TextureManager& texture_manager = TextureManager::instance();
 
     scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
-    scene.skybox.texture = texture_manager.add_cubemap(L"assets/cubemaps/night_street.dds");
+
+    scene.skybox.texture = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street.dds");
+    scene.skybox.irradiance_map = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street_irradiance.dds");
+    scene.skybox.reflection_map = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street_reflection.dds");
+    scene.skybox.reflectance_map = texture_manager.add_cubemap(L"assets/cubemaps/reflectance.dds");
 
     shaders.add_shader(L"shaders/opaque.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/emissive.hlsl", "main", "ps_main");
@@ -78,7 +82,7 @@ void Controller::init_scene()
 	material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_REVERSED_NORMAL_Y;
     material.render_data.metallic = 0.f;
     material.render_data.roughness = 0.1f;
-    materials.add(std::move(material));
+    materials.add(material);
 
     material = {};
     material.name = "Cobblestone_mat";
@@ -87,7 +91,7 @@ void Controller::init_scene()
     material.roughness = texture_manager.add_texture(L"assets/textures/Cobblestone/Cobblestone_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS;
     material.render_data.metallic = 0.f;
-    materials.add(std::move(material));
+    materials.add(material);
 
     material = {};
     material.name = "Stone_mat";
@@ -96,7 +100,7 @@ void Controller::init_scene()
     material.roughness = texture_manager.add_texture(L"assets/textures/Stone/Stone_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS | MATERIAL_REVERSED_NORMAL_Y;
     material.render_data.metallic = 0.f;
-    materials.add(std::move(material));
+    materials.add(material);
 
     material = {};
     material.name = "CastleBrick_mat";
@@ -105,7 +109,14 @@ void Controller::init_scene()
     material.roughness = texture_manager.add_texture(L"assets/textures/CastleBrick/CastleBrick_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS;
     material.render_data.metallic = 0.f;
-    materials.add(std::move(material));
+    materials.add(material);
+
+   /* material = {};
+    material.name = "Test_mat";
+    material.render_data.roughness = 1.f;
+    material.render_data.metallic = 1.f;
+    material.render_data.diffuse = { 0.8f, 0.3f, 0.3f };
+    materials.add(material);*/
 
     models.add_model("assets/models/Samurai/Samurai.fbx");
     models.add_model("assets/models/Knight/Knight.fbx");
@@ -117,8 +128,8 @@ void Controller::init_scene()
     models.init_flat_sphere(30, 20);
     models.init_flat_cube_sphere(20);
     
-    lights.set_ambient({ 0.1f, 0.1f, 0.1f });
-    lights.set_direct_light({ {5.f, 5.f, 5.f}, 0.1f, vec3f{0.f, -1.f, 10.f}.normalized() });
+    //lights.set_ambient({ 0.1f, 0.1f, 0.1f });
+    //lights.set_direct_light({ {5.f, 5.f, 5.f}, 0.1f, vec3f{0.f, -2.f, 1.f}.normalized() });
 
     Transform the_sun;
     the_sun.set_scale(0.5f);
@@ -127,7 +138,15 @@ void Controller::init_scene()
         {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(the_sun), 0.5f, 5.f
     };
     lights.add_point_light(minisun, "FlatCubeSphere");
-    
+
+    /*Transform pbr_trans;
+    pbr_trans.set_world_offset({ 0.f, 0.f, 0.f });
+    meshes.opaque_instances.add_model_instance(
+          models.get_ptr("Sphere"),
+        { materials.get_opaque("Test_mat") },
+        { transforms.transforms.insert(pbr_trans) }
+    );*/
+
     the_sun.set_world_offset({ 0.f, 20.f, -5.f });
     PointLight greensun = {
     {0.2f, 0.75f, 0.4f}, transforms.transforms.insert(the_sun), 0.5f, 3.f
@@ -165,9 +184,10 @@ void Controller::init_scene()
 
     //models.add_model("assets/models/InstanceTest/test.fbx");
     //Transform test;
-    //test.set_world_offset({ 20.f, 20.f, -20.f });
+    //test.set_world_offset({ 0.f, -5.f, 20.f });
     //test.set_scale({0.2f, 0.5f, 0.2f});
-    //test.set_world_rotation({0.f, 0.f, rad(90.f)});
+    ////test.set_scale({1.f, 0.5f, 1.f});
+    ////test.set_world_rotation({ rad(45.f), 0.f, 0.f});
     //meshes.opaque_instances.add_model_instance(
     //    models.get_ptr("assets/models/InstanceTest/test.fbx"),
     //    {
@@ -178,7 +198,7 @@ void Controller::init_scene()
     //);
 
     Transform samurai;
-    samurai.set_scale({15.f, 5.f, 10.f});
+    samurai.set_scale(5.f);
     samurai.set_world_offset({ 10.f, 0.f, 0.f });
     meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/Samurai/Samurai.fbx"),
@@ -309,7 +329,7 @@ void Controller::init_scene()
     scene.init_depth_stencil_state();
     scene.init_hdr_buffer(window.width(), window.height());
     
-    camera.set_world_offset({ 0.f, 10.f, -10.f });
+    camera.set_world_offset({ 0.f, 15.f, -10.f });
 
     postProcess.post_process_shader = shaders.get_ptr(L"shaders/resolve.hlsl");
     postProcess.ev100 = 0.f;
