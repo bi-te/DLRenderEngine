@@ -28,6 +28,53 @@ void ShaderManager::compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, 
 	generate_input_layout(vsBlob, shader);
 }
 
+void ShaderManager::compile_geometry_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader)
+{
+	comptr<ID3DBlob> errBlob, gsBlob;
+	HRESULT res;
+	res = D3DCompileFromFile(filename, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, "gs_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, NULL, &gsBlob, &errBlob);
+
+	if(FAILED(res))
+	{
+		if(errBlob.Get())
+		{
+			OutputDebugStringA((char*)errBlob->GetBufferPointer());
+			errBlob.Reset();
+		}
+		if (gsBlob) gsBlob.Reset();
+		assert(res && "CompileFromFile Geometry ShaderClass");
+	}
+
+	res = Direct3D::instance().device5->CreateGeometryShader(
+		gsBlob->GetBufferPointer(), gsBlob->GetBufferSize(), nullptr, &shader.geometryShader
+	);
+	assert(SUCCEEDED(res) && "CreateGeometryShader");
+}
+
+void ShaderManager::compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader)
+{
+	comptr<ID3DBlob> errBlob, psBlob;
+	HRESULT res;
+	res = D3DCompileFromFile(filename, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, "ps_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, NULL, &psBlob, &errBlob);
+	if (FAILED(res))
+	{
+		if (errBlob.Get())
+		{
+			OutputDebugStringA((char*)errBlob->GetBufferPointer());
+			errBlob.Reset();
+		}
+		if (psBlob) psBlob.Reset();
+		assert(false && "CompileFromFile Pixel ShaderClass");
+	}
+
+	res = Direct3D::instance().device5->CreatePixelShader(
+		psBlob->GetBufferPointer(), psBlob->GetBufferSize(),nullptr, &shader.pixelShader
+	);
+	assert(SUCCEEDED(res) && "CreatePixelShader");
+}
+
 void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shader& shader)
 {
 	comptr<ID3D11ShaderReflection> vertexShaderReflection;
@@ -92,30 +139,6 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 		vs_blob->GetBufferSize(), &shader.inputLayout.ptr);
 }
 
-void ShaderManager::compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader)
-{
-	comptr<ID3DBlob> errBlob, psBlob;
-	HRESULT res;
-	res = D3DCompileFromFile(filename, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, "ps_5_0",
-		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, NULL, &psBlob, &errBlob);
-	if (FAILED(res))
-	{
-		if (errBlob.Get())
-		{
-			OutputDebugStringA((char*)errBlob->GetBufferPointer());
-			errBlob.Reset();
-		}
-		if (psBlob)
-			psBlob.Reset();
-		assert(false && "CompileFromFile Vertex ShaderClass");
-	}
-
-	res = Direct3D::instance().device5->CreatePixelShader(
-		psBlob->GetBufferPointer(), psBlob->GetBufferSize(),
-		nullptr, &shader.pixelShader);
-	assert(SUCCEEDED(res) && "CreateVertexShader");
-}
-
 Shader& ShaderManager::get_shader(LPCWSTR shader)
 {
 	if (shaders.find(shader) == shaders.end())
@@ -144,13 +167,16 @@ void ShaderManager::add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPC
 	shaders.insert({filename, shader});
 }
 
-void ShaderManager::add_shader(LPCWSTR shader_name, LPCWSTR vertex_shader, LPCSTR vertex_shader_entry,
-	LPCWSTR pixel_shader, LPCSTR pixel_shader_entry)
+void ShaderManager::add_shader(LPCWSTR filename, LPCSTR vs_entry, LPCSTR gs_entry, LPCSTR ps_entry)
 {
-	if (shaders.find(shader_name) != shaders.end()) return;
+	if (shaders.find(filename) != shaders.end()) return;
 
 	std::shared_ptr<Shader> shader{ new Shader };
-	compile_vertex_shader(vertex_shader, vertex_shader_entry, *shader);
-	compile_pixel_shader(pixel_shader, pixel_shader_entry, *shader);
-	shaders.insert({ shader_name, shader });
+	if(vs_entry)
+		compile_vertex_shader(filename, vs_entry, *shader);
+	if(gs_entry)
+		compile_geometry_shader(filename, gs_entry, *shader);
+	if(ps_entry)
+		compile_pixel_shader(filename, ps_entry, *shader);
+	shaders.insert({ filename, shader });
 }

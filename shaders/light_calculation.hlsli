@@ -149,4 +149,29 @@ float3 calc_environment_light(float3 view_vec, float3 normal, Material mat)
 	return diffuse + specular;
 }
 
+uint select_cube_face(float3 unitDir)
+{
+	float maxVal = max(abs(unitDir.x), max(abs(unitDir.y), abs(unitDir.z)));
+	uint index = abs(unitDir.x) == maxVal ? 0 : (abs(unitDir.y) == maxVal ? 2 : 4);
+	return index + (asuint(unitDir[index / 2]) >> 31);
+}
+
+float point_shadow_calc(PointLight pLight, LightTransBuffer pTrans, float3 world_position, float3 normal, uint index)
+{
+	float3 light_vec = normalize(pLight.position - world_position);
+	uint face = select_cube_face(-light_vec);
+
+	float3 compare_point = world_position + light_vec * offset;
+	float4 compare = mul(pTrans.light_view[face], float4(compare_point, 1.f));
+	compare = mul(pTrans.light_proj, compare);
+	compare /= compare.w;
+
+	float4 lv_pos = mul(pTrans.light_view[face], float4(world_position, 1.f));
+	float tex_size = 2.f * lv_pos.z / g_lighting.buffer_side;
+
+	float3 sample_point = world_position + normal * tex_size;
+
+	return g_shadows.SampleCmp(g_comparison_sampler, float4(normalize(sample_point - pLight.position), index), compare.z);
+}
+
 #endif

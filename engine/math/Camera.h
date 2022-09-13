@@ -1,8 +1,16 @@
 #pragma once
 
 #include "math/math.h"
+#include "Transform.h"
 
 mat4f invert_to_view(mat4f& src);
+mat4f lookAt(const vec3f& position, const vec3f& up, const vec3f& front);
+mat4f lookAt(const Transform& transform, const vec3f& front);
+mat4f perspective_proj(float fov, float aspect, float zn, float zf);
+
+const vec3f WORLD_X{ 1.f, 0.f, 0.f };
+const vec3f WORLD_Y{ 0.f, 1.f, 0.f };
+const vec3f WORLD_Z{ 0.f, 0.f, 1.f };
 
 class Camera
 {
@@ -22,7 +30,7 @@ public:
 
 	bool matrices_update = false, basis_update = false;
 
-	vec4f blnear_fpoint = { -1, -1, 1, 1 };
+	vec4f blnear_fpoint = { -1.f, -1.f, 1.f, 1.f };
 	vec4f frustrum_up = vec4f::Identity();
 	vec4f frustrum_right = vec4f::Identity();
 

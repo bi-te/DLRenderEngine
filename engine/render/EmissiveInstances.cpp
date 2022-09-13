@@ -59,10 +59,8 @@ void EmissiveInstances::update_instance_buffer()
 void EmissiveInstances::render()
 {
 	Direct3D& direct = Direct3D::instance();
-	
-	direct.context4->VSSetShader(emissiveShader->vertexShader.Get(), nullptr, NULL);
-	direct.context4->PSSetShader(emissiveShader->pixelShader.Get(), nullptr, NULL);
-	direct.context4->IASetInputLayout(emissiveShader->inputLayout.ptr.Get());
+
+	emissiveShader->bind();
 
 	update_instance_buffer();
 	uint32_t instance_stride = sizeof(EmissiveInstanceBuffer), ioffset = 0;

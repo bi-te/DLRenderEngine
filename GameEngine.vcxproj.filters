@@ -553,6 +553,9 @@
     <FxCompile Include="shaders\resolve.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\omnidirectional_shadows.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\globals.hlsli">

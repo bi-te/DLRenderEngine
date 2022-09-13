@@ -13,18 +13,31 @@ struct InputLayout
 struct Shader
 {
 	comptr<ID3D11VertexShader> vertexShader;
+	comptr<ID3D11GeometryShader> geometryShader;
 	comptr<ID3D11PixelShader> pixelShader;
 	InputLayout inputLayout;
+
+	void bind() const
+	{
+		Direct3D& direct = Direct3D::instance();
+
+		direct.context4->VSSetShader(vertexShader.Get(), nullptr, NULL);
+		direct.context4->GSSetShader(geometryShader.Get(), nullptr, NULL);
+		direct.context4->PSSetShader(pixelShader.Get(), nullptr, NULL);
+		direct.context4->IASetInputLayout(inputLayout.ptr.Get());
+	}
 
 	void reset()
 	{
 		vertexShader.Reset();
+		geometryShader.Reset();
 		pixelShader.Reset();
 		inputLayout.ptr.Reset();
 	}
 };
 
 const char PER_INSTANCE_PREFIX[] = "Inst_";
+
 
 class ShaderManager
 {
@@ -39,6 +52,7 @@ class ShaderManager
 	std::unordered_map<LPCWSTR, std::shared_ptr<Shader>, pwchar_hash, pwchar_comparator> shaders;
 
 	void compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
+	void compile_geometry_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
 	void compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
 	void generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shader& shader);
 public:
@@ -67,8 +81,6 @@ public:
 	std::shared_ptr<Shader> get_ptr(LPCWSTR shader);
 
 	void add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry);
-	void add_shader(LPCWSTR shader_name, 
-					LPCWSTR vertex_shader, LPCSTR vertex_shader_entry,
-					LPCWSTR pixel_shader, LPCSTR pixel_shader_entry);
+	void add_shader(LPCWSTR filename, LPCSTR vs_entry, LPCSTR gs_entry, LPCSTR ps_entry);
 };
 

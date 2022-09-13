@@ -47,11 +47,15 @@ public:
 	DepthStencil depth_stencil;
 	RenderBuffer hdr_buffer;
 
+	std::shared_ptr<Shader> shadowShader;
+
 	void init_depth_and_stencil_buffer(uint32_t width, uint32_t height);
 	void init_depth_stencil_state();
 	void init_hdr_buffer(uint32_t width, uint32_t height);
 	
 	void render(RenderBuffer& target_buffer, const Camera& camera, const PostProcess& post_process);
+	void shadow_pass();
+
 
 	void render_reset()
 	{

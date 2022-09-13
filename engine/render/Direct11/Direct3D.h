@@ -32,6 +32,13 @@ struct SpotlightBuffer
 	float outerCutOff;
 };
 
+struct LightTransBuffer
+{
+	mat4f light_view[6];
+	mat4f light_proj;
+};
+
+
 const uint32_t MAX_LIGHTS_NUMBER = 10;
 struct LightBuffer
 {
@@ -43,6 +50,11 @@ struct LightBuffer
 
 	SpotlightBuffer spotlights[MAX_LIGHTS_NUMBER];
 	PointLightBuffer pointLights[MAX_LIGHTS_NUMBER];
+	LightTransBuffer pointTrans[MAX_LIGHTS_NUMBER];
+
+	float shadow_near, shadow_far;
+	float buffer_side_size;
+	float padding;
 };
 
 struct PerFrame
@@ -78,7 +90,10 @@ public:
 
 	comptr<ID3D11SamplerState> sampler_state;
 	comptr<ID3D11SamplerState> linear_clamp_sampler_state;
+	comptr<ID3D11SamplerState> comparison_sampler_state;
 	comptr<ID3D11RasterizerState> rasterizer_state;
+
+	comptr<ID3D11ShaderResourceView> reflectance_map;
 
 	DynamicBuffer per_frame_buffer{ D3D11_BIND_CONSTANT_BUFFER };
 
@@ -94,6 +109,7 @@ public:
 	void init_rasterizer_state();
 	void init_sampler_state(D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR, uint8_t anisotropy = 0);
 	void init_linear_clamp_sampler();
+	void init_comparison_sampler();
 
 	void bind_globals(const Camera& camera);
 

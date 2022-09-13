@@ -2,6 +2,7 @@
 #define _GLOBALS_
 
 static const float PI = 3.14159265f;
+static const float offset = 0.01f;
 
 struct Frustum
 {
@@ -39,6 +40,13 @@ struct Spotlight
 	float outerCutOff;
 };
 
+struct LightTransBuffer
+{
+	//vec4f light_pos;
+	float4x4 light_view[6];
+	float4x4 light_proj;
+};
+
 static const uint MAX_LIGHTS_NUMBER = 10;
 struct LightBuffer
 {
@@ -50,14 +58,21 @@ struct LightBuffer
 
 	Spotlight spotlights[MAX_LIGHTS_NUMBER];
 	PointLight pointLights[MAX_LIGHTS_NUMBER];
+	LightTransBuffer pointTrans[MAX_LIGHTS_NUMBER];
+
+	float shadow_near, shadow_far;
+	float buffer_side;
+	float padding;
 };
 
 SamplerState g_sampler: register(s0);
 SamplerState g_linear_clamp_sampler: register(s1);
+SamplerComparisonState g_comparison_sampler: register(s2);
 
 Texture2D g_reflectance: register(t0);
 TextureCube g_irradiance: register(t1);
 TextureCube g_reflection: register(t2);
+TextureCubeArray g_shadows:register(t3);
 
 cbuffer perFrame: register(b0)
 {

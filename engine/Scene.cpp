@@ -7,6 +7,7 @@
 #include "imgui/ImGuiManager.h"
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
+#include "moving/TransformSystem.h"
 #include "render/LightSystem.h"
 #include "render/MeshSystem.h"
 #include "render/ShaderManager.h"
@@ -52,10 +53,31 @@ void Scene::init_hdr_buffer(uint32_t width, uint32_t height)
 {
 	hdr_buffer.create(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
 }
+void Scene::shadow_pass()
+{
+	Direct3D& direct = Direct3D::instance();
+	LightSystem& light_system = LightSystem::instance();
+	
+	shadowShader->bind();
+
+	direct.context4->PSSetShaderResources(3, 1, &NULL_SRV);
+	light_system.bind_depth_state();
+
+	uint32_t lightNum = light_system.plights().size();
+	for (uint32_t light = 0; light < lightNum; light++)
+	{
+		light_system.bind_shadow_light(light);
+		MeshSystem::instance().opaque_instances.mesh_render();
+	}
+}
 
 void Scene::render(RenderBuffer& target_buffer, const Camera& camera, const PostProcess& post_process)
 {
 	Direct3D& direct = Direct3D::instance();
+
+	direct.bind_globals(camera);
+
+	shadow_pass();
 
 	hdr_buffer.clear();
 	hdr_buffer.bind_rtv(depth_stencil.view);
@@ -63,12 +85,11 @@ void Scene::render(RenderBuffer& target_buffer, const Camera& camera, const Post
 	direct.context4->ClearDepthStencilView(depth_stencil.view.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
 	direct.context4->RSSetState(direct.rasterizer_state.Get());
 	direct.context4->OMSetDepthStencilState(depth_stencil.state.Get(), 1);
-
-	direct.bind_globals(camera);
-
-	direct.context4->PSSetShaderResources(0, 1, skybox.reflectance_map.GetAddressOf());
+		
 	direct.context4->PSSetShaderResources(1, 1, skybox.irradiance_map.GetAddressOf());
 	direct.context4->PSSetShaderResources(2, 1, skybox.reflection_map.GetAddressOf());
+	direct.context4->PSSetShaderResources(3, 1, LightSystem::instance().depthBuffer.srv.GetAddressOf());
+
 	MeshSystem::instance().render();
 	skybox.render();
 	

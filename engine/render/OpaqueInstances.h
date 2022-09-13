@@ -64,7 +64,10 @@ public:
 	                        const std::vector<OpaqueMaterial>& materials,
 	                        const Instance& instance);
 
+	void bind_instance_buffer();
 	void update_instance_buffer();
+
 	void render();
+	void mesh_render();
 };
 

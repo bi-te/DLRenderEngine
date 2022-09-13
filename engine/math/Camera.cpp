@@ -13,6 +13,56 @@ mat4f invert_to_view(mat4f& src)
 	return res;
 }
 
+mat4f lookAt(const vec3f& position, const vec3f& up, const vec3f& front)
+{
+	mat4f view = mat4f::Identity();
+	vec3f right = up.cross(front).normalized();
+
+	view.row(0).head<3>() = right;
+	view.row(1).head<3>() = up;
+	view.row(2).head<3>() = front;
+	view.transposeInPlace();
+
+	view.row(3).head<3>() = vec3f{
+		-position.dot(view.col(0).head<3>()),
+		-position.dot(view.col(1).head<3>()),
+		-position.dot(view.col(2).head<3>())
+	};
+
+	return view;
+}
+
+mat4f lookAt(const Transform& transform, const vec3f& front)
+{
+	mat4f view = mat4f::Identity();
+	vec3f up_vec = vec3f{ 0.f, 1.f, 0.f } *transform.rot_matrix;
+	vec3f front_vec = front * transform.rot_matrix;
+	vec3f right_vec = up_vec.cross(front_vec).normalized();
+
+	view.col(0).head<3>() = right_vec;
+	view.col(1).head<3>() = up_vec;
+	view.col(2).head<3>() = front_vec;
+	view.row(3).head<3>() = vec3f{
+		-transform.position().dot(up_vec),
+		-transform.position().dot(front_vec),
+		-transform.position().dot(right_vec)
+	};
+
+	return view;
+}
+
+mat4f perspective_proj(float fov, float aspect, float zn, float zf)
+{
+	mat4f proj = mat4f::Identity();
+	proj(1, 1) = 1.f / tanf(fov / 2);
+	proj(0, 0) = proj(1, 1) / aspect;
+	proj(2, 2) = zn / (zn - zf);
+	proj(2, 3) = 1;
+	proj(3, 2) = -zf * proj(2, 2);
+	proj(3, 3) = 0;
+	return proj;
+}
+
 void Camera::set_perspective(float fov, float aspect, float zn, float zf)
 {
 	this->fov = fov;

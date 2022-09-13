@@ -33,38 +33,17 @@ vs_out main(vs_in input)
 	res.world_position = mul(input.model_transform, res.world_position);
 	res.position = mul(g_viewProj, res.world_position);
 
-	float4x4 meshToWorld = mul(g_mesh_transform, input.model_transform);
-
-	float3 axisX = normalize(float3(meshToWorld[0].x, meshToWorld[1].x, meshToWorld[2].x));
-	float3 axisY = normalize(float3(meshToWorld[0].y, meshToWorld[1].y, meshToWorld[2].y));
-	float3 axisZ = normalize(float3(meshToWorld[0].z, meshToWorld[1].z, meshToWorld[2].z));
-
 	float3 world_normal, world_tangent, world_bitangent;
+
+	//float4x4 meshToWorld = mul(g_mesh_transform, input.model_transform);
+
+	//float3 axisX = normalize(float3(meshToWorld[0].x, meshToWorld[1].x, meshToWorld[2].x));
+	//float3 axisY = normalize(float3(meshToWorld[0].y, meshToWorld[1].y, meshToWorld[2].y));
+	//float3 axisZ = normalize(float3(meshToWorld[0].z, meshToWorld[1].z, meshToWorld[2].z));
 
 	//world_normal = input.normal.x * axisX + input.normal.y * axisY + input.normal.z * axisZ;
 	//world_tangent = input.tangent.x * axisX + input.tangent.y * axisY + input.tangent.z * axisZ;
 	//world_bitangent = input.bitangent.x * axisX + input.bitangent.y * axisY + input.bitangent.z * axisZ;
-
-	//world_normal = mul(g_mesh_transform, float4(input.normal, 0.f)) / input.model_scale;
-	//world_normal /= input.model_scale;
-	//world_normal = mul(input.model_transform, world_normal);
-
-	//world_tangent = mul(g_mesh_transform, float4(input.tangent, 0.f)) / input.model_scale;
-	//world_tangent /= input.model_scale;;
-	//world_tangent = mul(input.model_transform, world_tangent);
-
-	//world_bitangent = mul(g_mesh_transform, float4(input.bitangent, 0.f)) / input.model_scale;
-	//world_bitangent /= input.model_scale;
-	//world_bitangent = mul(input.model_transform, world_bitangent);
-	
-	//world_normal = mul(g_mesh_transform, float4(input.normal, 0.f));
-	//world_normal = mul(input.model_transform, world_normal);
-
-	//world_tangent = mul(g_mesh_transform, float4(input.tangent, 0.f));
-	//world_tangent = mul(input.model_transform, world_tangent);
-
-	//world_bitangent = mul(g_mesh_transform, float4(input.bitangent, 0.f));
-	//world_bitangent = mul(input.model_transform, world_bitangent);
 
 	world_normal = mul(g_mesh_transform, float4(input.normal, 0.f));
 	world_normal = mul(input.model_scale, world_normal);
@@ -88,10 +67,10 @@ cbuffer MaterialBuffer: register(b2)
 	Material g_material;
 }
 
-Texture2D g_diffuse : register(t3);
-Texture2D g_normals: register(t4);
-Texture2D g_roughness: register(t5);
-Texture2D g_metallic: register(t6);
+Texture2D g_diffuse : register(t4);
+Texture2D g_normals: register(t5);
+Texture2D g_roughness: register(t6);
+Texture2D g_metallic: register(t7);
 
 float3 ps_main(vs_out input) : Sv_Target
 {
@@ -119,13 +98,15 @@ float3 ps_main(vs_out input) : Sv_Target
 
 	float3 res_color = calc_environment_light(view_vec, normal, mat);
 
-	//res_color += calc_direct_light_pbr(view_vec, mesh_normal, normal, g_lighting.dirLight, mat);
-
 	for (int pLight_ind = 0; pLight_ind < g_lighting.pointLightNum; ++pLight_ind)
-		res_color += calc_point_light_pbr(input.world_position, view_vec, mesh_normal, normal, g_lighting.pointLights[pLight_ind], mat);
+	{
+		PointLight pLight = g_lighting.pointLights[pLight_ind];
+		LightTransBuffer pTrans = g_lighting.pointTrans[pLight_ind];
 
-	for (int sLight_ind = 0; sLight_ind < g_lighting.spotlightNum; ++sLight_ind)
-		res_color += calc_spotlight_pbr(input.world_position, view_vec, mesh_normal, normal, g_lighting.spotlights[sLight_ind], mat);
+		float depth = point_shadow_calc(pLight, pTrans, input.world_position, mesh_normal, pLight_ind);
+
+		res_color += depth * calc_point_light_pbr(input.world_position, view_vec, mesh_normal, normal, pLight, mat);
+	}
 
 	return res_color;
 }
