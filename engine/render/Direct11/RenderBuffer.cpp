@@ -22,13 +22,13 @@ void RenderBuffer::create(uint32_t buffer_width, uint32_t buffer_height, DXGI_FO
 	HRESULT result = Direct3D::instance().device5->CreateTexture2D(&desc, nullptr, &hdr);
 	assert(SUCCEEDED(result) && "CreateTexture2D hdr texture");
 
-	D3D11_RENDER_TARGET_VIEW_DESC rtv_desc;
+	D3D11_RENDER_TARGET_VIEW_DESC rtv_desc{};
 	rtv_desc.Format = desc.Format;
 	rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
 	result = Direct3D::instance().device5->CreateRenderTargetView(hdr.Get(), &rtv_desc, &rtv);
 	assert(SUCCEEDED(result) && "HDR Texture as RendreTargetView");
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 	srv_desc.Format = desc.Format;
 	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
 	result = Direct3D::instance().device5->CreateShaderResourceView(hdr.Get(), nullptr, &srv);

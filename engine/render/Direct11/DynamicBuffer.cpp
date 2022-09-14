@@ -38,7 +38,7 @@ void DynamicBuffer::write(const void* data, uint32_t bytesize)
 	Direct3D::instance().device5->CreateBuffer(&desc, &subdata, &buffer);
 }
 
-D3D11_MAPPED_SUBRESOURCE& DynamicBuffer::map()
+D3D11_MAPPED_SUBRESOURCE DynamicBuffer::map()
 {
 	D3D11_MAPPED_SUBRESOURCE subresource{};
 

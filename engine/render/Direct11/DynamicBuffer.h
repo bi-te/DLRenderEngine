@@ -16,7 +16,7 @@ public:
 	void write(const void* data);
 	void write(const void* data, uint32_t bytesize);
 
-	D3D11_MAPPED_SUBRESOURCE& map();
+	D3D11_MAPPED_SUBRESOURCE map();
 	void unmap();
 
 	ID3D11Buffer* get() { return buffer.Get(); }

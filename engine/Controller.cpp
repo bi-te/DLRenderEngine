@@ -332,7 +332,7 @@ void Controller::init_scene()
     postProcess.ev100 = 0.f;
     postProcess.update();
 
-    lights.init_depth_buffers(256);
+    lights.init_depth_buffers(512);
 }
 
 void Controller::process_gui_input()

@@ -2,13 +2,13 @@
 #define _GLOBALS_
 
 static const float PI = 3.14159265f;
-static const float offset = 0.01f;
+static const float offset = 0.02f;
 
 struct Frustum
 {
 	float4 bottom_left;
 	float4 up_vector;
-	float3 right_vector;
+	float4 right_vector;
 };
 
 struct DirectLight

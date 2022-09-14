@@ -89,7 +89,7 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 		D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
 		vertexShaderReflection->GetInputParameterDesc(i, &paramDesc);
 
-		D3D11_INPUT_ELEMENT_DESC elementDesc;
+		D3D11_INPUT_ELEMENT_DESC elementDesc{};
 		elementDesc.SemanticName = paramDesc.SemanticName;
 		elementDesc.SemanticIndex = paramDesc.SemanticIndex;
 		elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
@@ -137,6 +137,7 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 	HRESULT result = Direct3D::instance().device5->CreateInputLayout(&inputLayoutDesc[0],
 		inputLayoutDesc.size(), vs_blob->GetBufferPointer(),
 		vs_blob->GetBufferSize(), &shader.inputLayout.ptr);
+	assert(SUCCEEDED(result) && "CreateInputLayout");
 }
 
 Shader& ShaderManager::get_shader(LPCWSTR shader)

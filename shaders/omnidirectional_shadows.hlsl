@@ -36,7 +36,6 @@ vs_out main(vs_in input)
 struct gs_out
 {
 	float4 pos: Sv_Position;
-	float4 world_pos: Position;
 	uint face_slice: Sv_RenderTargetArrayIndex;
 };
 
@@ -44,13 +43,14 @@ struct gs_out
 void gs_main(triangle vs_out input[3], inout TriangleStream<gs_out> output)
 {
 	gs_out res;
+	[unroll]
 	for (uint face = 0; face < 6; ++face)
 	{
 		res.face_slice = face;
+		
 		for(uint vertex = 0; vertex < 3; vertex++)
 		{
-			res.world_pos = input[vertex].world_pos;
-			res.pos = mul(g_lighting.pointTrans[g_index].light_view[face], res.world_pos);
+			res.pos = mul(g_lighting.pointTrans[g_index].light_view[face], input[vertex].world_pos);
 			res.pos = mul(g_lighting.pointTrans[g_index].light_proj, res.pos);
 			output.Append(res);
 		}
