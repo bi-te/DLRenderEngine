@@ -88,7 +88,7 @@ void Direct3D::init_comparison_sampler()
     device5->CreateSamplerState(&sdesc, &comparison_sampler_state);
 }
 
-void Direct3D::bind_globals(const Camera& camera)
+void Direct3D::bind_globals(const Camera& camera, uint32_t max_reflection_mip)
 {
     PerFrame* per_frame = static_cast<PerFrame*>(per_frame_buffer.map().pData);
 
@@ -97,6 +97,7 @@ void Direct3D::bind_globals(const Camera& camera)
     per_frame->frustum.up_vector = camera.frustrum_up;
     per_frame->frustum.right_vector = camera.frustrum_right;
     per_frame->camera_pos = camera.position();
+    per_frame->max_reflection_mip = max_reflection_mip;
 
     LightSystem::instance().bind_lights(&per_frame->light_buffer);
 

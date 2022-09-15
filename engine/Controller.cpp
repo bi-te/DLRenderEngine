@@ -15,7 +15,7 @@
 void Controller::render()
 {
     window.clear_buffer();
-    scene.render(window.buffer, camera, postProcess);
+    scene.render(window.buffer, postProcess, camera);
     window.swap_buffer();
 }
 
@@ -60,6 +60,7 @@ void Controller::init_scene()
     shaders.add_shader(L"shaders/emissive.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/sky.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/resolve.hlsl", "main", "ps_main");
+    shaders.add_shader(L"shaders/resolve_ms.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/omnidirectional_shadows.hlsl", "main", "gs_main", nullptr);
 
     scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
@@ -69,7 +70,7 @@ void Controller::init_scene()
 
     scene.skybox.texture = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street.dds");
     scene.skybox.irradiance_map = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street_irradiance.dds");
-    scene.skybox.reflection_map = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street_reflection.dds");
+    scene.skybox.load_reflection(L"assets/cubemaps/night_street/night_street_reflection.dds");
     Direct3D::instance().reflectance_map = texture_manager.add_cubemap(L"assets/cubemaps/reflectance.dds");
 
     OpaqueMaterial material;
@@ -322,15 +323,14 @@ void Controller::init_scene()
 
     init_floor(16, 16);
 
-    scene.init_depth_and_stencil_buffer(window.width(), window.height());
+    scene.init_hdr_and_depth_buffer(window.width(), window.height(), 4);
     scene.init_depth_stencil_state();
-    scene.init_hdr_buffer(window.width(), window.height());
     
     camera.set_world_offset({ 0.f, 15.f, -10.f });
 
     postProcess.post_process_shader = shaders.get_ptr(L"shaders/resolve.hlsl");
+    postProcess.post_process_shader_ms = shaders.get_ptr(L"shaders/resolve_ms.hlsl");
     postProcess.ev100 = 0.f;
-    postProcess.update();
 
     lights.init_depth_buffers(512);
 }
@@ -338,7 +338,7 @@ void Controller::init_scene()
 void Controller::process_gui_input()
 {
     ImGui::Begin("Render Settings");
-
+    
     static const char* filter_labels[] = {
         "MIN_MAG_MIP_POINT",
         "MIN_MAG_POINT_MIP_LINEAR",
@@ -372,14 +372,21 @@ void Controller::process_gui_input()
     if (ImGui::SliderInt("Max Anisotropy", &manisotropy, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY) 
         && filters[index] == D3D11_FILTER_ANISOTROPIC)
         Direct3D::instance().init_sampler_state(filters[index], manisotropy);
+    
+    static int msaa = 2;
+    if (ImGui::SliderInt("MSAA", &msaa, 0, 3))
+        scene.init_hdr_and_depth_buffer(scene.hdr_buffer.width, scene.hdr_buffer.height, 1 << msaa);
+
+    ImGui::SameLine();
+    ImGui::Text("%d", 1 << msaa);
 
     ImGui::End();
 }
 
 void Controller::OnResize(uint32_t width, uint32_t height)
 {
-    scene.init_hdr_buffer(width, height);
-    scene.init_depth_and_stencil_buffer(width, height);
+    scene.init_hdr_and_depth_buffer(width, height, scene.hdr_buffer.msaa);
+    scene.init_depth_stencil_buffer(width, height);
     camera.change_aspect(float(width) / height);
 }
 
@@ -410,8 +417,8 @@ void Controller::process_input(float dt)
         is.keyboard.keys[I] = false;
     }
 
-    if (is.keyboard.keys[PLUS]) { postProcess.ev100 += 0.1f; postProcess.update(); }
-    if (is.keyboard.keys[MINUS]){ postProcess.ev100 -= 0.1f; postProcess.update(); }
+    if (is.keyboard.keys[PLUS])  postProcess.ev100 += 0.1f;
+    if (is.keyboard.keys[MINUS]) postProcess.ev100 -= 0.1f;
 
     vec3f move{ 0.f, 0.f, 0.f };
     Angles rot{};

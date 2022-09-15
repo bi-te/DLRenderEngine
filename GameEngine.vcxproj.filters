@@ -550,10 +550,13 @@
     <FxCompile Include="shaders\emissive.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\resolve.hlsl">
+    <FxCompile Include="shaders\resolve_ms.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\omnidirectional_shadows.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\resolve.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -2,10 +2,11 @@
 
 const vec4f RenderBuffer::default_color { 0.f, 0.f, 0.f, 0.f };
 
-void RenderBuffer::create(uint32_t buffer_width, uint32_t buffer_height, DXGI_FORMAT format, UINT bind_flags)
+void RenderBuffer::create(uint32_t buffer_width, uint32_t buffer_height, DXGI_FORMAT format, uint32_t buffer_msaa, UINT bind_flags)
 {
 	width = buffer_width;
 	height = buffer_height;
+	msaa = buffer_msaa;
 
 	comptr<ID3D11Texture2D> hdr;
 	D3D11_TEXTURE2D_DESC desc{};
@@ -17,7 +18,7 @@ void RenderBuffer::create(uint32_t buffer_width, uint32_t buffer_height, DXGI_FO
 	desc.MipLevels = 1u;
 	desc.ArraySize = 1u;
 	desc.Usage = D3D11_USAGE_DEFAULT;
-	desc.SampleDesc.Count = 4u;
+	desc.SampleDesc.Count = msaa;
 	desc.SampleDesc.Quality = 0u;
 	HRESULT result = Direct3D::instance().device5->CreateTexture2D(&desc, nullptr, &hdr);
 	assert(SUCCEEDED(result) && "CreateTexture2D hdr texture");
@@ -33,7 +34,6 @@ void RenderBuffer::create(uint32_t buffer_width, uint32_t buffer_height, DXGI_FO
 	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
 	result = Direct3D::instance().device5->CreateShaderResourceView(hdr.Get(), nullptr, &srv);
 	assert(SUCCEEDED(result) && "HDR Texture as ShaderResourceView");
-
 }
 
 void RenderBuffer::create(const D3D11_TEXTURE2D_DESC& desc)

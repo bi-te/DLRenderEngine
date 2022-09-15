@@ -49,11 +49,11 @@ public:
 
 	std::shared_ptr<Shader> shadowShader;
 
-	void init_depth_and_stencil_buffer(uint32_t width, uint32_t height);
+	void init_depth_stencil_buffer(uint32_t width, uint32_t height);
 	void init_depth_stencil_state();
-	void init_hdr_buffer(uint32_t width, uint32_t height);
+	void init_hdr_and_depth_buffer(uint32_t width, uint32_t height, uint32_t msaa);
 	
-	void render(RenderBuffer& target_buffer, const Camera& camera, const PostProcess& post_process);
+	void render(RenderBuffer& target_buffer, PostProcess& post_process, const Camera& camera);
 	void shadow_pass();
 
 

@@ -9,7 +9,8 @@ struct Shader;
 struct PostProcessBuffer
 {
 	float ev100;
-	float padding[3];
+	uint32_t msaa;
+	float padding[2];
 };
 
 class PostProcess
@@ -18,15 +19,15 @@ class PostProcess
 public:
 	float ev100;
 	std::shared_ptr<Shader> post_process_shader;
+	std::shared_ptr<Shader> post_process_shader_ms;
 
 	PostProcess()
 	{
 		postProcessBuffer.allocate(sizeof(PostProcessBuffer));
 	}
 
-	void update();
-
-	void resolve(RenderBuffer& hdrInput, RenderBuffer& ldrOutput) const;
+	void update_buffer(uint32_t msaa);
+	void resolve(RenderBuffer& hdrInput, RenderBuffer& ldrOutput);
 
 	void render_reset()
 	{

@@ -80,7 +80,7 @@ cbuffer perFrame: register(b0)
 	Frustum g_frustum;
 
 	float3 g_cameraPosition;
-	float padding0;
+	uint g_max_reflection_mip;
 
 	LightBuffer g_lighting;
 }

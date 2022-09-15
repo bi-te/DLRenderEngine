@@ -64,7 +64,7 @@ struct PerFrame
 	Frustum frustum;
 
 	vec3f camera_pos;
-	float padding0;
+	uint32_t max_reflection_mip;
 
 	LightBuffer light_buffer;
 };
@@ -111,7 +111,7 @@ public:
 	void init_linear_clamp_sampler();
 	void init_comparison_sampler();
 
-	void bind_globals(const Camera& camera);
+	void bind_globals(const Camera& camera, uint32_t max_reflection_mip);
 
 	static void reset();
 };
