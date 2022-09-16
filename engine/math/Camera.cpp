@@ -18,15 +18,14 @@ mat4f lookAt(const vec3f& position, const vec3f& up, const vec3f& front)
 	mat4f view = mat4f::Identity();
 	vec3f right = up.cross(front).normalized();
 
-	view.row(0).head<3>() = right;
-	view.row(1).head<3>() = up;
-	view.row(2).head<3>() = front;
-	view.transposeInPlace();
+	view.col(0).head<3>() = right;
+	view.col(1).head<3>() = up;
+	view.col(2).head<3>() = front;
 
 	view.row(3).head<3>() = vec3f{
-		-position.dot(view.col(0).head<3>()),
-		-position.dot(view.col(1).head<3>()),
-		-position.dot(view.col(2).head<3>())
+		-position.dot(right),
+		-position.dot(up),
+		-position.dot(front)
 	};
 
 	return view;
@@ -43,9 +42,9 @@ mat4f lookAt(const Transform& transform, const vec3f& front)
 	view.col(1).head<3>() = up_vec;
 	view.col(2).head<3>() = front_vec;
 	view.row(3).head<3>() = vec3f{
+		-transform.position().dot(right_vec),
 		-transform.position().dot(up_vec),
-		-transform.position().dot(front_vec),
-		-transform.position().dot(right_vec)
+		-transform.position().dot(front_vec)
 	};
 
 	return view;

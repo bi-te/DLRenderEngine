@@ -47,7 +47,8 @@ public:
 	DepthStencil depth_stencil;
 	RenderBuffer hdr_buffer;
 
-	std::shared_ptr<Shader> shadowShader;
+	std::shared_ptr<Shader> pointShadowShader;
+	std::shared_ptr<Shader> spotShadowShader;
 
 	void init_depth_stencil_buffer(uint32_t width, uint32_t height);
 	void init_depth_stencil_state();

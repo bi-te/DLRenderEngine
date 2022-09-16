@@ -67,10 +67,10 @@ cbuffer MaterialBuffer: register(b2)
 	Material g_material;
 }
 
-Texture2D g_diffuse : register(t4);
-Texture2D g_normals: register(t5);
-Texture2D g_roughness: register(t6);
-Texture2D g_metallic: register(t7);
+Texture2D g_diffuse : register(t5);
+Texture2D g_normals: register(t6);
+Texture2D g_roughness: register(t7);
+Texture2D g_metallic: register(t8);
 
 float3 ps_main(vs_out input) : Sv_Target
 {
@@ -100,11 +100,14 @@ float3 ps_main(vs_out input) : Sv_Target
 
 	for (uint pLight_ind = 0; pLight_ind < g_lighting.pointLightNum; ++pLight_ind)
 	{
-		PointLight pLight = g_lighting.pointLights[pLight_ind];
-		LightTransBuffer pTrans = g_lighting.pointTrans[pLight_ind];
+		float depth = point_shadow_calc(input.world_position.xyz, mesh_normal, pLight_ind);
+		res_color += depth * calc_point_light_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, g_lighting.pointLights[pLight_ind], mat);
+	}
 
-		float depth = point_shadow_calc(pLight, pTrans, input.world_position.xyz, mesh_normal, pLight_ind);
-		res_color += depth * calc_point_light_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, pLight, mat);		
+	for(uint sLight_ind = 0; sLight_ind < g_lighting.spotlightNum; ++sLight_ind)
+	{
+		float depth = spot_shadow_calc(input.world_position.xyz, mesh_normal, sLight_ind);
+		res_color += depth * calc_spotlight_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, g_lighting.spotlights[sLight_ind], mat);
 	}
 
 	return res_color;

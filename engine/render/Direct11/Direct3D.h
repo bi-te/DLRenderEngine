@@ -32,9 +32,15 @@ struct SpotlightBuffer
 	float outerCutOff;
 };
 
-struct LightTransBuffer
+struct PointLightTransBuffer
 {
 	mat4f light_view[6];
+	mat4f light_proj;
+};
+
+struct SpotlightTransBuffer
+{
+	mat4f light_view;
 	mat4f light_proj;
 };
 
@@ -49,8 +55,9 @@ struct LightBuffer
 	uint32_t spotlightNum;
 
 	SpotlightBuffer spotlights[MAX_LIGHTS_NUMBER];
+	SpotlightTransBuffer spotTrans[MAX_LIGHTS_NUMBER];
 	PointLightBuffer pointLights[MAX_LIGHTS_NUMBER];
-	LightTransBuffer pointTrans[MAX_LIGHTS_NUMBER];
+	PointLightTransBuffer pointTrans[MAX_LIGHTS_NUMBER];
 
 	float shadow_near, shadow_far;
 	float buffer_side_size;

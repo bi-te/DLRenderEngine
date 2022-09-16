@@ -4,14 +4,6 @@
 #include "Direct11/Direct3D.h"
 #include "Direct11/DynamicBuffer.h"
 
-struct PointLightsDepthBuffer
-{
-	D3D11_VIEWPORT viewport;
-	std::vector<comptr<ID3D11DepthStencilView>> views;
-	comptr<ID3D11DepthStencilState> state;
-	comptr<ID3D11ShaderResourceView> srv;
-};
-
 struct ShadowBuffer
 {
 	uint32_t index;
@@ -20,6 +12,16 @@ struct ShadowBuffer
 
 class LightSystem
 {
+	struct DepthBuffer
+	{
+		D3D11_VIEWPORT viewport;
+		std::vector<comptr<ID3D11DepthStencilView>> views;
+		std::vector<comptr<ID3D11DepthStencilView>> spot_views;
+		comptr<ID3D11ShaderResourceView> srv;
+		comptr<ID3D11ShaderResourceView> spot_srv;
+		comptr<ID3D11DepthStencilState> state;
+	};
+
 	static LightSystem* s_system;
 	LightSystem()
 	{
@@ -41,7 +43,7 @@ class LightSystem
 	vec3f ambient;
 public:
 	float shadow_near = 0.1f, shadow_far = 100.f;
-	PointLightsDepthBuffer depthBuffer;
+	DepthBuffer depthBuffer;
 
 	void set_ambient(const vec3f& ambient_color);
 	void set_direct_light(const DirectLight& dirLight);
@@ -56,7 +58,8 @@ public:
 	const std::vector<PointLight>& plights() const { return pointLights; }
 
 	
-	void bind_shadow_light(uint32_t index);
+	void bind_point_shadow_light(uint32_t index);
+	void bind_spot_shadow_light(uint32_t index);
 	void bind_lights(LightBuffer* lBuffer);
 	void bind_depth_state();
 

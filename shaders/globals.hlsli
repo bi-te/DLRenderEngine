@@ -40,10 +40,15 @@ struct Spotlight
 	float outerCutOff;
 };
 
-struct LightTransBuffer
+struct PointLightTransBuffer
 {
-	//vec4f light_pos;
 	float4x4 light_view[6];
+	float4x4 light_proj;
+};
+
+struct SpotlightTransBuffer
+{
+	float4x4 light_view;
 	float4x4 light_proj;
 };
 
@@ -57,8 +62,9 @@ struct LightBuffer
 	uint spotlightNum;
 
 	Spotlight spotlights[MAX_LIGHTS_NUMBER];
+	SpotlightTransBuffer spotTrans[MAX_LIGHTS_NUMBER];
 	PointLight pointLights[MAX_LIGHTS_NUMBER];
-	LightTransBuffer pointTrans[MAX_LIGHTS_NUMBER];
+	PointLightTransBuffer pointTrans[MAX_LIGHTS_NUMBER];
 
 	float shadow_near, shadow_far;
 	float buffer_side;
@@ -73,6 +79,7 @@ Texture2D g_reflectance: register(t0);
 TextureCube g_irradiance: register(t1);
 TextureCube g_reflection: register(t2);
 TextureCubeArray g_shadows:register(t3);
+Texture2DArray g_spot_shadows: register(t4);
 
 cbuffer perFrame: register(b0)
 {

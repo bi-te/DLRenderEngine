@@ -148,16 +148,16 @@ void OpaqueInstances::render()
 				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
 
 				if(material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
-					direct.context4->PSSetShaderResources(4, 1, material.diffuse.GetAddressOf());
+					direct.context4->PSSetShaderResources(5, 1, material.diffuse.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
-					direct.context4->PSSetShaderResources(5, 1,	material.normals.GetAddressOf());
+					direct.context4->PSSetShaderResources(6, 1,	material.normals.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
-					direct.context4->PSSetShaderResources(6, 1, material.roughness.GetAddressOf());
+					direct.context4->PSSetShaderResources(7, 1, material.roughness.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
-					direct.context4->PSSetShaderResources(7, 1, material.metallic.GetAddressOf());
+					direct.context4->PSSetShaderResources(8, 1, material.metallic.GetAddressOf());
 
 				direct.context4->DrawIndexedInstanced(mrange.numIndices,
 					instances, mrange.indicesOffset,

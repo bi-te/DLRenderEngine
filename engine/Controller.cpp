@@ -62,9 +62,11 @@ void Controller::init_scene()
     shaders.add_shader(L"shaders/resolve.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/resolve_ms.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/omnidirectional_shadows.hlsl", "main", "gs_main", nullptr);
+    shaders.add_shader(L"shaders/directional_shadows.hlsl", "main", nullptr, nullptr);
 
     scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
-    scene.shadowShader = shaders.get_ptr(L"shaders/omnidirectional_shadows.hlsl");
+    scene.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_shadows.hlsl");
+    scene.spotShadowShader = shaders.get_ptr(L"shaders/directional_shadows.hlsl");
     meshes.opaque_instances.opaqueShader = shaders.get_ptr(L"shaders/opaque.hlsl");
     meshes.emissive_instances.emissiveShader = shaders.get_ptr(L"shaders/emissive.hlsl");
 
@@ -153,14 +155,14 @@ void Controller::init_scene()
     };
     lights.add_point_light(greensun, "FlatCubeSphere");
 
-    //Transform flashlight;
-    //flashlight.set_scale(0.5f);
-    //flashlight.set_world_offset({ 11.f, 10.f, -15.f });
-    //Spotlight flash = {
-    //    {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
-    //	{0.f, 0.f, 1.f}, 0.5f, cosf(rad(12.f)), cosf(rad(17.f)), 10.f
-    //};
-    //lights.add_spotlight(flash, "FlatCubeSphere");
+    Transform flashlight;
+    flashlight.set_scale(0.5f);
+    flashlight.set_world_offset({ 0.f, 5.f, -5.f });
+    Spotlight flash = {
+        {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
+    	{0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
+    };
+    lights.add_spotlight(flash, "FlatCubeSphere");
 
     Transform sphere;
     sphere.set_world_offset({ -5.f, 20.f, 5.f });

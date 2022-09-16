@@ -114,7 +114,7 @@ float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, 
 	if (dot(light_vec, mesh_normal) <= 0.f) return 0.f;
 
 	float cosDSL = dot(spotlight.direction, -light_vec);
-	float intensity = smoothstep(spotlight.outerCutOff, spotlight.cutOff, cosDSL);
+	float intensity = smoothstep(cos(spotlight.outerCutOff), cos(spotlight.cutOff), cosDSL);
 	if (intensity == 0.f) return 0.f;
 
 	float sphereCos = sqrt(light_dist * light_dist - spotlight.radius * spotlight.radius) / light_dist;
@@ -155,8 +155,12 @@ uint select_cube_face(float3 unitDir)
 	return index + (asuint(unitDir[index / 2]) >> 31);
 }
 
-float point_shadow_calc(PointLight pLight, LightTransBuffer pTrans, float3 world_position, float3 normal, uint index)
+float point_shadow_calc(float3 world_position, float3 normal, uint index)
 {
+	PointLight pLight = g_lighting.pointLights[index];
+	PointLightTransBuffer pTrans = g_lighting.pointTrans[index];
+
+
 	float3 light_vec = normalize(pLight.position - world_position);
 	uint face = select_cube_face(-light_vec);
 
@@ -171,6 +175,30 @@ float point_shadow_calc(PointLight pLight, LightTransBuffer pTrans, float3 world
 	float3 sample_point = world_position + normal * tex_size;
 
 	return g_shadows.SampleCmp(g_comparison_sampler, float4(normalize(sample_point - pLight.position), index), compare.z);
+}
+
+float spot_shadow_calc(float3 world_position, float3 normal, uint index)
+{
+	Spotlight sLight = g_lighting.spotlights[index];
+	SpotlightTransBuffer sTrans = g_lighting.spotTrans[index];
+
+	float3 light_vec = normalize(sLight.position - world_position);
+
+	float3 compare_point = world_position + light_vec * offset;
+	float4 compare = mul(sTrans.light_view, float4(compare_point, 1.f));
+	compare = mul(sTrans.light_proj, compare);
+	compare /= compare.w;
+
+	float4 lv_pos = mul(sTrans.light_view, float4(world_position, 1.f));
+	float tex_size = 2.f * lv_pos.z / (sTrans.light_proj[1][1] *  g_lighting.buffer_side);
+
+	float4 sample_point = mul(sTrans.light_view, float4(world_position + normal * tex_size, 1.f));
+	sample_point = mul(sTrans.light_proj, sample_point);
+	sample_point /= sample_point.w;
+	sample_point.x = sample_point.x * 0.5f + 0.5f;
+	sample_point.y = 1 - sample_point.y * 0.5f - 0.5f;
+
+	return g_spot_shadows.SampleCmp(g_comparison_sampler, float3(sample_point.xy, index), compare.z);
 }
 
 #endif
