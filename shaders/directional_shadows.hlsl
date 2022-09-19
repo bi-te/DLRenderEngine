@@ -14,6 +14,7 @@ struct vs_in
 struct vs_out
 {
 	float4 pos: Sv_Position;
+	uint slice: Sv_RenderTargetArrayIndex;
 };
 
 cbuffer TransformBuffer: register(b1)
@@ -30,8 +31,8 @@ vs_out main(vs_in input)
 	vs_out res;
 	res.pos = mul(g_mesh_transform, float4(input.pos, 1.f));
 	res.pos = mul(input.model_transform, res.pos);
-	res.pos = mul(g_lighting.spotTrans[g_index].light_view, res.pos);
-	res.pos = mul(g_lighting.spotTrans[g_index].light_proj, res.pos);
+	res.pos = mul(g_lighting.spotTrans[g_index].light_view_proj, res.pos);
+	res.slice = g_index;
 	return res;
 }
 

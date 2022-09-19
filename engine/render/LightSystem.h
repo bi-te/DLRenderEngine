@@ -15,9 +15,9 @@ class LightSystem
 	struct DepthBuffer
 	{
 		D3D11_VIEWPORT viewport;
-		std::vector<comptr<ID3D11DepthStencilView>> views;
-		std::vector<comptr<ID3D11DepthStencilView>> spot_views;
-		comptr<ID3D11ShaderResourceView> srv;
+		comptr<ID3D11DepthStencilView> point_view;
+		comptr<ID3D11DepthStencilView> spot_view;
+		comptr<ID3D11ShaderResourceView> point_srv;
 		comptr<ID3D11ShaderResourceView> spot_srv;
 		comptr<ID3D11DepthStencilState> state;
 	};
@@ -57,9 +57,10 @@ public:
 	const std::vector<Spotlight>& slights() const { return spotlights; }
 	const std::vector<PointLight>& plights() const { return pointLights; }
 
-	
-	void bind_point_shadow_light(uint32_t index);
-	void bind_spot_shadow_light(uint32_t index);
+	void bind_point_dsv();
+	void bind_point_shadow_buffer(uint32_t index);
+	void bind_spot_dsv();
+	void bind_spot_shadow_buffer(uint32_t index);
 	void bind_lights(LightBuffer* lBuffer);
 	void bind_depth_state();
 

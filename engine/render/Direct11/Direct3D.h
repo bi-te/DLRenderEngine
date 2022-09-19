@@ -34,14 +34,12 @@ struct SpotlightBuffer
 
 struct PointLightTransBuffer
 {
-	mat4f light_view[6];
-	mat4f light_proj;
+	mat4f light_view_proj[6];
 };
 
 struct SpotlightTransBuffer
 {
-	mat4f light_view;
-	mat4f light_proj;
+	mat4f light_view_proj;
 };
 
 

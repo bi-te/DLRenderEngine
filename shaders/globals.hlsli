@@ -42,14 +42,12 @@ struct Spotlight
 
 struct PointLightTransBuffer
 {
-	float4x4 light_view[6];
-	float4x4 light_proj;
+	float4x4 light_view_proj[6];
 };
 
 struct SpotlightTransBuffer
 {
-	float4x4 light_view;
-	float4x4 light_proj;
+	float4x4 light_view_proj;
 };
 
 static const uint MAX_LIGHTS_NUMBER = 10;

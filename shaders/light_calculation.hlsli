@@ -23,6 +23,53 @@ float3 clamp_to_horizon(float3 norm, float3 dir, float min_cos)
 	return dir;
 }
 
+uint select_cube_face(float3 unitDir)
+{
+	float maxVal = max(abs(unitDir.x), max(abs(unitDir.y), abs(unitDir.z)));
+	uint index = abs(unitDir.x) == maxVal ? 0 : (abs(unitDir.y) == maxVal ? 2 : 4);
+	return index + (asuint(unitDir[index / 2]) >> 31);
+}
+
+float point_shadow_calc(float3 world_position, float3 normal, uint index)
+{
+	PointLight pLight = g_lighting.pointLights[index];
+	PointLightTransBuffer pTrans = g_lighting.pointTrans[index];
+
+
+	float3 light_vec = normalize(pLight.position - world_position);
+	uint face = select_cube_face(-light_vec);
+
+	float3 compare_point = world_position + light_vec * offset;
+	float4 compare = mul(pTrans.light_view_proj[face], float4(compare_point, 1.f));
+	compare.xyz /= compare.w;
+	float tex_size = 2.f * compare.w / g_lighting.buffer_side;
+
+	float3 sample_point = world_position + normal * tex_size;
+
+	return g_shadows.SampleCmp(g_comparison_sampler, float4(normalize(sample_point - pLight.position), index), compare.z);
+}
+
+float spot_shadow_calc(float3 world_position, float3 normal, uint index)
+{
+	Spotlight sLight = g_lighting.spotlights[index];
+	SpotlightTransBuffer sTrans = g_lighting.spotTrans[index];
+
+	float3 light_vec = normalize(sLight.position - world_position);
+
+	float3 compare_point = world_position + light_vec * offset;
+	float4 compare = mul(sTrans.light_view_proj, float4(compare_point, 1.f));
+	compare.xyz /= compare.w;
+	
+	float tex_size = 2.f * compare.w * tan(sLight.outerCutOff)/ g_lighting.buffer_side;
+
+	float4 sample_point = mul(sTrans.light_view_proj, float4(world_position + normal * tex_size, 1.f));
+	sample_point /= sample_point.w;
+	sample_point.x = sample_point.x * 0.5f + 0.5f;
+	sample_point.y = 1 - sample_point.y * 0.5f - 0.5f;
+
+	return g_spot_shadows.SampleCmp(g_comparison_sampler, float3(sample_point.xy, index), compare.z);
+}
+
 float3 calc_direct_light_pbr(float3 view_vec, float3 mesh_normal, float3 normal, DirectLight dirlight, Material mat)
 {
 	if (dot(-dirlight.direction, mesh_normal) <= 0.f) return 0.f;
@@ -88,44 +135,62 @@ float3 pbr_point(float3 light, float3 closest_light, float light_dist, float3 no
 	return color;
 }
 
-float3 calc_point_light_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, PointLight pointLight, Material material)
+float3 calc_point_light_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, Material material)
 {
-	float3 light_vec = pointLight.position - position;
-	float light_dist = max(length(light_vec), pointLight.radius);
-	light_vec = normalize(light_vec);
-	
-	float sphereCos = sqrt(light_dist * light_dist - pointLight.radius * pointLight.radius) / light_dist;
-	float solidAngle = (1 - sphereCos) * 2.f * PI;
+	float3 color = 0.f;
+	for (uint pLight_ind = 0; pLight_ind < g_lighting.pointLightNum; ++pLight_ind)
+	{
+		PointLight pointLight = g_lighting.pointLights[pLight_ind];
 
-	float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
-		reflect(-view_vec, normal), light_dist, pointLight.radius, sphereCos);
-	closest_vec = clamp_to_horizon(normal, closest_vec, 0.001f);
+		float depth = point_shadow_calc(position, mesh_normal, pLight_ind);
 
-	return pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec, 
-		pointLight.radiance, pointLight.radius, solidAngle, material);
+		float3 light_vec = pointLight.position - position;
+		float light_dist = max(length(light_vec), pointLight.radius);
+		light_vec = normalize(light_vec);
+
+		float sphereCos = sqrt(light_dist * light_dist - pointLight.radius * pointLight.radius) / light_dist;
+		float solidAngle = (1 - sphereCos) * 2.f * PI;
+
+		float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
+			reflect(-view_vec, normal), light_dist, pointLight.radius, sphereCos);
+		closest_vec = clamp_to_horizon(normal, closest_vec, 0.001f);
+
+		color += depth * pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec,
+			pointLight.radiance, pointLight.radius, solidAngle, material);
+	}
+	return color;
+
 }
 
-float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, Spotlight spotlight, Material material)
+float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, float3 normal, Material material)
 {
-	float3 light_vec = spotlight.position - position;
-	float light_dist = max(length(light_vec), spotlight.radius);
-	light_vec = normalize(light_vec);
+	float3 color = 0.f;
+	for (uint sLight_ind = 0; sLight_ind < g_lighting.spotlightNum; ++sLight_ind)
+	{
+		Spotlight spotlight = g_lighting.spotlights[sLight_ind];
 
-	if (dot(light_vec, mesh_normal) <= 0.f) return 0.f;
+		float3 light_vec = spotlight.position - position;
+		float light_dist = max(length(light_vec), spotlight.radius);
+		light_vec = normalize(light_vec);
 
-	float cosDSL = dot(spotlight.direction, -light_vec);
-	float intensity = smoothstep(cos(spotlight.outerCutOff), cos(spotlight.cutOff), cosDSL);
-	if (intensity == 0.f) return 0.f;
+		if (dot(light_vec, mesh_normal) <= 0.f) return 0.f;
 
-	float sphereCos = sqrt(light_dist * light_dist - spotlight.radius * spotlight.radius) / light_dist;
-	float solidAngle = (1.f - sphereCos) * 2.f * PI * intensity;
+		float cosDSL = dot(spotlight.direction, -light_vec);
+		float intensity = smoothstep(cos(spotlight.outerCutOff), cos(spotlight.cutOff), cosDSL);
+		if (intensity == 0.f) continue;
 
-	float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
-		reflect(-view_vec, normal), light_dist, spotlight.radius, sphereCos);
-	clamp_to_horizon(normal, closest_vec, 0.001f);
+		float sphereCos = sqrt(light_dist * light_dist - spotlight.radius * spotlight.radius) / light_dist;
+		float solidAngle = (1.f - sphereCos) * 2.f * PI * intensity;
 
-	return pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec,
-		spotlight.radiance, spotlight.radius, solidAngle, material);
+		float3 closest_vec = closest_sphere_direction(light_vec * light_dist, light_vec,
+			reflect(-view_vec, normal), light_dist, spotlight.radius, sphereCos);
+		clamp_to_horizon(normal, closest_vec, 0.001f);
+
+		float depth = spot_shadow_calc(position, mesh_normal, sLight_ind);
+		color += depth * pbr_point(light_vec, closest_vec, light_dist, normal, mesh_normal, view_vec,
+			spotlight.radiance, spotlight.radius, solidAngle, material);
+	}
+	return color;
 }
 
 float3 calc_environment_light(float3 view_vec, float3 normal, Material mat)
@@ -146,59 +211,6 @@ float3 calc_environment_light(float3 view_vec, float3 normal, Material mat)
 	float3 specular = reflectance * g_reflection.SampleLevel(g_linear_clamp_sampler, reflection, mat.roughness * g_max_reflection_mip).rgb;
 
 	return diffuse + specular;
-}
-
-uint select_cube_face(float3 unitDir)
-{
-	float maxVal = max(abs(unitDir.x), max(abs(unitDir.y), abs(unitDir.z)));
-	uint index = abs(unitDir.x) == maxVal ? 0 : (abs(unitDir.y) == maxVal ? 2 : 4);
-	return index + (asuint(unitDir[index / 2]) >> 31);
-}
-
-float point_shadow_calc(float3 world_position, float3 normal, uint index)
-{
-	PointLight pLight = g_lighting.pointLights[index];
-	PointLightTransBuffer pTrans = g_lighting.pointTrans[index];
-
-
-	float3 light_vec = normalize(pLight.position - world_position);
-	uint face = select_cube_face(-light_vec);
-
-	float3 compare_point = world_position + light_vec * offset;
-	float4 compare = mul(pTrans.light_view[face], float4(compare_point, 1.f));
-	compare = mul(pTrans.light_proj, compare);
-	compare /= compare.w;
-
-	float4 lv_pos = mul(pTrans.light_view[face], float4(world_position, 1.f));
-	float tex_size = 2.f * lv_pos.z / g_lighting.buffer_side;
-
-	float3 sample_point = world_position + normal * tex_size;
-
-	return g_shadows.SampleCmp(g_comparison_sampler, float4(normalize(sample_point - pLight.position), index), compare.z);
-}
-
-float spot_shadow_calc(float3 world_position, float3 normal, uint index)
-{
-	Spotlight sLight = g_lighting.spotlights[index];
-	SpotlightTransBuffer sTrans = g_lighting.spotTrans[index];
-
-	float3 light_vec = normalize(sLight.position - world_position);
-
-	float3 compare_point = world_position + light_vec * offset;
-	float4 compare = mul(sTrans.light_view, float4(compare_point, 1.f));
-	compare = mul(sTrans.light_proj, compare);
-	compare /= compare.w;
-
-	float4 lv_pos = mul(sTrans.light_view, float4(world_position, 1.f));
-	float tex_size = 2.f * lv_pos.z / (sTrans.light_proj[1][1] *  g_lighting.buffer_side);
-
-	float4 sample_point = mul(sTrans.light_view, float4(world_position + normal * tex_size, 1.f));
-	sample_point = mul(sTrans.light_proj, sample_point);
-	sample_point /= sample_point.w;
-	sample_point.x = sample_point.x * 0.5f + 0.5f;
-	sample_point.y = 1 - sample_point.y * 0.5f - 0.5f;
-
-	return g_spot_shadows.SampleCmp(g_comparison_sampler, float3(sample_point.xy, index), compare.z);
 }
 
 #endif

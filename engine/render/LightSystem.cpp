@@ -63,7 +63,15 @@ void LightSystem::add_spotlight(const Spotlight& spotlight, const std::string& m
 	);
 }
 
-void LightSystem::bind_point_shadow_light(uint32_t index)
+void LightSystem::bind_point_dsv()
+{
+	Direct3D& direct = Direct3D::instance();
+
+	direct.context4->ClearDepthStencilView(depthBuffer.point_view.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
+	direct.context4->OMSetRenderTargets(1, &NULL_RTV, depthBuffer.point_view.Get());
+}
+
+void LightSystem::bind_point_shadow_buffer(uint32_t index)
 {
 	Direct3D& direct = Direct3D::instance();
 
@@ -72,12 +80,17 @@ void LightSystem::bind_point_shadow_light(uint32_t index)
 	lightTransformBuffer.unmap();
 	
 	direct.context4->GSSetConstantBuffers(2, 1, lightTransformBuffer.address());
-
-	direct.context4->ClearDepthStencilView(depthBuffer.views[index].Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
-	direct.context4->OMSetRenderTargets(1, &NULL_RTV, depthBuffer.views[index].Get());
 }
 
-void LightSystem::bind_spot_shadow_light(uint32_t index)
+void LightSystem::bind_spot_dsv()
+{
+	Direct3D& direct = Direct3D::instance();
+
+	direct.context4->ClearDepthStencilView(depthBuffer.spot_view.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
+	direct.context4->OMSetRenderTargets(1, &NULL_RTV, depthBuffer.spot_view.Get());
+}
+
+void LightSystem::bind_spot_shadow_buffer(uint32_t index)
 {
 	Direct3D& direct = Direct3D::instance();
 
@@ -86,9 +99,6 @@ void LightSystem::bind_spot_shadow_light(uint32_t index)
 	lightTransformBuffer.unmap();
 
 	direct.context4->VSSetConstantBuffers(2, 1, lightTransformBuffer.address());
-
-	direct.context4->ClearDepthStencilView(depthBuffer.spot_views[index].Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
-	direct.context4->OMSetRenderTargets(1, &NULL_RTV, depthBuffer.spot_views[index].Get());
 }
 
 void LightSystem::bind_lights(LightBuffer* lBuffer)
@@ -113,13 +123,13 @@ void LightSystem::bind_lights(LightBuffer* lBuffer)
 		p_buffer.position = t_system.transforms[p_data.position].position();
 		p_buffer.radiance = p_data.radiance;
 
-		trans.light_proj = perspective_proj(rad(90.f), 1.f, shadow_near, shadow_far);
-		trans.light_view[0] = lookAt(p_buffer.position, WORLD_Y, { 1.f,  0.f,  0.f });
-		trans.light_view[1] = lookAt(p_buffer.position, WORLD_Y, { -1.f,  0.f,  0.f });
-		trans.light_view[2] = lookAt(p_buffer.position, -WORLD_Z, { 0.f,  1.f,  0.f });
-		trans.light_view[3] = lookAt(p_buffer.position, WORLD_Z, { 0.f, -1.f,  0.f });
-		trans.light_view[4] = lookAt(p_buffer.position, WORLD_Y, { 0.f,  0.f,  1.f });
-		trans.light_view[5] = lookAt(p_buffer.position, WORLD_Y, { 0.f,  0.f, -1.f });
+		mat4f light_proj = perspective_proj(rad(90.f), 1.f, shadow_near, shadow_far);
+		trans.light_view_proj[0] = lookAt(p_buffer.position, WORLD_Y, { 1.f,  0.f,  0.f }) * light_proj;
+		trans.light_view_proj[1] = lookAt(p_buffer.position, WORLD_Y, { -1.f,  0.f,  0.f }) * light_proj;
+		trans.light_view_proj[2] = lookAt(p_buffer.position, -WORLD_Z, { 0.f,  1.f,  0.f }) * light_proj;
+		trans.light_view_proj[3] = lookAt(p_buffer.position, WORLD_Z, { 0.f, -1.f,  0.f }) * light_proj;
+		trans.light_view_proj[4] = lookAt(p_buffer.position, WORLD_Y, { 0.f,  0.f,  1.f }) * light_proj;
+		trans.light_view_proj[5] = lookAt(p_buffer.position, WORLD_Y, { 0.f,  0.f, -1.f }) * light_proj;
 	}
 
 	for (uint32_t sLight = 0; sLight < lBuffer->spotlightNum; ++sLight)
@@ -134,14 +144,15 @@ void LightSystem::bind_lights(LightBuffer* lBuffer)
 		s_buffer.direction = s_data.direction;
 		s_buffer.radiance = s_data.radiance;
 		s_buffer.outerCutOff = s_data.outerCutOff;
-		trans.light_view = lookAt(t_system.transforms[s_data.position], s_data.direction);
-		trans.light_proj = perspective_proj(2.f * s_data.outerCutOff, 1.f, shadow_near, shadow_far);
+		trans.light_view_proj = lookAt(t_system.transforms[s_data.position], s_data.direction)
+								* perspective_proj(2.f * s_data.outerCutOff, 1.f, shadow_near, shadow_far);
 	}
 }
 
 void LightSystem::bind_depth_state()
 {
 	Direct3D& direct = Direct3D::instance();
+
 	direct.context4->RSSetViewports(1, &depthBuffer.viewport);
 	direct.context4->OMSetDepthStencilState(depthBuffer.state.Get(), 1);
 }
@@ -170,8 +181,7 @@ void LightSystem::init_depth_buffers(uint32_t side_size)
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 	srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-
-	comptr<ID3D11DepthStencilView> depthView;
+	
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthViewDesc{};
 	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	depthViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
@@ -181,7 +191,7 @@ void LightSystem::init_depth_buffers(uint32_t side_size)
 	{
 		texture_desc.ArraySize = pLightsNum * 6u;
 		texture_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-		
+
 		res = direct.device5->CreateTexture2D(&texture_desc, nullptr, &depthTexture);
 		assert(SUCCEEDED(res) && "CreateTexture2D LightDepthBuffer");
 
@@ -189,17 +199,12 @@ void LightSystem::init_depth_buffers(uint32_t side_size)
 		srv_desc.TextureCubeArray.NumCubes = pLightsNum;
 		srv_desc.TextureCubeArray.MipLevels = 1u;
 		srv_desc.TextureCubeArray.MostDetailedMip = 0u;
-		res = direct.device5->CreateShaderResourceView(depthTexture.Get(), &srv_desc, &depthBuffer.srv);
+		res = direct.device5->CreateShaderResourceView(depthTexture.Get(), &srv_desc, &depthBuffer.point_srv);
 		assert(SUCCEEDED(res) && "CreateShaderResourceView LightDepthBuffer");
-		
-		depthViewDesc.Texture2DArray.ArraySize = 6u;
-		for (uint32_t light = 0; light < pLightsNum; ++light)
-		{
-			depthViewDesc.Texture2DArray.FirstArraySlice = light * 6u;
-			res = direct.device5->CreateDepthStencilView(depthTexture.Get(), &depthViewDesc, &depthView);
-			assert(SUCCEEDED(res) && "CreateDepthStencilView LightDepthBuffer");
-			depthBuffer.views.push_back(std::move(depthView));
-		}
+
+		depthViewDesc.Texture2DArray.ArraySize = pLightsNum * 6u;
+		res = direct.device5->CreateDepthStencilView(depthTexture.Get(), &depthViewDesc, &depthBuffer.point_view);
+		assert(SUCCEEDED(res) && "CreateDepthStencilView LightDepthBuffer");
 	}
 
 	if(sLightsNum)
@@ -217,14 +222,9 @@ void LightSystem::init_depth_buffers(uint32_t side_size)
 		res = direct.device5->CreateShaderResourceView(depthTexture.Get(), &srv_desc, &depthBuffer.spot_srv);
 		assert(SUCCEEDED(res) && "CreateShaderResourceView LightDepthBuffer");
 
-		depthViewDesc.Texture2DArray.ArraySize = 1u;
-		for (uint32_t light = 0; light < sLightsNum; ++light)
-		{
-			depthViewDesc.Texture2DArray.FirstArraySlice = light;
-			res = direct.device5->CreateDepthStencilView(depthTexture.Get(), &depthViewDesc, &depthView);
-			assert(SUCCEEDED(res) && "CreateDepthStencilView LightDepthBuffer");
-			depthBuffer.spot_views.push_back(std::move(depthView));
-		}
+		depthViewDesc.Texture2DArray.ArraySize = sLightsNum;
+		res = direct.device5->CreateDepthStencilView(depthTexture.Get(), &depthViewDesc, &depthBuffer.spot_view);
+		assert(SUCCEEDED(res) && "CreateDepthStencilView LightDepthBuffer");
 	}
 	
 	D3D11_DEPTH_STENCIL_DESC depthDesc{};

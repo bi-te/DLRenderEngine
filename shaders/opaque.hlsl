@@ -97,18 +97,8 @@ float3 ps_main(vs_out input) : Sv_Target
 	float3 view_vec = normalize(g_cameraPosition - input.world_position.xyz);
 
 	float3 res_color = calc_environment_light(view_vec, normal, mat);
-
-	for (uint pLight_ind = 0; pLight_ind < g_lighting.pointLightNum; ++pLight_ind)
-	{
-		float depth = point_shadow_calc(input.world_position.xyz, mesh_normal, pLight_ind);
-		res_color += depth * calc_point_light_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, g_lighting.pointLights[pLight_ind], mat);
-	}
-
-	for(uint sLight_ind = 0; sLight_ind < g_lighting.spotlightNum; ++sLight_ind)
-	{
-		float depth = spot_shadow_calc(input.world_position.xyz, mesh_normal, sLight_ind);
-		res_color += depth * calc_spotlight_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, g_lighting.spotlights[sLight_ind], mat);
-	}
+	res_color += calc_point_light_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
+	res_color += calc_spotlight_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
 
 	return res_color;
 }

@@ -44,19 +44,17 @@ void gs_main(triangle vs_out input[3], inout TriangleStream<gs_out> output)
 {
 	gs_out res;
 	[unroll]
-	for (uint face = 0; face < 6; ++face)
+	for (uint face = 0; face < 6u; ++face)
 	{
-		res.face_slice = face;
-		
-		for(uint vertex = 0; vertex < 3; vertex++)
+		res.face_slice = g_index * 6u + face;
+
+		for (uint vertex = 0; vertex < 3; vertex++)
 		{
-			res.pos = mul(g_lighting.pointTrans[g_index].light_view[face], input[vertex].world_pos);
-			res.pos = mul(g_lighting.pointTrans[g_index].light_proj, res.pos);
+			res.pos = mul(g_lighting.pointTrans[g_index].light_view_proj[face], input[vertex].world_pos);
 			output.Append(res);
 		}
 		output.RestartStrip();
 	}
-
 }
 
 //struct ps_out

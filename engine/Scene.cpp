@@ -80,18 +80,20 @@ void Scene::shadow_pass()
 	light_system.bind_depth_state();
 
 	pointShadowShader->bind();
+	light_system.bind_point_dsv();
 	uint32_t lightNum = light_system.plights().size();
 	for (uint32_t light = 0; light < lightNum; light++)
 	{
-		light_system.bind_point_shadow_light(light);
+		light_system.bind_point_shadow_buffer(light);
 		MeshSystem::instance().opaque_instances.mesh_render();
 	}
 
 	spotShadowShader->bind();
 	uint32_t spotNum = light_system.slights().size();
+	light_system.bind_spot_dsv();
 	for(uint32_t light = 0; light < spotNum; light++)
 	{
-		light_system.bind_spot_shadow_light(light);
+		light_system.bind_spot_shadow_buffer(light);
 		MeshSystem::instance().opaque_instances.mesh_render();
 	}
 }
@@ -116,7 +118,7 @@ void Scene::render(RenderBuffer& target_buffer, PostProcess& post_process, const
 		
 	direct.context4->PSSetShaderResources(1, 1, skybox.irradiance_map.GetAddressOf());
 	direct.context4->PSSetShaderResources(2, 1, skybox.reflection.map.GetAddressOf());
-	direct.context4->PSSetShaderResources(3, 1, LightSystem::instance().depthBuffer.srv.GetAddressOf());
+	direct.context4->PSSetShaderResources(3, 1, LightSystem::instance().depthBuffer.point_srv.GetAddressOf());
 	direct.context4->PSSetShaderResources(4, 1, LightSystem::instance().depthBuffer.spot_srv.GetAddressOf());
 
 	MeshSystem::instance().render();

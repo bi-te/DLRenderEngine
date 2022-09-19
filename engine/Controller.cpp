@@ -164,6 +164,14 @@ void Controller::init_scene()
     };
     lights.add_spotlight(flash, "FlatCubeSphere");
 
+    flashlight.set_scale(0.5f);
+    flashlight.set_world_offset({ -5.f, 5.f, -5.f });
+    Spotlight flash2 = {
+        {0.3f, 0.1f, 0.5f}, transforms.transforms.insert(flashlight),
+        {0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
+    };
+    lights.add_spotlight(flash2, "FlatCubeSphere");
+
     Transform sphere;
     sphere.set_world_offset({ -5.f, 20.f, 5.f });
     meshes.opaque_instances.add_model_instance(
