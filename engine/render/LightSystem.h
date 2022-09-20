@@ -58,9 +58,8 @@ public:
 	const std::vector<PointLight>& plights() const { return pointLights; }
 
 	void bind_point_dsv();
-	void bind_point_shadow_buffer(uint32_t index);
+	void bind_light_shadow_buffer(uint32_t index);
 	void bind_spot_dsv();
-	void bind_spot_shadow_buffer(uint32_t index);
 	void bind_lights(LightBuffer* lBuffer);
 	void bind_depth_state();
 

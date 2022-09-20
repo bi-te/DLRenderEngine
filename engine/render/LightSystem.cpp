@@ -71,14 +71,15 @@ void LightSystem::bind_point_dsv()
 	direct.context4->OMSetRenderTargets(1, &NULL_RTV, depthBuffer.point_view.Get());
 }
 
-void LightSystem::bind_point_shadow_buffer(uint32_t index)
+void LightSystem::bind_light_shadow_buffer(uint32_t index)
 {
 	Direct3D& direct = Direct3D::instance();
 
 	ShadowBuffer* ltb = static_cast<ShadowBuffer*>(lightTransformBuffer.map().pData);
 	ltb->index = index;
 	lightTransformBuffer.unmap();
-	
+
+	direct.context4->VSSetConstantBuffers(2, 1, lightTransformBuffer.address());
 	direct.context4->GSSetConstantBuffers(2, 1, lightTransformBuffer.address());
 }
 
@@ -88,17 +89,6 @@ void LightSystem::bind_spot_dsv()
 
 	direct.context4->ClearDepthStencilView(depthBuffer.spot_view.Get(), D3D11_CLEAR_DEPTH, 0.f, 0);
 	direct.context4->OMSetRenderTargets(1, &NULL_RTV, depthBuffer.spot_view.Get());
-}
-
-void LightSystem::bind_spot_shadow_buffer(uint32_t index)
-{
-	Direct3D& direct = Direct3D::instance();
-
-	ShadowBuffer* ltb = static_cast<ShadowBuffer*>(lightTransformBuffer.map().pData);
-	ltb->index = index;
-	lightTransformBuffer.unmap();
-
-	direct.context4->VSSetConstantBuffers(2, 1, lightTransformBuffer.address());
 }
 
 void LightSystem::bind_lights(LightBuffer* lBuffer)

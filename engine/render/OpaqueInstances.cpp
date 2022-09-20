@@ -169,9 +169,10 @@ void OpaqueInstances::render()
 
 }
 
-void OpaqueInstances::mesh_render()
+void OpaqueInstances::mesh_render(uint32_t render_count)
 {
 	Direct3D& direct = Direct3D::instance();
+	LightSystem& light_system = LightSystem::instance();
 
 	update_instance_buffer();
 	bind_instance_buffer();
@@ -204,9 +205,14 @@ void OpaqueInstances::mesh_render()
 				instances += perMaterial.instances.size();
 			instances *= mesh.mesh_model_matrices.size();
 
-			direct.context4->DrawIndexedInstanced(mrange.numIndices,
-				instances, mrange.indicesOffset,
-				mrange.verticesOffset, renderedInstances);
+			for(uint32_t light = 0; light < render_count; light ++ )
+			{
+				light_system.bind_light_shadow_buffer(light);
+
+				direct.context4->DrawIndexedInstanced(mrange.numIndices,
+					instances, mrange.indicesOffset,
+					mrange.verticesOffset, renderedInstances);
+			}
 			renderedInstances += instances;
 		}
 	}

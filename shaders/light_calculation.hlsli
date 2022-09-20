@@ -34,13 +34,12 @@ float point_shadow_calc(float3 world_position, float3 normal, uint index)
 {
 	PointLight pLight = g_lighting.pointLights[index];
 	PointLightTransBuffer pTrans = g_lighting.pointTrans[index];
-
-
+	
 	float3 light_vec = normalize(pLight.position - world_position);
 	uint face = select_cube_face(-light_vec);
 
-	float3 compare_point = world_position + light_vec * offset;
-	float4 compare = mul(pTrans.light_view_proj[face], float4(compare_point, 1.f));
+	world_position += light_vec * offset;
+	float4 compare = mul(pTrans.light_view_proj[face], float4(world_position, 1.f));
 	compare.xyz /= compare.w;
 	float tex_size = 2.f * compare.w / g_lighting.buffer_side;
 
@@ -56,8 +55,8 @@ float spot_shadow_calc(float3 world_position, float3 normal, uint index)
 
 	float3 light_vec = normalize(sLight.position - world_position);
 
-	float3 compare_point = world_position + light_vec * offset;
-	float4 compare = mul(sTrans.light_view_proj, float4(compare_point, 1.f));
+	world_position += light_vec * offset;
+	float4 compare = mul(sTrans.light_view_proj, float4(world_position, 1.f));
 	compare.xyz /= compare.w;
 	
 	float tex_size = 2.f * compare.w * tan(sLight.outerCutOff)/ g_lighting.buffer_side;
@@ -206,7 +205,7 @@ float3 calc_environment_light(float3 view_vec, float3 normal, Material mat)
 	float3 reflection = reflect(-view_vec, normal);
 
 	float2 lut_coor = float2(mat.roughness, 1.f - cosNV);
-	float2 reflectanceLUT = g_reflectance.Sample(g_linear_clamp_sampler, lut_coor).rg;
+	float2 reflectanceLUT = g_reflectance.SampleLevel(g_linear_clamp_sampler, lut_coor, 0u).rg;
 	float3 reflectance = f0 * reflectanceLUT.x + reflectanceLUT.y;
 	float3 specular = reflectance * g_reflection.SampleLevel(g_linear_clamp_sampler, reflection, mat.roughness * g_max_reflection_mip).rgb;
 
