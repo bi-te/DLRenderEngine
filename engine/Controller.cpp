@@ -15,7 +15,7 @@
 void Controller::render()
 {
     window.clear_buffer();
-    scene.render(window.buffer, camera, postProcess);
+    scene.render(window.buffer, postProcess, camera);
     window.swap_buffer();
 }
 
@@ -56,18 +56,24 @@ void Controller::init_scene()
     TransformSystem& transforms = TransformSystem::instance();
     TextureManager& texture_manager = TextureManager::instance();
 
-    scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
-    scene.skybox.texture = texture_manager.add_cubemap(L"assets/cubemaps/night_street.dds");
-
     shaders.add_shader(L"shaders/opaque.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/emissive.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/sky.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/resolve.hlsl", "main", "ps_main");
-    
-    texture_manager.add_texture(L"assets/textures/SphereBaseColor.dds");
+    shaders.add_shader(L"shaders/resolve_ms.hlsl", "main", "ps_main");
+    shaders.add_shader(L"shaders/omnidirectional_shadows.hlsl", "main", "gs_main", nullptr);
+    shaders.add_shader(L"shaders/directional_shadows.hlsl", "main", nullptr, nullptr);
 
+    scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
+    scene.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_shadows.hlsl");
+    scene.spotShadowShader = shaders.get_ptr(L"shaders/directional_shadows.hlsl");
     meshes.opaque_instances.opaqueShader = shaders.get_ptr(L"shaders/opaque.hlsl");
-    meshes.emissive_instances.emissiveShader =  shaders.get_ptr(L"shaders/emissive.hlsl");
+    meshes.emissive_instances.emissiveShader = shaders.get_ptr(L"shaders/emissive.hlsl");
+
+    scene.skybox.texture = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street.dds");
+    scene.skybox.irradiance_map = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street_irradiance.dds");
+    scene.skybox.load_reflection(L"assets/cubemaps/night_street/night_street_reflection.dds");
+    Direct3D::instance().reflectance_map = texture_manager.add_cubemap(L"assets/cubemaps/reflectance.dds");
 
     OpaqueMaterial material;
     
@@ -78,7 +84,7 @@ void Controller::init_scene()
 	material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_REVERSED_NORMAL_Y;
     material.render_data.metallic = 0.f;
     material.render_data.roughness = 0.1f;
-    materials.add(std::move(material));
+    materials.add(material);
 
     material = {};
     material.name = "Cobblestone_mat";
@@ -87,7 +93,7 @@ void Controller::init_scene()
     material.roughness = texture_manager.add_texture(L"assets/textures/Cobblestone/Cobblestone_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS;
     material.render_data.metallic = 0.f;
-    materials.add(std::move(material));
+    materials.add(material);
 
     material = {};
     material.name = "Stone_mat";
@@ -96,7 +102,7 @@ void Controller::init_scene()
     material.roughness = texture_manager.add_texture(L"assets/textures/Stone/Stone_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS | MATERIAL_REVERSED_NORMAL_Y;
     material.render_data.metallic = 0.f;
-    materials.add(std::move(material));
+    materials.add(material);
 
     material = {};
     material.name = "CastleBrick_mat";
@@ -105,20 +111,27 @@ void Controller::init_scene()
     material.roughness = texture_manager.add_texture(L"assets/textures/CastleBrick/CastleBrick_Roughness.dds");
     material.render_data.textures = MATERIAL_TEXTURE_DIFFUSE | MATERIAL_TEXTURE_NORMAL | MATERIAL_TEXTURE_ROUGHNESS;
     material.render_data.metallic = 0.f;
-    materials.add(std::move(material));
+    materials.add(material);
+
+   /* material = {};
+    material.name = "Test_mat";
+    material.render_data.roughness = 1.f;
+    material.render_data.metallic = 1.f;
+    material.render_data.diffuse = { 0.8f, 0.3f, 0.3f };
+    materials.add(material);*/
 
     models.add_model("assets/models/Samurai/Samurai.fbx");
     models.add_model("assets/models/Knight/Knight.fbx");
     models.add_model("assets/models/KnightHorse/KnightHorse.fbx");
     models.add_model("assets/models/SunCityWall/SunCityWall.fbx");
     models.init_cube();
-    models.init_quad();
+	models.init_quad();
     models.init_sphere(30, 20);
     models.init_flat_sphere(30, 20);
     models.init_flat_cube_sphere(20);
     
-    lights.set_ambient({ 0.1f, 0.1f, 0.1f });
-    lights.set_direct_light({ {5.f, 5.f, 5.f}, 0.1f, vec3f{0.f, -1.f, 10.f}.normalized() });
+    //lights.set_ambient({ 0.1f, 0.1f, 0.1f });
+    //lights.set_direct_light({ {5.f, 5.f, 5.f}, 0.1f, vec3f{0.f, -2.f, 1.f}.normalized() });
 
     Transform the_sun;
     the_sun.set_scale(0.5f);
@@ -127,7 +140,15 @@ void Controller::init_scene()
         {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(the_sun), 0.5f, 5.f
     };
     lights.add_point_light(minisun, "FlatCubeSphere");
-    
+
+    /*Transform pbr_trans;
+    pbr_trans.set_world_offset({ 0.f, 0.f, 0.f });
+    meshes.opaque_instances.add_model_instance(
+          models.get_ptr("Sphere"),
+        { materials.get_opaque("Test_mat") },
+        { transforms.transforms.insert(pbr_trans) }
+    );*/
+
     the_sun.set_world_offset({ 0.f, 20.f, -5.f });
     PointLight greensun = {
     {0.2f, 0.75f, 0.4f}, transforms.transforms.insert(the_sun), 0.5f, 3.f
@@ -136,12 +157,20 @@ void Controller::init_scene()
 
     Transform flashlight;
     flashlight.set_scale(0.5f);
-    flashlight.set_world_offset({ 11.f, 10.f, -15.f });
+    flashlight.set_world_offset({ 0.f, 5.f, -5.f });
     Spotlight flash = {
         {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
-    	{0.f, 0.f, 1.f}, 0.5f, cosf(rad(12.f)), cosf(rad(17.f)), 10.f
+    	{0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
     };
     lights.add_spotlight(flash, "FlatCubeSphere");
+
+    flashlight.set_scale(0.5f);
+    flashlight.set_world_offset({ -5.f, 5.f, -5.f });
+    Spotlight flash2 = {
+        {0.3f, 0.1f, 0.5f}, transforms.transforms.insert(flashlight),
+        {0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
+    };
+    lights.add_spotlight(flash2, "FlatCubeSphere");
 
     Transform sphere;
     sphere.set_world_offset({ -5.f, 20.f, 5.f });
@@ -163,22 +192,21 @@ void Controller::init_scene()
         { transforms.transforms.insert(crystal_ball) }
     );
 
-    //models.add_model("assets/models/InstanceTest/test.fbx");
-    //Transform test;
-    //test.set_world_offset({ 20.f, 20.f, -20.f });
-    //test.set_scale({0.2f, 0.5f, 0.2f});
-    //test.set_world_rotation({0.f, 0.f, rad(90.f)});
-    //meshes.opaque_instances.add_model_instance(
-    //    models.get_ptr("assets/models/InstanceTest/test.fbx"),
-    //    {
-    //    	materials.get_opaque("assets/models/InstanceTest/Cube_mat"),
-    //        materials.get_opaque("assets/models/InstanceTest/Sphere_mat")
-    //    },
-    //    { transforms.transforms.insert(test) }
-    //);
+    models.add_model("assets/models/InstanceTest/test.fbx");
+    Transform test;
+    test.set_world_offset({ -20.f, 15.f, 20.f });
+    test.set_scale({0.2f, 0.5f, 0.2f});
+    meshes.opaque_instances.add_model_instance(
+        models.get_ptr("assets/models/InstanceTest/test.fbx"),
+        {
+        	materials.get_opaque("assets/models/InstanceTest/Cube_mat"),
+            materials.get_opaque("assets/models/InstanceTest/Sphere_mat")
+        },
+        { transforms.transforms.insert(test) }
+    );
 
     Transform samurai;
-    samurai.set_scale({15.f, 5.f, 10.f});
+    samurai.set_scale(5.f);
     samurai.set_world_offset({ 10.f, 0.f, 0.f });
     meshes.opaque_instances.add_model_instance(
         models.get_ptr("assets/models/Samurai/Samurai.fbx"),
@@ -195,22 +223,22 @@ void Controller::init_scene()
         { transforms.transforms.insert(samurai) }
     );
 
-    samurai.set_scale(5.f);
-    samurai.set_world_offset({ 5.f, 0.f, 3.f });
-    meshes.opaque_instances.add_model_instance(
-        models.get_ptr("assets/models/Samurai/Samurai.fbx"),
-        {
-            materials.get_opaque("assets/models/Samurai/Sword_mat"),
-            materials.get_opaque("assets/models/Samurai/Head_mat"),
-            materials.get_opaque("assets/models/Samurai/Eyes_mat"),
-            materials.get_opaque("assets/models/Samurai/Helmet_mat"),
-            materials.get_opaque("assets/models/Samurai/Skirt_mat"),
-            materials.get_opaque("assets/models/Samurai/Legs_mat"),
-            materials.get_opaque("assets/models/Samurai/Hands_mat"),
-            materials.get_opaque("assets/models/Samurai/Torso_mat")
-        },
-        { transforms.transforms.insert(samurai) }
-    );
+    //samurai.set_scale(5.f);
+    //samurai.set_world_offset({ 5.f, 0.f, 3.f });
+    //meshes.opaque_instances.add_model_instance(
+    //    models.get_ptr("assets/models/Samurai/Samurai.fbx"),
+    //    {
+    //        materials.get_opaque("assets/models/Samurai/Sword_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Head_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Eyes_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Helmet_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Skirt_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Legs_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Hands_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Torso_mat")
+    //    },
+    //    { transforms.transforms.insert(samurai) }
+    //);
 
     Transform knight;
     knight.set_scale(5.f);
@@ -231,23 +259,23 @@ void Controller::init_scene()
         { transforms.transforms.insert(knight) }
     );
 
-    knight.set_scale(5.f);
-    knight.set_world_offset({ 15.f, 0.f, 3.f });
-    meshes.opaque_instances.add_model_instance(
-        models.get_ptr("assets/models/Knight/Knight.fbx"),
-        {
-            materials.get_opaque("assets/models/Knight/Fur_mat"),
-            materials.get_opaque("assets/models/Knight/Legs_mat"),
-            materials.get_opaque("assets/models/Knight/Torso_mat"),
-            materials.get_opaque("assets/models/Knight/Head_mat"),
-            materials.get_opaque("assets/models/Knight/Eyes_mat"),
-            materials.get_opaque("assets/models/Knight/Helmet_mat"),
-            materials.get_opaque("assets/models/Knight/Skirt_mat"),
-            materials.get_opaque("assets/models/Knight/Cape_mat"),
-            materials.get_opaque("assets/models/Knight/Gloves_mat")
-        },
-        { transforms.transforms.insert(knight) }
-    );
+    //knight.set_scale(5.f);
+    //knight.set_world_offset({ 15.f, 0.f, 3.f });
+    //meshes.opaque_instances.add_model_instance(
+    //    models.get_ptr("assets/models/Knight/Knight.fbx"),
+    //    {
+    //        materials.get_opaque("assets/models/Knight/Fur_mat"),
+    //        materials.get_opaque("assets/models/Knight/Legs_mat"),
+    //        materials.get_opaque("assets/models/Knight/Torso_mat"),
+    //        materials.get_opaque("assets/models/Knight/Head_mat"),
+    //        materials.get_opaque("assets/models/Knight/Eyes_mat"),
+    //        materials.get_opaque("assets/models/Knight/Helmet_mat"),
+    //        materials.get_opaque("assets/models/Knight/Skirt_mat"),
+    //        materials.get_opaque("assets/models/Knight/Cape_mat"),
+    //        materials.get_opaque("assets/models/Knight/Gloves_mat")
+    //    },
+    //    { transforms.transforms.insert(knight) }
+    //);
 
     Transform horse;
     horse.set_scale(5.f);
@@ -262,17 +290,17 @@ void Controller::init_scene()
         { transforms.transforms.insert(horse) }
     );
 
-    horse.set_scale(5.f);
-    horse.set_world_offset({ 25.f, 0.f, 5.f });
-    meshes.opaque_instances.add_model_instance(
-        models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
-        {
-            materials.get_opaque("assets/models/KnightHorse/Armor_mat"),
-            materials.get_opaque("assets/models/KnightHorse/Horse_mat"),
-            materials.get_opaque("assets/models/KnightHorse/Tail_mat")
-        },
-        { transforms.transforms.insert(horse) }
-    );
+    //horse.set_scale(5.f);
+    //horse.set_world_offset({ 25.f, 0.f, 5.f });
+    //meshes.opaque_instances.add_model_instance(
+    //    models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
+    //    {
+    //        materials.get_opaque("assets/models/KnightHorse/Armor_mat"),
+    //        materials.get_opaque("assets/models/KnightHorse/Horse_mat"),
+    //        materials.get_opaque("assets/models/KnightHorse/Tail_mat")
+    //    },
+    //    { transforms.transforms.insert(horse) }
+    //);
 
     Transform wall;
     wall.set_scale(5.f);
@@ -303,23 +331,24 @@ void Controller::init_scene()
         { transforms.transforms.insert(wall) }
     );
 
-    init_floor(32, 32);
+    init_floor(16, 16);
 
-    scene.init_depth_and_stencil_buffer(window.width(), window.height());
+    scene.init_hdr_and_depth_buffer(window.width(), window.height(), 4);
     scene.init_depth_stencil_state();
-    scene.init_hdr_buffer(window.width(), window.height());
     
-    camera.set_world_offset({ 0.f, 10.f, -10.f });
+    camera.set_world_offset({ 0.f, 15.f, -10.f });
 
     postProcess.post_process_shader = shaders.get_ptr(L"shaders/resolve.hlsl");
+    postProcess.post_process_shader_ms = shaders.get_ptr(L"shaders/resolve_ms.hlsl");
     postProcess.ev100 = 0.f;
-    postProcess.update();
+
+    lights.init_depth_buffers(512);
 }
 
 void Controller::process_gui_input()
 {
     ImGui::Begin("Render Settings");
-
+    
     static const char* filter_labels[] = {
         "MIN_MAG_MIP_POINT",
         "MIN_MAG_POINT_MIP_LINEAR",
@@ -353,14 +382,21 @@ void Controller::process_gui_input()
     if (ImGui::SliderInt("Max Anisotropy", &manisotropy, D3D11_MIN_MAXANISOTROPY, D3D11_MAX_MAXANISOTROPY) 
         && filters[index] == D3D11_FILTER_ANISOTROPIC)
         Direct3D::instance().init_sampler_state(filters[index], manisotropy);
+    
+    static int msaa = 2;
+    if (ImGui::SliderInt("MSAA", &msaa, 0, 3))
+        scene.init_hdr_and_depth_buffer(scene.hdr_buffer.width, scene.hdr_buffer.height, 1 << msaa);
+
+    ImGui::SameLine();
+    ImGui::Text("%d", 1 << msaa);
 
     ImGui::End();
 }
 
 void Controller::OnResize(uint32_t width, uint32_t height)
 {
-    scene.init_hdr_buffer(width, height);
-    scene.init_depth_and_stencil_buffer(width, height);
+    scene.init_hdr_and_depth_buffer(width, height, scene.hdr_buffer.msaa);
+    scene.init_depth_stencil_buffer(width, height);
     camera.change_aspect(float(width) / height);
 }
 
@@ -391,8 +427,8 @@ void Controller::process_input(float dt)
         is.keyboard.keys[I] = false;
     }
 
-    if (is.keyboard.keys[PLUS]) { postProcess.ev100 += 0.1f; postProcess.update(); }
-    if (is.keyboard.keys[MINUS]){ postProcess.ev100 -= 0.1f; postProcess.update(); }
+    if (is.keyboard.keys[PLUS])  postProcess.ev100 += 0.1f;
+    if (is.keyboard.keys[MINUS]) postProcess.ev100 -= 0.1f;
 
     vec3f move{ 0.f, 0.f, 0.f };
     Angles rot{};

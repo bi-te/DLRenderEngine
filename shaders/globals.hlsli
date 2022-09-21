@@ -2,12 +2,13 @@
 #define _GLOBALS_
 
 static const float PI = 3.14159265f;
+static const float OFFSET = 0.02f;
 
 struct Frustum
 {
 	float4 bottom_left;
 	float4 up_vector;
-	float3 right_vector;
+	float4 right_vector;
 };
 
 struct DirectLight
@@ -33,10 +34,21 @@ struct Spotlight
 	float radius;
 
 	float3 position;
-	float cutOff;
+	float cutOffCos;
 
 	float3 direction;
-	float outerCutOff;
+	float outerCutOffCos;
+};
+
+struct PointLightTransBuffer
+{
+	float4x4 light_view_proj[6];
+};
+
+struct SpotlightTransBuffer
+{
+	float4x4 light_view_proj;
+	float fov_tan;
 };
 
 static const uint MAX_LIGHTS_NUMBER = 10;
@@ -49,10 +61,24 @@ struct LightBuffer
 	uint spotlightNum;
 
 	Spotlight spotlights[MAX_LIGHTS_NUMBER];
+	SpotlightTransBuffer spotTrans[MAX_LIGHTS_NUMBER];
 	PointLight pointLights[MAX_LIGHTS_NUMBER];
+	PointLightTransBuffer pointTrans[MAX_LIGHTS_NUMBER];
+
+	float shadow_near, shadow_far;
+	float buffer_side;
+	float padding;
 };
 
 SamplerState g_sampler: register(s0);
+SamplerState g_linear_clamp_sampler: register(s1);
+SamplerComparisonState g_comparison_sampler: register(s2);
+
+Texture2D g_reflectance: register(t0);
+TextureCube g_irradiance: register(t1);
+TextureCube g_reflection: register(t2);
+TextureCubeArray g_shadows:register(t3);
+Texture2DArray g_spot_shadows: register(t4);
 
 cbuffer perFrame: register(b0)
 {
@@ -60,17 +86,8 @@ cbuffer perFrame: register(b0)
 	Frustum g_frustum;
 
 	float3 g_cameraPosition;
-	float padding0;
+	uint g_max_reflection_mip;
 
 	LightBuffer g_lighting;
 }
-
-float3 irradianceAtDistanceToRadiance(float3 irradiance, float distance, float radius)
-{
-	float angleSin = min(1.f, radius / distance);
-	float angleCos = sqrt(1.f - angleSin * angleSin);
-	float occupation = 1.f - angleCos;
-	return irradiance / occupation;
-}
-
 #endif

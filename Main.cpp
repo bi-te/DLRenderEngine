@@ -25,7 +25,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    initConsole();
+    //initConsole();
 
     Timer timer(1.f / 60.f);
     uint32_t width = 1366, height = 768;

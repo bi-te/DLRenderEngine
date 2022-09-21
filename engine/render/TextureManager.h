@@ -36,6 +36,8 @@ public:
 
 	static void reset()
 	{
+		for (auto texture : s_manager->textures2d)
+			texture.second.Reset();
 		delete s_manager;
 	}
 

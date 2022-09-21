@@ -14,8 +14,7 @@ struct Shader;
 struct OpaqueInstanceRender
 {
 	mat4f model_transform;
-	vec3f scale;
-	float padding;
+	mat3f scale;
 };
 
 class OpaqueInstances
@@ -65,7 +64,10 @@ public:
 	                        const std::vector<OpaqueMaterial>& materials,
 	                        const Instance& instance);
 
+	void bind_instance_buffer();
 	void update_instance_buffer();
+
 	void render();
+	void shadow_render(uint32_t light_count);
 };
 

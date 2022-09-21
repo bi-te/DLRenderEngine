@@ -45,6 +45,7 @@ void Direct3D::init_rasterizer_state()
     rasterizer.CullMode = D3D11_CULL_BACK;
     rasterizer.DepthClipEnable = true;
     rasterizer.FrontCounterClockwise = false;
+    rasterizer.MultisampleEnable = true;
     HRESULT result = device5->CreateRasterizerState(&rasterizer, &rasterizer_state);
     assert(SUCCEEDED(result) && "CreateRasterizerState");
 }
@@ -55,14 +56,39 @@ void Direct3D::init_sampler_state(D3D11_FILTER filter, uint8_t anisotropy)
     sdesc.Filter = filter;
     sdesc.MaxAnisotropy = anisotropy;
     sdesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     sdesc.MinLOD = 0.f;
     sdesc.MaxLOD = 12.f;
     device5->CreateSamplerState(&sdesc, &sampler_state);
 }
 
-void Direct3D::bind_globals(const Camera& camera)
+void Direct3D::init_linear_clamp_sampler()
+{
+    D3D11_SAMPLER_DESC sdesc{};
+    sdesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sdesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.MinLOD = 0.f;
+    sdesc.MaxLOD = 12.f;
+    device5->CreateSamplerState(&sdesc, &linear_clamp_sampler_state);
+}
+
+void Direct3D::init_comparison_sampler()
+{
+    D3D11_SAMPLER_DESC sdesc{};
+    sdesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+    sdesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sdesc.ComparisonFunc = D3D11_COMPARISON_GREATER_EQUAL;
+    sdesc.MinLOD = 0.f;
+    sdesc.MaxLOD = 12.f;
+    device5->CreateSamplerState(&sdesc, &comparison_sampler_state);
+}
+
+void Direct3D::bind_globals(const Camera& camera, uint32_t max_reflection_mip)
 {
     PerFrame* per_frame = static_cast<PerFrame*>(per_frame_buffer.map().pData);
 
@@ -71,13 +97,18 @@ void Direct3D::bind_globals(const Camera& camera)
     per_frame->frustum.up_vector = camera.frustrum_up;
     per_frame->frustum.right_vector = camera.frustrum_right;
     per_frame->camera_pos = camera.position();
+    per_frame->max_reflection_mip = max_reflection_mip;
 
     LightSystem::instance().bind_lights(&per_frame->light_buffer);
 
     per_frame_buffer.unmap();
     context4->VSSetConstantBuffers(0, 1, per_frame_buffer.address());
+    context4->GSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
+    context4->PSSetSamplers(1, 1, linear_clamp_sampler_state.GetAddressOf());
+    context4->PSSetSamplers(2, 1, comparison_sampler_state.GetAddressOf());
+    context4->PSSetShaderResources(0, 1, reflectance_map.GetAddressOf());
 }
 
 void Direct3D::init() 
@@ -88,7 +119,9 @@ void Direct3D::init()
     direct3d->init_core();
     direct3d->init_rasterizer_state();
     direct3d->init_sampler_state();
-    
+    direct3d->init_linear_clamp_sampler();
+    direct3d->init_comparison_sampler();
+
     direct3d->per_frame_buffer.allocate(sizeof(PerFrame));
 }
 
@@ -100,6 +133,10 @@ void Direct3D::reset()
 
     direct3d->rasterizer_state.Reset();
     direct3d->sampler_state.Reset();
+    direct3d->linear_clamp_sampler_state.Reset();
+    direct3d->comparison_sampler_state.Reset();
+
+    direct3d->reflectance_map.Reset();
 
     direct3d->context4->ClearState();
     direct3d->context4->Flush();

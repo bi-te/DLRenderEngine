@@ -47,16 +47,22 @@ public:
 	DepthStencil depth_stencil;
 	RenderBuffer hdr_buffer;
 
-	void init_depth_and_stencil_buffer(uint32_t width, uint32_t height);
+	std::shared_ptr<Shader> pointShadowShader;
+	std::shared_ptr<Shader> spotShadowShader;
+
+	void init_depth_stencil_buffer(uint32_t width, uint32_t height);
 	void init_depth_stencil_state();
-	void init_hdr_buffer(uint32_t width, uint32_t height);
+	void init_hdr_and_depth_buffer(uint32_t width, uint32_t height, uint32_t msaa);
 	
-	void render(RenderBuffer& target_buffer, const Camera& camera, const PostProcess& post_process);
+	void render(RenderBuffer& target_buffer, PostProcess& post_process, const Camera& camera);
+	void shadow_pass();
+
 
 	void render_reset()
 	{
 		depth_stencil.reset();
 		hdr_buffer.reset();
+		skybox.reset();
 	}
 };
 
