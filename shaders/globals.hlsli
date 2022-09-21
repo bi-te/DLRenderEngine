@@ -2,7 +2,7 @@
 #define _GLOBALS_
 
 static const float PI = 3.14159265f;
-static const float OFFSET = 0.01f;
+static const float OFFSET = 0.02f;
 
 struct Frustum
 {
