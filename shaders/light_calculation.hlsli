@@ -38,14 +38,16 @@ float point_shadow_calc(float3 world_position, float3 normal, uint index)
 	float3 light_vec = normalize(pLight.position - world_position);
 	uint face = select_cube_face(-light_vec);
 
-	world_position += light_vec * offset;
+	world_position += light_vec * OFFSET;
 	float4 compare = mul(pTrans.light_view_proj[face], float4(world_position, 1.f));
-	compare.xyz /= compare.w;
+	compare.z /= compare.w;
+
 	float tex_size = 2.f * compare.w / g_lighting.buffer_side;
 
-	float3 sample_point = world_position + normal * tex_size;
+	world_position += normal * tex_size;
+	float3 sample_dir = world_position - pLight.position;
 
-	return g_shadows.SampleCmp(g_comparison_sampler, float4(normalize(sample_point - pLight.position), index), compare.z);
+	return g_shadows.SampleCmp(g_comparison_sampler, float4(sample_dir, index), compare.z);
 }
 
 float spot_shadow_calc(float3 world_position, float3 normal, uint index)
@@ -55,11 +57,11 @@ float spot_shadow_calc(float3 world_position, float3 normal, uint index)
 
 	float3 light_vec = normalize(sLight.position - world_position);
 
-	world_position += light_vec * offset;
+	world_position += light_vec * OFFSET;
 	float4 compare = mul(sTrans.light_view_proj, float4(world_position, 1.f));
 	compare.xyz /= compare.w;
 	
-	float tex_size = 2.f * compare.w * tan(sLight.outerCutOff)/ g_lighting.buffer_side;
+	float tex_size = 2.f * compare.w * sTrans.fov_tan/ g_lighting.buffer_side;
 
 	float4 sample_point = mul(sTrans.light_view_proj, float4(world_position + normal * tex_size, 1.f));
 	sample_point /= sample_point.w;
@@ -172,10 +174,10 @@ float3 calc_spotlight_pbr(float3 position, float3 view_vec, float3 mesh_normal, 
 		float light_dist = max(length(light_vec), spotlight.radius);
 		light_vec = normalize(light_vec);
 
-		if (dot(light_vec, mesh_normal) <= 0.f) return 0.f;
+		if (dot(light_vec, mesh_normal) <= 0.f) continue;
 
 		float cosDSL = dot(spotlight.direction, -light_vec);
-		float intensity = smoothstep(cos(spotlight.outerCutOff), cos(spotlight.cutOff), cosDSL);
+		float intensity = smoothstep(spotlight.outerCutOffCos, spotlight.cutOffCos, cosDSL);
 		if (intensity == 0.f) continue;
 
 		float sphereCos = sqrt(light_dist * light_dist - spotlight.radius * spotlight.radius) / light_dist;

@@ -26,10 +26,10 @@ struct SpotlightBuffer
 	float radius;
 
 	vec3f position;
-	float cutOff;
+	float cutOffCos;
 
 	vec3f direction;
-	float outerCutOff;
+	float outerCutOffCos;
 };
 
 struct PointLightTransBuffer
@@ -40,6 +40,9 @@ struct PointLightTransBuffer
 struct SpotlightTransBuffer
 {
 	mat4f light_view_proj;
+
+	float fov_tan;
+	float padding[3];
 };
 
 

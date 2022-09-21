@@ -129,13 +129,14 @@ void LightSystem::bind_lights(LightBuffer* lBuffer)
 		SpotlightTransBuffer& trans = lBuffer->spotTrans[sLight];
 
 		s_buffer.radius = s_data.radius;
-		s_buffer.cutOff = s_data.cutOff;
+		s_buffer.cutOffCos = cosf(s_data.cutOff);
 		s_buffer.position = t_system.transforms[s_data.position].position();
 		s_buffer.direction = s_data.direction;
 		s_buffer.radiance = s_data.radiance;
-		s_buffer.outerCutOff = s_data.outerCutOff;
-		trans.light_view_proj = lookAt(t_system.transforms[s_data.position], s_data.direction)
-								* perspective_proj(2.f * s_data.outerCutOff, 1.f, shadow_near, shadow_far);
+		s_buffer.outerCutOffCos = cos(s_data.outerCutOff);
+		mat4f proj = perspective_proj(2.f * s_data.outerCutOff, 1.f, shadow_near, shadow_far);;
+		trans.fov_tan = 1.f / proj(1, 1);
+		trans.light_view_proj = lookAt(t_system.transforms[s_data.position], s_data.direction) * proj;
 	}
 }
 

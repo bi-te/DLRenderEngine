@@ -2,7 +2,7 @@
 #define _GLOBALS_
 
 static const float PI = 3.14159265f;
-static const float offset = 0.02f;
+static const float OFFSET = 0.01f;
 
 struct Frustum
 {
@@ -34,10 +34,10 @@ struct Spotlight
 	float radius;
 
 	float3 position;
-	float cutOff;
+	float cutOffCos;
 
 	float3 direction;
-	float outerCutOff;
+	float outerCutOffCos;
 };
 
 struct PointLightTransBuffer
@@ -48,6 +48,7 @@ struct PointLightTransBuffer
 struct SpotlightTransBuffer
 {
 	float4x4 light_view_proj;
+	float fov_tan;
 };
 
 static const uint MAX_LIGHTS_NUMBER = 10;

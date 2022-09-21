@@ -169,7 +169,7 @@ void OpaqueInstances::render()
 
 }
 
-void OpaqueInstances::mesh_render(uint32_t render_count)
+void OpaqueInstances::shadow_render(uint32_t light_count)
 {
 	Direct3D& direct = Direct3D::instance();
 	LightSystem& light_system = LightSystem::instance();
@@ -205,7 +205,7 @@ void OpaqueInstances::mesh_render(uint32_t render_count)
 				instances += perMaterial.instances.size();
 			instances *= mesh.mesh_model_matrices.size();
 
-			for(uint32_t light = 0; light < render_count; light ++ )
+			for(uint32_t light = 0; light < light_count; light ++ )
 			{
 				light_system.bind_light_shadow_buffer(light);
 

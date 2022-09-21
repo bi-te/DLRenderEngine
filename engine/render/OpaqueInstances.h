@@ -68,6 +68,6 @@ public:
 	void update_instance_buffer();
 
 	void render();
-	void mesh_render(uint32_t render_count);
+	void shadow_render(uint32_t light_count);
 };
 

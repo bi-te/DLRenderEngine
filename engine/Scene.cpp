@@ -81,11 +81,11 @@ void Scene::shadow_pass()
 
 	pointShadowShader->bind();
 	light_system.bind_point_dsv();
-	MeshSystem::instance().opaque_instances.mesh_render(light_system.plights().size());
+	MeshSystem::instance().opaque_instances.shadow_render(light_system.plights().size());
 
 	spotShadowShader->bind();
 	light_system.bind_spot_dsv();
-	MeshSystem::instance().opaque_instances.mesh_render(light_system.slights().size());
+	MeshSystem::instance().opaque_instances.shadow_render(light_system.slights().size());
 }
 
 void Scene::render(RenderBuffer& target_buffer, PostProcess& post_process, const Camera& camera)
