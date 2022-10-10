@@ -147,6 +147,24 @@
     <ClCompile Include="engine\render\TextureManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="engine\render\ParticleSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\SmokeEmitter.cpp">
+      <Filter>engine\render</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\AppearingInstances.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\EngineClock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\objects\GrassField.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\RandomGenerator.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
@@ -539,6 +557,27 @@
     <ClInclude Include="engine\render\Direct11\RenderBuffer.h">
       <Filter>engine\render\Direct11</Filter>
     </ClInclude>
+    <ClInclude Include="engine\render\SmokeEmitter.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\ParticleSystem.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\RandomGenerator.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\AppearingInstances.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\EngineClock.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\objects\GrassField.h">
+      <Filter>engine\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\math\poisson.h">
+      <Filter>engine\math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\opaque.hlsl">
@@ -560,6 +599,21 @@
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\directional_shadows.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\particle.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\appearance.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grass.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\depth_resolve.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\omnidirectional_grass_shadows.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -607,6 +661,9 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\fullscreen.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\grass_helpers.hlsli">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

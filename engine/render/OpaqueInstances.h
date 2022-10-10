@@ -58,6 +58,8 @@ public:
 	DynamicBuffer materialBuffer{ D3D11_BIND_CONSTANT_BUFFER };
 
 	std::shared_ptr<Shader> opaqueShader;
+	std::shared_ptr<Shader> pointShadowShader;
+	std::shared_ptr<Shader> spotShadowShader;
 	std::vector<PerModel> perModels;
 
 	void add_model_instance(const std::shared_ptr<Model>& model,

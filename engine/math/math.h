@@ -24,7 +24,7 @@ inline float rad(float degrees)
 {
 	return degrees * PI / 180.f;
 }
-	
+
 inline Angles rotation_from_degrees(float roll, float pitch, float yaw)
 {
 	float r = rad(roll);

@@ -18,8 +18,8 @@ class PostProcess
 	DynamicBuffer postProcessBuffer{ D3D11_BIND_CONSTANT_BUFFER };
 public:
 	float ev100;
-	std::shared_ptr<Shader> post_process_shader;
-	std::shared_ptr<Shader> post_process_shader_ms;
+	std::shared_ptr<Shader> postProcessShader;
+	std::shared_ptr<Shader> postProcessShaderMS;
 
 	PostProcess()
 	{

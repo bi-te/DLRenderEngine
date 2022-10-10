@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AppearingInstances.h"
 #include "EmissiveInstances.h"
 #include "OpaqueInstances.h"
 #include "IntersectionQuery.h"
@@ -17,6 +18,7 @@ class MeshSystem
 public:
 	OpaqueInstances opaque_instances;
 	EmissiveInstances emissive_instances;
+	AppearingInstances appearing_instances;
 
 
 	bool select_mesh(const Ray& ray, IntersectionQuery& record);

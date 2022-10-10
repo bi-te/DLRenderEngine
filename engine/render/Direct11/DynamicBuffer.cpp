@@ -3,6 +3,7 @@
 
 void DynamicBuffer::allocate(uint32_t bytesize)
 {
+	if (byte_size == bytesize) return;
 	byte_size = bytesize;
 	D3D11_BUFFER_DESC desc{};
 	desc.BindFlags = type;
@@ -26,6 +27,9 @@ void DynamicBuffer::write(const void* data)
 
 void DynamicBuffer::write(const void* data, uint32_t bytesize)
 {
+	if (!bytesize) { return; }
+	if (byte_size == bytesize) { write(data); return; }
+
 	byte_size = bytesize;
 	D3D11_BUFFER_DESC desc{};
 	desc.BindFlags = type;

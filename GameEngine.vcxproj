@@ -162,6 +162,7 @@
     <ClCompile Include="engine\Controller.cpp" />
     <ClCompile Include="engine\data_structures\TriangleOctree.cpp" />
     <ClCompile Include="engine\Engine.cpp" />
+    <ClCompile Include="engine\EngineClock.cpp" />
     <ClCompile Include="engine\imgui\imgui.cpp" />
     <ClCompile Include="engine\imgui\imgui_demo.cpp" />
     <ClCompile Include="engine\imgui\imgui_draw.cpp" />
@@ -175,8 +176,11 @@
     <ClCompile Include="engine\math\Sphere.cpp" />
     <ClCompile Include="engine\math\Transform.cpp" />
     <ClCompile Include="engine\moving\TransformSystem.cpp" />
+    <ClCompile Include="engine\objects\GrassField.cpp" />
     <ClCompile Include="engine\objects\Skybox.cpp" />
     <ClCompile Include="engine\PostProcess.cpp" />
+    <ClCompile Include="engine\RandomGenerator.cpp" />
+    <ClCompile Include="engine\render\AppearingInstances.cpp" />
     <ClCompile Include="engine\render\Direct11\DDSTextureLoader11.cpp" />
     <ClCompile Include="engine\render\Direct11\Direct3D.cpp" />
     <ClCompile Include="engine\render\Direct11\DynamicBuffer.cpp" />
@@ -188,7 +192,9 @@
     <ClCompile Include="engine\render\MeshSystem.cpp" />
     <ClCompile Include="engine\render\OpaqueInstances.cpp" />
     <ClCompile Include="engine\render\ModelManager.cpp" />
+    <ClCompile Include="engine\render\ParticleSystem.cpp" />
     <ClCompile Include="engine\render\ShaderManager.cpp" />
+    <ClCompile Include="engine\render\SmokeEmitter.cpp" />
     <ClCompile Include="engine\render\TextureManager.cpp" />
     <ClCompile Include="engine\Scene.cpp" />
     <ClCompile Include="engine\win32\Window.cpp" />
@@ -276,6 +282,7 @@
     <ClInclude Include="engine\data_structures\solid_vector.h" />
     <ClInclude Include="engine\data_structures\TriangleOctree.h" />
     <ClInclude Include="engine\Engine.h" />
+    <ClInclude Include="engine\EngineClock.h" />
     <ClInclude Include="engine\ImageSettings.h" />
     <ClInclude Include="engine\imgui\imconfig.h" />
     <ClInclude Include="engine\imgui\imgui.h" />
@@ -295,15 +302,19 @@
     <ClInclude Include="engine\math\Intersection.h" />
     <ClInclude Include="engine\math\math.h" />
     <ClInclude Include="engine\math\Plane.h" />
+    <ClInclude Include="engine\math\poisson.h" />
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\Transform.h" />
     <ClInclude Include="engine\moving\TransformSystem.h" />
+    <ClInclude Include="engine\objects\GrassField.h" />
     <ClInclude Include="engine\objects\LightObjects.h" />
     <ClInclude Include="engine\objects\Model.h" />
     <ClInclude Include="engine\objects\Skybox.h" />
     <ClInclude Include="engine\objects\SphereObject.h" />
     <ClInclude Include="engine\PostProcess.h" />
+    <ClInclude Include="engine\RandomGenerator.h" />
+    <ClInclude Include="engine\render\AppearingInstances.h" />
     <ClInclude Include="engine\render\Direct11\ImmutableBuffer.h" />
     <ClInclude Include="engine\render\Direct11\d3d.h" />
     <ClInclude Include="engine\render\Direct11\DDSTextureLoader11.h" />
@@ -318,7 +329,9 @@
     <ClInclude Include="engine\render\MeshSystem.h" />
     <ClInclude Include="engine\render\OpaqueInstances.h" />
     <ClInclude Include="engine\render\ModelManager.h" />
+    <ClInclude Include="engine\render\ParticleSystem.h" />
     <ClInclude Include="engine\render\ShaderManager.h" />
+    <ClInclude Include="engine\render\SmokeEmitter.h" />
     <ClInclude Include="engine\render\TextureManager.h" />
     <ClInclude Include="engine\Scene.h" />
     <ClInclude Include="engine\Timer.h" />
@@ -327,6 +340,13 @@
     <ClInclude Include="engine\win32\WinListener.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="shaders\appearance.hlsl" />
+    <FxCompile Include="shaders\depth_resolve.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="shaders\directional_shadows.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -334,7 +354,25 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="shaders\emissive.hlsl" />
+    <FxCompile Include="shaders\grass.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\omnidirectional_grass_shadows.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="shaders\omnidirectional_shadows.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\particle.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -375,6 +413,7 @@
     <None Include="engine\assimp\vector3.inl" />
     <None Include="shaders\fullscreen.hlsli" />
     <None Include="shaders\globals.hlsli" />
+    <None Include="shaders\grass_helpers.hlsli" />
     <None Include="shaders\light_calculation.hlsli" />
     <None Include="shaders\pbr_render.hlsli" />
     <None Include="shaders\post_process_helpers.hlsli" />

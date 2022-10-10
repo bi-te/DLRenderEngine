@@ -5,6 +5,7 @@
 #include "math/math.h"
 #include "math/Camera.h"
 #include "render/Lighting.h"
+#include "render/ShaderManager.h"
 
 struct Frustum
 {
@@ -75,10 +76,20 @@ struct PerFrame
 	uint32_t max_reflection_mip;
 
 	LightBuffer light_buffer;
+
+	float near, far;
+	float time;
+};
+
+struct ResolveBuffer
+{
+	uint32_t msaa;
+	float padding[3];
 };
 
 constexpr ID3D11RenderTargetView* NULL_RTV = nullptr;
 constexpr ID3D11ShaderResourceView* NULL_SRV = nullptr;
+constexpr ID3D11Buffer* NULL_BUFFER = nullptr;
 
 class Direct3D
 {
@@ -99,11 +110,18 @@ public:
 	comptr<ID3D11SamplerState> sampler_state;
 	comptr<ID3D11SamplerState> linear_clamp_sampler_state;
 	comptr<ID3D11SamplerState> comparison_sampler_state;
-	comptr<ID3D11RasterizerState> rasterizer_state;
 
+	comptr<ID3D11BlendState> blend_state;
+	comptr<ID3D11BlendState> atc_blend_state;
+
+	comptr<ID3D11RasterizerState> rasterizer_state;
+	comptr<ID3D11RasterizerState> two_face_rasterizer_state;
 	comptr<ID3D11ShaderResourceView> reflectance_map;
 
+	std::shared_ptr<Shader> depth_resolve_shader;
+
 	DynamicBuffer per_frame_buffer{ D3D11_BIND_CONSTANT_BUFFER };
+	DynamicBuffer resolve_buffer{D3D11_BIND_CONSTANT_BUFFER}; 
 
 	static void init();
 
@@ -113,8 +131,12 @@ public:
         return *direct3d;
     }
 
+	void resolve_depth(comptr<ID3D11ShaderResourceView> msaa_depth, comptr<ID3D11DepthStencilView> target, uint32_t msaa);
+
 	void init_core();
-	void init_rasterizer_state();
+	void init_rasterizer_states();
+	void init_blend_state();
+	void init_alpha_to_coverage();
 	void init_sampler_state(D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR, uint8_t anisotropy = 0);
 	void init_linear_clamp_sampler();
 	void init_comparison_sampler();

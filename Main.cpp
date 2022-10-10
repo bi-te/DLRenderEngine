@@ -7,6 +7,7 @@
 #include "engine/Controller.h"
 #include "engine/Timer.h"
 #include "engine/Engine.h"
+#include "engine/EngineClock.h"
 #include "win32/Window.h"
 #include "imgui/ImGuiManager.h"
 
@@ -25,7 +26,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    //initConsole();
+    initConsole();
 
     Timer timer(1.f / 60.f);
     uint32_t width = 1366, height = 768;
@@ -37,7 +38,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
     window.create_window(L"Test21", width, height);
 
     Controller controller{window};
-    controller.camera.set_perspective(rad(55.f), float(width) / height, 0.1f, 400.f);
     controller.init_scene();
     window.listeners.push_back(&controller);
 
@@ -48,6 +48,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     timer.start();
     while(true)
     {
+        EngineClock::instance().startFrame();
+
 	    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	    {
             TranslateMessage(&msg);

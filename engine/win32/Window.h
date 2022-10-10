@@ -9,7 +9,7 @@
 #include "render/Direct11/d3d.h"
 #include "render/Direct11/RenderBuffer.h"
 
-const FLOAT WINDOW_COLOR[4] { 0.2f, 0.2f, 0.2f, 1.f };
+const FLOAT WINDOW_COLOR[4] { 0.2f, 0.2f, 0.2f, 0.f };
 
 class Window
 {

@@ -1,4 +1,16 @@
 #include "ShaderManager.h"
+#include "Direct11/Direct3D.h"
+
+
+void Shader::bind() const
+{
+	Direct3D& direct = Direct3D::instance();
+
+	direct.context4->VSSetShader(vertexShader.Get(), nullptr, NULL);
+	direct.context4->GSSetShader(geometryShader.Get(), nullptr, NULL);
+	direct.context4->PSSetShader(pixelShader.Get(), nullptr, NULL);
+	direct.context4->IASetInputLayout(inputLayout.ptr.Get());
+}
 
 ShaderManager* ShaderManager::s_manager;
 

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "EngineClock.h"
 #include "render/LightSystem.h"
 
 extern "C"
@@ -38,16 +39,60 @@ void Direct3D::init_core()
     assert(result >= 0 && "Query ID3D11DeviceContext4");
 }
 
-void Direct3D::init_rasterizer_state()
+void Direct3D::init_rasterizer_states()
 {
+    HRESULT result;
     D3D11_RASTERIZER_DESC rasterizer{};
     rasterizer.FillMode = D3D11_FILL_SOLID;
     rasterizer.CullMode = D3D11_CULL_BACK;
     rasterizer.DepthClipEnable = true;
     rasterizer.FrontCounterClockwise = false;
     rasterizer.MultisampleEnable = true;
-    HRESULT result = device5->CreateRasterizerState(&rasterizer, &rasterizer_state);
+    result = device5->CreateRasterizerState(&rasterizer, &rasterizer_state);
     assert(SUCCEEDED(result) && "CreateRasterizerState");
+
+	D3D11_RASTERIZER_DESC two_face{};
+    two_face.FillMode = D3D11_FILL_SOLID;
+    two_face.CullMode = D3D11_CULL_NONE;
+    two_face.DepthClipEnable = true;
+    two_face.FrontCounterClockwise = false;
+    two_face.MultisampleEnable = true;
+    result = device5->CreateRasterizerState(&two_face, &two_face_rasterizer_state);
+    assert(SUCCEEDED(result) && "CreateRasterizerState");
+}
+
+void Direct3D::init_blend_state()
+{
+    D3D11_BLEND_DESC blend_desc{};
+    blend_desc.AlphaToCoverageEnable = FALSE;
+    blend_desc.IndependentBlendEnable = FALSE;
+    blend_desc.RenderTarget[0].BlendEnable = TRUE;
+    blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    HRESULT result = device5->CreateBlendState(&blend_desc, &blend_state);
+    assert(SUCCEEDED(result) && "CreateBlendState");
+}
+
+void Direct3D::init_alpha_to_coverage()
+{
+    D3D11_BLEND_DESC alpha_to_coverage{};
+    alpha_to_coverage.AlphaToCoverageEnable = TRUE;
+    alpha_to_coverage.IndependentBlendEnable = FALSE;
+    alpha_to_coverage.RenderTarget[0].BlendEnable = TRUE;
+    alpha_to_coverage.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    alpha_to_coverage.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    alpha_to_coverage.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    alpha_to_coverage.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    alpha_to_coverage.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    alpha_to_coverage.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    alpha_to_coverage.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    HRESULT result = device5->CreateBlendState(&alpha_to_coverage, &atc_blend_state);
+    assert(SUCCEEDED(result) && "CreateBlendState");
 }
 
 void Direct3D::init_sampler_state(D3D11_FILTER filter, uint8_t anisotropy)
@@ -98,6 +143,9 @@ void Direct3D::bind_globals(const Camera& camera, uint32_t max_reflection_mip)
     per_frame->frustum.right_vector = camera.frustrum_right;
     per_frame->camera_pos = camera.position();
     per_frame->max_reflection_mip = max_reflection_mip;
+    per_frame->near = camera.zn;
+    per_frame->far = camera.zf;
+    per_frame->time = EngineClock::instance().frameStartTime();
 
     LightSystem::instance().bind_lights(&per_frame->light_buffer);
 
@@ -117,7 +165,9 @@ void Direct3D::init()
 
     direct3d = new Direct3D;
     direct3d->init_core();
-    direct3d->init_rasterizer_state();
+    direct3d->init_rasterizer_states();
+    direct3d->init_blend_state();
+    direct3d->init_alpha_to_coverage();
     direct3d->init_sampler_state();
     direct3d->init_linear_clamp_sampler();
     direct3d->init_comparison_sampler();
@@ -130,8 +180,12 @@ void Direct3D::reset()
     if (!direct3d) return;
 
     direct3d->per_frame_buffer.free();
+    direct3d->resolve_buffer.free();
 
     direct3d->rasterizer_state.Reset();
+    direct3d->two_face_rasterizer_state.Reset();
+    direct3d->atc_blend_state.Reset();
+    direct3d->blend_state.Reset();
     direct3d->sampler_state.Reset();
     direct3d->linear_clamp_sampler_state.Reset();
     direct3d->comparison_sampler_state.Reset();
@@ -149,4 +203,19 @@ void Direct3D::reset()
     direct3d->devdebug.Reset();
 
     delete direct3d;
+}
+
+void Direct3D::resolve_depth(comptr<ID3D11ShaderResourceView> msaa_depth, comptr<ID3D11DepthStencilView> target,
+	uint32_t msaa)
+{
+    depth_resolve_shader->bind();
+
+    ResolveBuffer rb = {msaa};
+    resolve_buffer.write(&rb, sizeof(ResolveBuffer));
+
+    context4->OMSetRenderTargets(1, &NULL_RTV, target.Get());
+    context4->PSSetShaderResources(5, 1, msaa_depth.GetAddressOf());
+    context4->PSSetConstantBuffers(1, 1, resolve_buffer.address());
+    context4->Draw(3, 0);
+    context4->PSSetShaderResources(5, 1, &NULL_SRV);
 }

@@ -1,7 +1,7 @@
 #include "globals.hlsli"
 #include "fullscreen.hlsli"
 
-TextureCube cubemap: register(t0);
+TextureCube cubemap: register(t5);
 
 vs_out main(uint index: SV_VertexID)
 {
