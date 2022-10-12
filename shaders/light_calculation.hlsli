@@ -162,7 +162,7 @@ float3 calc_point_lights_pbr(float3 position, float3 view_vec, float3 mesh_norma
 	float3 color = 0.f;
 	for (uint pLight_ind = 0; pLight_ind < g_lighting.pointLightNum; ++pLight_ind)
 	{
-		calc_point_light_pbr(pLight_ind, position, view_vec, mesh_normal, normal, material);
+		color += calc_point_light_pbr(pLight_ind, position, view_vec, mesh_normal, normal, material);
 	}
 	return color;
 
@@ -199,7 +199,7 @@ float3 calc_spotlights_pbr(float3 position, float3 view_vec, float3 mesh_normal,
 	float3 color = 0.f;
 	for (uint sLight_ind = 0; sLight_ind < g_lighting.spotlightNum; ++sLight_ind)
 	{
-		calc_spotlight_pbr(sLight_ind, position, view_vec, mesh_normal, normal, material);
+		color += calc_spotlight_pbr(sLight_ind, position, view_vec, mesh_normal, normal, material);
 	}
 	return color;
 }

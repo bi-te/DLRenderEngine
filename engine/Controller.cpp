@@ -160,7 +160,7 @@ void Controller::init_scene()
 
     Transform the_sun;
     the_sun.set_scale(0.5f);
-    the_sun.set_world_offset({ -15.f, 1.f, -25.f });
+    the_sun.set_world_offset({ -5.f, 1.f, -6.f });
     PointLight minisun = {
         {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(the_sun), 0.5f, 5.f
     };
@@ -180,22 +180,22 @@ void Controller::init_scene()
     };
     lights.add_point_light(greensun, "Sphere");
 
-    Transform flashlight;
-    flashlight.set_scale(0.5f);
-    flashlight.set_world_offset({ 0.f, 5.f, -5.f });
-    Spotlight flash = {
-        {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
-    	{0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
-    };
-    lights.add_spotlight(flash, "Sphere");
+    //Transform flashlight;
+    //flashlight.set_scale(0.5f);
+    //flashlight.set_world_offset({ 0.f, 5.f, -5.f });
+    //Spotlight flash = {
+    //    {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
+    //	{0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
+    //};
+    //lights.add_spotlight(flash, "Sphere");
 
-    flashlight.set_scale(0.5f);
-    flashlight.set_world_offset({ -5.f, 5.f, -5.f });
-    Spotlight flash2 = {
-        {0.3f, 0.1f, 0.5f}, transforms.transforms.insert(flashlight),
-        {0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
-    };
-    lights.add_spotlight(flash2, "Sphere");
+    //flashlight.set_scale(0.5f);
+    //flashlight.set_world_offset({ -5.f, 5.f, -5.f });
+    //Spotlight flash2 = {
+    //    {0.3f, 0.1f, 0.5f}, transforms.transforms.insert(flashlight),
+    //    {0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
+    //};
+    //lights.add_spotlight(flash2, "Sphere");
 
     Transform sphere;
     sphere.set_world_offset({ -5.f, 20.f, 5.f });
@@ -372,7 +372,7 @@ void Controller::init_scene()
     scene.init_hdr_and_depth_buffer(window.width(), window.height(), 4);
     scene.init_depth_stencil_state();
     scene.grassfield.grassBuffer = {3u, 4u, {2.f, 3.f}};
-    scene.grassfield.init_field({-10.f, 0.f, -10.f}, 15.f, 15.f, 1.f);
+    scene.grassfield.init_field({0.f, 0.f, 0.f}, 10.f, 10.f, 1.f);
     
     camera.set_world_offset({ 0.f, 15.f, -10.f });
     camera.set_perspective(rad(55.f), float(window.width()) / window.height(), 0.1f, 400.f);

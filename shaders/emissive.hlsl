@@ -16,7 +16,7 @@ struct vs_out
 {
 	float4 position: Sv_Position;
 	float4 world_position: WorldPosition;
-	float3 emissive_color: Color;
+	nointerpolation float3 emissive_color: Color;
 	float3 normal: Normal;
 };
 

@@ -28,7 +28,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 {
     initConsole();
 
-    Timer timer(1.f / 60.f);
     uint32_t width = 1366, height = 768;
 
     ImGuiManager::init_context();
@@ -45,11 +44,13 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
     MSG msg;
     window.show_window(nShowCmd);
-    timer.start();
+
+	EngineClock& eclock = EngineClock::instance();
+    eclock.set_check_time(1.f / 60.f);
+    eclock.start();
+
     while(true)
     {
-        EngineClock::instance().startFrame();
-
 	    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	    {
             TranslateMessage(&msg);
@@ -57,11 +58,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
             if (msg.message == WM_QUIT) break;
 	    }
         if (msg.message == WM_QUIT) break;
-        
-        if(timer.frame_time_check())
+
+        if(eclock.frame_time_check())
         {
-            controller.process_input(timer.time_passed());
-            timer.advance_current();
+            controller.process_input(eclock.time_passed());
+            eclock.advance_current();
 
             if (ImGuiManager::active())
             {

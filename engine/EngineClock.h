@@ -3,12 +3,14 @@
 #include <cassert>
 #include <chrono>
 
+#include "Timer.h"
+
 using floatSeconds = std::chrono::duration<float>;
 using std::chrono::steady_clock;
 
-class EngineClock
+class EngineClock: public Timer
 {
-	steady_clock::time_point startFrameTime;
+	steady_clock::time_point startFrameTime = {};
 
 	static EngineClock* s_clock;
 	EngineClock(){}
@@ -20,19 +22,20 @@ class EngineClock
 
 public:
 
-	void startFrame()
-	{
-		startFrameTime = steady_clock::now();
-	}
+	//void startFrame()
+	//{
+	//	startFrameTime = steady_clock::now();
+	//}
 
 	float frameStartTime()
 	{
 		return floatSeconds(startFrameTime.time_since_epoch()).count();
 	}
 
-	static float now()
+	void advance_current()
 	{
-		return floatSeconds(steady_clock::now().time_since_epoch()).count();
+		startFrameTime += (current - previous);
+		Timer::advance_current();
 	}
 
 	static void init()

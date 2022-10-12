@@ -158,6 +158,9 @@ LRESULT Window::classWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         for (auto listener : listeners) { listener->KeyEvent((Key)wParam , !(bool)((1u<<31) & lParam)); }
         break;
 
+    case WM_EXITSIZEMOVE :
+        for (auto listener : listeners) { listener->OnSizeMoved(); }
+        break;
     case WM_SIZE:
         if (LOWORD(lParam) && HIWORD(lParam))
         {

@@ -19,10 +19,10 @@ struct vs_out
 	float3 view_pos: WorldPosition;
 	float4 position: Sv_Position;
 	float2 tex_coor: TexCoord0;
-	float frameFracTime: FrameFracTime;
-	float thickness: Thickness;
+	nointerpolation float frameFracTime: FrameFracTime;
+	nointerpolation float thickness: Thickness;
 	float2 tex_coor_next: TexCoord1;
-	float4 tint: Tint;
+	nointerpolation  float4 tint: Tint;
 };
 
 vs_out main(uint index: Sv_VertexID, vs_in input)
@@ -57,7 +57,8 @@ vs_out main(uint index: Sv_VertexID, vs_in input)
 
 	switch(index)
 	{
-	case 0: 
+	case 0:
+	case 3:
 		add_point += -x - y;
 		res.tex_coor.y += input.image_size.y;
 		res.tex_coor_next.y += input.image_size.y;
@@ -65,16 +66,7 @@ vs_out main(uint index: Sv_VertexID, vs_in input)
 	case 1: 
 		add_point += -x + y;
 		break;
-	case 2: 
-		add_point += +x + y;
-		res.tex_coor.x += input.image_size.x;
-		res.tex_coor_next.x += input.image_size.x;
-		break;
-	case 3: 
-		add_point += -x - y;
-		res.tex_coor.y += input.image_size.y;
-		res.tex_coor_next.y += input.image_size.y;
-		break;
+	case 2:
 	case 4: 
 		add_point += +x + y;
 		res.tex_coor.x += input.image_size.x;

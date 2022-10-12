@@ -14,6 +14,7 @@ struct grass_properties
 	uint planes;
 	uint sectors;
 	float2 scale;
+	float2 rel_pos;
 };
 
 grass_out grass_point(uint index, grass_properties input) 
@@ -22,8 +23,11 @@ grass_out grass_point(uint index, grass_properties input)
 	uint plane_vertices = input.sectors * VerticesPerTriangle;
 	float one_section_ratio = 1.f / input.sectors;
 
-	const float3 wind_vector = normalize(float3(-1.f, 0.f, 0.f));
-	const float wind_power = pow(cos(g_time), 2.f);
+	const float3 wind_vector = normalize(float3(5.f, 0.f, 1.f));
+	float3 rel_pos = float3(input.rel_pos.x, 0.f, input.rel_pos.y);
+
+	float x = g_time - dot(pow(wind_vector, 2.f), sign(wind_vector) * rel_pos);
+	const float wind_power = (pow(cos(3.f * x), 2.f) + sin(2.f * x)) / 2.7f + 0.27f;
 
 	float3 wind_front = normalize(cross(wind_vector, Y_VEC));
 	float3x3 wind_matrix = float3x3(

@@ -2,13 +2,15 @@
 
 #include "render/LightSystem.h"
 
-void GrassField::init_field(vec3f world_offset, float width, float height, float object_radius)
+void GrassField::init_field(vec3f world_offset, float field_width, float field_height, float object_radius)
 {
+	width = field_width;
+	height = field_height;
 	world_position = world_offset;
 	points = thinks::PoissonDiskSampling<float, 2>(
 		object_radius, 
-		{-width / 2.f, -height / 2.f},
-		{width / 2.f, height / 2.f}
+		{-field_width / 2.f, -field_height / 2.f},
+		{field_width / 2.f, field_height / 2.f}
 	);
 }
 
@@ -21,6 +23,7 @@ void GrassField::update_instance_buffer()
 
 	for (auto point : points)
 	{
+		buffer[num_copied].rel_pos = {point[0] / width + 0.5f, point[1] / height + 0.5f};
 		buffer[num_copied++].position = world_position + vec3f{point[0], 0.f, point[1]};
 	}
 

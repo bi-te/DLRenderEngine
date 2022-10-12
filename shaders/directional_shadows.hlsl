@@ -14,7 +14,7 @@ struct vs_in
 struct vs_out
 {
 	float4 pos: Sv_Position;
-	uint slice: Sv_RenderTargetArrayIndex;
+	nointerpolation uint slice: Sv_RenderTargetArrayIndex;
 };
 
 cbuffer TransformBuffer: register(b1)

@@ -19,8 +19,8 @@ struct vs_out
 	float4 world_position: Position;
 	float3x3 tbn_matrix: TBN_Matrix;
 	float2 tex_coor: TexCoord;
-	float animationFract : AnimationFract;
-	float3 appearance_color: Color;
+	nointerpolation float animationFract : AnimationFract;
+	nointerpolation float3 appearance_color: Color;
 };
 
 cbuffer TransformBuffer: register(b1)

@@ -5,6 +5,7 @@
 struct vs_in
 {
 	float3 position: Inst_Position;
+	float2 rel_position: Inst_RelPosition;
 };
 
 cbuffer GrassBuffer: register(b1)
@@ -21,6 +22,7 @@ grass_out main(uint index: SV_VertexID, vs_in input)
 	gp.planes = g_planes;
 	gp.sectors = g_sectors;
 	gp.scale = g_scale;
+	gp.rel_pos = input.rel_position;
 	return grass_point(index, gp);
 }
 
@@ -60,7 +62,7 @@ float4 ps_main(grass_out input, bool isFrontFace: SV_IsFrontFace): SV_Target
 	res_color.rgb = calc_environment_light(view_vec, normal, mat) * g_ao.Sample(g_sampler, input.tex_coor).rgb;
 	for (uint pLight_ind = 0; pLight_ind < g_lighting.pointLightNum; ++pLight_ind)
 	{
-		PointLight pointLight  =g_lighting.pointLights[pLight_ind];
+		PointLight pointLight = g_lighting.pointLights[pLight_ind];
 	 	light_vec = normalize(pointLight.position - input.world_position.xyz);
 	
 	 	float cosVL = saturate(dot(view_vec, -light_vec));

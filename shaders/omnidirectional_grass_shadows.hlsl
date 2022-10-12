@@ -4,6 +4,7 @@
 struct vs_in
 {
 	float3 position: Inst_Position;
+	float2 rel_position: Inst_RelPosition;
 };
 
 cbuffer GrassBuffer: register(b1)
@@ -19,11 +20,12 @@ cbuffer LightTransBuffer: register(b2){
 
 grass_out main(uint index: SV_VertexID, vs_in input) 
 {
-		grass_properties gp;
+	grass_properties gp;
 	gp.position = input.position;
 	gp.planes = g_planes;
 	gp.sectors = g_sectors;
 	gp.scale = g_scale;
+	gp.rel_pos = input.rel_position;
 	return grass_point(index, gp);
 }
 

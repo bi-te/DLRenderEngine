@@ -19,4 +19,5 @@ public:
     virtual void KeyEvent(Key key, bool status) = 0;
     virtual void MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos) = 0;
     virtual void MouseWheelEvent(uint32_t count) = 0;
+    virtual void OnSizeMoved() = 0;
 };

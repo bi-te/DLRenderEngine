@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 
+#include "EngineClock.h"
 #include "Scene.h"
 #include "PostProcess.h"
 #include "math/math.h"
@@ -48,6 +49,7 @@ class  Controller: public IWinListener
 
     IntersectionQuery record;
 
+   
 public:
     Scene scene;
     Camera camera;
@@ -74,7 +76,8 @@ public:
         camera.add_relative_offset(offset);
         camera.update_matrices();
     }
-    
+
+    void OnSizeMoved() override {EngineClock::instance().restart();}
     void OnResize(uint32_t width, uint32_t height) override;
     void MouseWheelEvent(uint32_t count) override { is.mouse.wheel += count; }
     void MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos) override;
