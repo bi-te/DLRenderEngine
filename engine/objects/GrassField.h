@@ -1,6 +1,5 @@
 #pragma once
 
-#include "math/poisson.h"
 #include "render/ShaderManager.h"
 
 #include "render/Direct11/Direct3D.h"
@@ -25,7 +24,7 @@ class GrassField
 
 	vec3f world_position;
 	float width, height;
-	std::vector<std::array<float, 2>> points;
+	std::vector<vec2f> points;
 
 public:
 	GrassBuffer grassBuffer;

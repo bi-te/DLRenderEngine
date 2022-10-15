@@ -171,6 +171,7 @@
     <ClCompile Include="engine\imgui\imgui_tables.cpp" />
     <ClCompile Include="engine\imgui\imgui_widgets.cpp" />
     <ClCompile Include="engine\math\Camera.cpp" />
+    <ClCompile Include="engine\math\custom_algorithms.cpp" />
     <ClCompile Include="engine\math\math.cpp" />
     <ClCompile Include="engine\math\Ray.cpp" />
     <ClCompile Include="engine\math\Sphere.cpp" />
@@ -299,10 +300,10 @@
     <ClInclude Include="engine\IntersectionQuery.h" />
     <ClInclude Include="engine\math\AABB.h" />
     <ClInclude Include="engine\math\Camera.h" />
+    <ClInclude Include="engine\math\custom_algorithms.h" />
     <ClInclude Include="engine\math\Intersection.h" />
     <ClInclude Include="engine\math\math.h" />
     <ClInclude Include="engine\math\Plane.h" />
-    <ClInclude Include="engine\math\poisson.h" />
     <ClInclude Include="engine\math\Ray.h" />
     <ClInclude Include="engine\math\Sphere.h" />
     <ClInclude Include="engine\math\Transform.h" />
