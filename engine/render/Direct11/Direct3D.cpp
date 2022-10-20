@@ -83,13 +83,7 @@ void Direct3D::init_alpha_to_coverage()
     D3D11_BLEND_DESC alpha_to_coverage{};
     alpha_to_coverage.AlphaToCoverageEnable = TRUE;
     alpha_to_coverage.IndependentBlendEnable = FALSE;
-    alpha_to_coverage.RenderTarget[0].BlendEnable = TRUE;
-    alpha_to_coverage.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    alpha_to_coverage.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    alpha_to_coverage.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    alpha_to_coverage.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    alpha_to_coverage.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    alpha_to_coverage.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    alpha_to_coverage.RenderTarget[0].BlendEnable = FALSE;
     alpha_to_coverage.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     HRESULT result = device5->CreateBlendState(&alpha_to_coverage, &atc_blend_state);
     assert(SUCCEEDED(result) && "CreateBlendState");
@@ -145,7 +139,7 @@ void Direct3D::bind_globals(const Camera& camera, uint32_t max_reflection_mip)
     per_frame->max_reflection_mip = max_reflection_mip;
     per_frame->near = camera.zn;
     per_frame->far = camera.zf;
-    per_frame->time = EngineClock::instance().frameStartTime();
+    per_frame->time = EngineClock::instance().nowf();
 
     LightSystem::instance().bind_lights(&per_frame->light_buffer);
 

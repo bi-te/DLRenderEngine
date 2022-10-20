@@ -1,7 +1,6 @@
 #pragma once
-#include <chrono>
 
-using uint32_t = unsigned int;
+#include "EngineClock.h"
 
 class Timer
 {
@@ -19,21 +18,21 @@ public:
 	void set_check_time(float frame_time){check_time = frame_time;}
 
 	float get_check_time() const { return check_time; }
-	float time_passed() const { return std::chrono::duration<float>(current - previous).count(); }
+	float time_passed() const { return float_duration(current - previous).count(); }
 
-	void start() { previous = std::chrono::steady_clock::now(); }
+	void start() { previous = EngineClock::instance().now(); }
 	void advance_current() { previous = current; }
 
 	void restart()
 	{
-		current = std::chrono::steady_clock::now();
+		current = EngineClock::instance().now();
 		previous = current;
 	}
 
 	bool frame_time_check()
 	{
-		current = std::chrono::steady_clock::now();
-		return std::chrono::duration<float>(current - previous).count() > check_time;
+		current = EngineClock::instance().now();
+		return float_duration(current - previous).count() > check_time;
 	}
 
 };

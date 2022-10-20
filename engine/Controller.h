@@ -77,7 +77,7 @@ public:
         camera.update_matrices();
     }
 
-    void OnSizeMoved() override {EngineClock::instance().restart();}
+    void OnSizeMoved() override {EngineClock::instance().skip();}
     void OnResize(uint32_t width, uint32_t height) override;
     void MouseWheelEvent(uint32_t count) override { is.mouse.wheel += count; }
     void MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos) override;

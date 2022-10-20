@@ -110,6 +110,8 @@ void Scene::shadow_pass()
 		light_system.bind_point_dsv();
 		mesh_system.opaque_instances.pointShadowShader->bind();
 		mesh_system.opaque_instances.shadow_render(light_system.plights().size());
+		mesh_system.appearing_instances.pointShadowShader->bind();
+		mesh_system.appearing_instances.shadow_render(light_system.plights().size());
 		grassfield.pointShadowShader->bind();
 		grassfield.shadow_render(light_system.plights().size());
 	}

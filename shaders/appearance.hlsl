@@ -81,6 +81,7 @@ float calcMipLevel(float2 tex_coor)
 
 float4 ps_main(vs_out input) : Sv_Target
 {
+    const float APPEARANCE_OFFSET = 0.03f;
 	Material mat;
 
 	mat.diffuse = g_material.textures & MATERIAL_TEXTURE_DIFFUSE ? g_diffuse.Sample(g_sampler, input.tex_coor).rgb : g_material.diffuse;
@@ -107,11 +108,16 @@ float4 ps_main(vs_out input) : Sv_Target
 	//	return float4(0.f, 0.f, 0.f, 0.0f);
 	//}
 
-	if(g_noise.Sample(g_sampler, input.tex_coor).r > input.animationFract)
+    float noise_time = g_noise.Sample(g_sampler, input.tex_coor).r;
+	
+	if( noise_time > input.animationFract + APPEARANCE_OFFSET)
 	{
-
-		return float4(input.appearance_color, 0.5f);
-	}
+        return float4(0.f, 0.f, 0.f, 0.f);
+    }
+    else if (noise_time > input.animationFract)
+    {
+        return float4(input.appearance_color, 0.5f);
+    }
 
 	float3 view_vec = normalize(g_cameraPosition - input.world_position.xyz);
 

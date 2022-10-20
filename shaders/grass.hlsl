@@ -39,7 +39,7 @@ float4 ps_main(grass_out input, bool isFrontFace: SV_IsFrontFace): SV_Target
 
 	float4 res_color = 0.f;
 	
-	Material mat;
+    Material mat;
 
 	mat.diffuse = g_diffuse.Sample(g_sampler, input.tex_coor).rgb;
 	mat.metallic = 0.f;
@@ -58,6 +58,8 @@ float4 ps_main(grass_out input, bool isFrontFace: SV_IsFrontFace): SV_Target
 	float3 light_vec;
 	float3 view_vec = normalize(g_cameraPosition - input.world_position.xyz);
 	float3 normal = normalize(mul(g_normals.Sample(g_sampler, input.tex_coor).xyz * 2.f - 1.f, input.tbn_matrix));
+	
+	
 	
 	res_color.rgb = calc_environment_light(view_vec, normal, mat) * g_ao.Sample(g_sampler, input.tex_coor).rgb;
 	for (uint pLight_ind = 0; pLight_ind < g_lighting.pointLightNum; ++pLight_ind)
@@ -97,9 +99,13 @@ float4 ps_main(grass_out input, bool isFrontFace: SV_IsFrontFace): SV_Target
 	 		 res_color.rgb += calc_spotlight_pbr(sLight_ind, input.world_position.xyz, view_vec, input.tbn_matrix[2].xyz, normal, mat);
 	 	}
 	}
-
-	res_color.a = g_opacity.Sample(g_sampler, input.tex_coor).r;
-	res_color.a = saturate((res_color.a - 0.1) / max(fwidth(res_color.a), 0.0001f) + 0.5f);
+	
+    res_color.a = g_opacity.Sample(g_sampler, input.tex_coor).r;
+	
+    const float THRESHOLD = 0.1f;
+    const uint FADING_PIXELS = 1u;
+    float edge_distance = (res_color.a - THRESHOLD) / min(max(fwidth(res_color.a), 0.001f), 1.f);
+    res_color.a = saturate(edge_distance / FADING_PIXELS);
 
 	return res_color;
 }

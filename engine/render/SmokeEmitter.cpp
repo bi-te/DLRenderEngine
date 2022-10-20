@@ -30,6 +30,7 @@ void SmokeEmitter::update(float dt)
 		Particle& particle = particles[i];
 		particle.position += dt * particle.direction * particleSpeed;
 		particle.size *= particleSizeScale;
+		particle.thickness *= particleSizeScale;
 		particle.lifetime += dt;
 		if (particle.lifetime > particleLifetime)
 			particles.erase(particles.begin() + i);

@@ -17,26 +17,48 @@ struct grass_properties
 	float2 rel_pos;
 };
 
+float computeGrassAngle(float2 instancePos, float2 windDir) // windDir may be read from 2x2 wind matrix
+{
+    const float MAX_VARIATION = PI;
+    float WIND_WAVE_LENGTH = 50;
+    float POWER_WAVE_LENGTH = 233;
+    const float WIND_OSCILLATION_FREQ = 0.666;
+    const float POWER_OSCILLATION_FREQ = 1.0 / 8.0;
+
+    float instanceRandom = frac(instancePos.x * 12345);
+    float windCoord = dot(instancePos, windDir);
+	
+    float windPhaseVariation = instanceRandom * MAX_VARIATION;
+    float windPhaseOffset = windCoord / WIND_WAVE_LENGTH + windPhaseVariation;
+    float windOscillation = (sin(windPhaseOffset - WIND_OSCILLATION_FREQ * 2.f * PI * g_time) + 1) / 2;
+	
+    float powerPhaseOffset = windCoord / POWER_WAVE_LENGTH;
+    float powerOscillation = (sin(powerPhaseOffset - POWER_OSCILLATION_FREQ * 2.f * PI * g_time) + 1) / 2;
+	
+    float minAngle = lerp(0.0, 0.3, powerOscillation);
+    float maxAngle = lerp(0.1, 1.0, powerOscillation);
+    return lerp(minAngle, maxAngle, windOscillation);
+}
+
 grass_out grass_point(uint index, grass_properties input) 
 {
-	const uint VerticesPerTriangle = 6u;
-	uint plane_vertices = input.sectors * VerticesPerTriangle;
+	const uint VERTICES_PER_RECTANGLE = 6u;
+    const float3 WIND_VECTOR = normalize(float3(5.f, 0.f, 1.f));
+	
+	uint plane_vertices = input.sectors * VERTICES_PER_RECTANGLE;
 	float one_section_ratio = 1.f / input.sectors;
 
-	const float3 wind_vector = normalize(float3(5.f, 0.f, 1.f));
 	float3 rel_pos = float3(input.rel_pos.x, 0.f, input.rel_pos.y);
+    float wind_angle = computeGrassAngle(input.position.xz, WIND_VECTOR.xz);
 
-	float x = g_time - dot(pow(wind_vector, 2.f), sign(wind_vector) * rel_pos);
-	const float wind_power = (pow(cos(3.f * x), 2.f) + sin(2.f * x)) / 2.7f + 0.27f;
-
-	float3 wind_front = normalize(cross(wind_vector, Y_VEC));
+	float3 wind_front = normalize(cross(WIND_VECTOR, Y_VEC));
 	float3x3 wind_matrix = float3x3(
-		wind_vector,
+		WIND_VECTOR,
 		Y_VEC,
 		wind_front
 	);
 
-	float wind_angle = 0.f;
+	float wind_angle_ratio = 0.f;
 
 	float plane_angle = (index / plane_vertices) * PI / input.planes;
 	float sinA, cosA;
@@ -57,23 +79,23 @@ grass_out grass_point(uint index, grass_properties input)
 		case(3): 
 			add_point += float3( 0.5f, 0.f, 0.f);
 			res.tex_coor += float2(0.75f, 0.f);
-			wind_angle = 0.f;
+            wind_angle_ratio = 0.f;
 			break;
 		case(1): 
 			add_point += float3( 0.5f, 0.f, 0.f);
 			res.tex_coor += float2(0.75f, one_section_ratio);
-			wind_angle = one_section_ratio;
+            wind_angle_ratio = one_section_ratio;
 			break;
 		case(2): 
 		case(4): 
 			add_point += float3(-0.5f, 0.f, 0.f);
 			res.tex_coor += float2(0.25f, one_section_ratio);
-			wind_angle = one_section_ratio;
+            wind_angle_ratio = one_section_ratio;
 			break;
 		case(5): 
 			add_point += float3(-0.5f, 0.f, 0.f);
 			res.tex_coor += float2(0.25f, 0.f);
-			wind_angle = 0.f;
+            wind_angle_ratio = 0.f;
 			break;
 	}
 	add_point.x *= input.scale.x;
@@ -88,14 +110,13 @@ grass_out grass_point(uint index, grass_properties input)
 		world_normal.xyz
 	);
 
-	wind_angle += (index % plane_vertices) / VerticesPerTriangle * one_section_ratio;
-	res.tex_coor.y = 1.f - res.tex_coor.y - (index % plane_vertices) / VerticesPerTriangle * one_section_ratio;
-
-	float offset = input.scale.y / (wind_power * 0.5f * PI);
+    float offset = input.scale.y / (wind_angle);
+    float section_ratio = (index % plane_vertices) / VERTICES_PER_RECTANGLE * one_section_ratio;
+    res.tex_coor.y = 1.f - res.tex_coor.y - section_ratio;
+    wind_angle *= wind_angle_ratio + section_ratio;
+	
 	if(wind_angle > 0.f)
-	{
-		wind_angle *= wind_power * 0.5f * PI;
-		
+	{		
 		float sinW, cosW;
 		sincos(wind_angle, sinW, cosW);
 		float3x3 wind_rotation = float3x3(

@@ -69,6 +69,7 @@ void Controller::init_scene()
     shaders.add_shader(L"shaders/directional_shadows.hlsl", "main", nullptr, nullptr);
     shaders.add_shader(L"shaders/particle.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/grass.hlsl", "main", "ps_main");
+    shaders.add_shader(L"shaders/omnidirectional_appearance_shadows.hlsl", "main", "gs_main", "ps_main");
 
     scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
     scene.grassfield.grassShader = shaders.get_ptr(L"shaders/grass.hlsl");
@@ -78,6 +79,7 @@ void Controller::init_scene()
     meshes.opaque_instances.spotShadowShader = shaders.get_ptr(L"shaders/directional_shadows.hlsl");
     meshes.emissive_instances.emissiveShader = shaders.get_ptr(L"shaders/emissive.hlsl");
     meshes.appearing_instances.appearShader = shaders.get_ptr(L"shaders/appearance.hlsl");
+    meshes.appearing_instances.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_appearance_shadows.hlsl");
     particle_system.particle_shader = shaders.get_ptr(L"shaders/particle.hlsl");
     direct.depth_resolve_shader = shaders.get_ptr(L"shaders/depth_resolve.hlsl");
 
@@ -407,7 +409,7 @@ void Controller::start_appearance()
             material_manager.get_opaque("assets/models/Samurai/Torso_mat")
 		},
         {
-            transform_system.transforms.insert(subsamurai), vec3f{0.7f, 1.5f, 5.f}, 5.f
+            transform_system.transforms.insert(subsamurai), vec3f{0.7f, 15.f, 5.f}, 5.f
         }
     );
 }

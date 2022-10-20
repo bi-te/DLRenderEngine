@@ -245,3 +245,58 @@ void AppearingInstances::render()
 	}
 
 }
+
+void AppearingInstances::shadow_render(uint32_t light_count)
+{
+	Direct3D& direct = Direct3D::instance();
+	LightSystem& light_system = LightSystem::instance();
+
+	update_instance_buffer();
+	bind_instance_buffer();
+
+	direct.context4->PSSetShaderResources(9, 1, noiseTexture.GetAddressOf());
+
+	uint32_t renderedInstances = 0;
+	for (const auto& per_model : perModels)
+	{
+		Model& model = *per_model.model;
+
+		uint32_t stride = sizeof(AssimpVertex), pOffset = 0;
+		direct.context4->IASetVertexBuffers(0, 1, model.vertexBuffer.address(), &stride, &pOffset);
+		direct.context4->IASetIndexBuffer(model.indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
+
+		for (uint32_t mesh_ind = 0; mesh_ind < per_model.perMeshes.size(); ++mesh_ind)
+		{
+			const PerMesh& mesh = per_model.perMeshes[mesh_ind];
+			Mesh::Range& mrange = model.meshes[mesh_ind].m_range;
+
+			mat4f* matrices = (mat4f*)meshModel.map().pData;
+			if (mesh.mesh_model_matrices.size() > 1)
+				*matrices = mat4f::Identity();
+			else
+				*matrices = model.tree[mesh.mesh_model_matrices.at(0)].mesh_matrix;
+
+			meshModel.unmap();
+			direct.context4->VSSetConstantBuffers(1, 1, meshModel.address());
+
+			for (const auto& perMaterial : mesh.perMaterials)
+			{
+				const OpaqueMaterial& material = perMaterial.material;
+				uint32_t instances = perMaterial.instances.size() * mesh.mesh_model_matrices.size();
+
+				materialBuffer.write(&material.render_data);
+
+				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
+
+				for (uint32_t lightInd = 0; lightInd < light_count; lightInd++) {
+					light_system.bind_light_shadow_buffer(lightInd);
+					direct.context4->DrawIndexedInstanced(mrange.numIndices,
+						instances, mrange.indicesOffset,
+						mrange.verticesOffset, renderedInstances);
+				}
+
+				renderedInstances += instances;
+			}
+		}
+	}
+}

@@ -3,17 +3,18 @@
 #include <cassert>
 #include <chrono>
 
-#include "Timer.h"
+using float_duration = std::chrono::duration<float>;
 
-using floatSeconds = std::chrono::duration<float>;
-using std::chrono::steady_clock;
-
-class EngineClock: public Timer
+class EngineClock
 {
-	steady_clock::time_point startFrameTime = {};
+	std::chrono::steady_clock::time_point previous, current;
+	std::chrono::steady_clock::time_point engineTime;
 
 	static EngineClock* s_clock;
-	EngineClock(){}
+	EngineClock(){
+		previous = current = std::chrono::steady_clock::now();
+		engineTime = std::chrono::steady_clock::time_point{};
+	}
 
 	EngineClock(const EngineClock& other) = delete;
 	EngineClock(EngineClock&& other) noexcept = delete;
@@ -21,21 +22,23 @@ class EngineClock: public Timer
 	EngineClock& operator=(EngineClock&& other) noexcept = delete;
 
 public:
-
-	//void startFrame()
-	//{
-	//	startFrameTime = steady_clock::now();
-	//}
-
-	float frameStartTime()
+	void tick()
 	{
-		return floatSeconds(startFrameTime.time_since_epoch()).count();
+		previous = current;
+		current = std::chrono::steady_clock::now();
+		engineTime += (current - previous);
 	}
 
-	void advance_current()
-	{
-		startFrameTime += (current - previous);
-		Timer::advance_current();
+	void skip() {
+		previous = current = std::chrono::steady_clock::now();
+	}
+
+	std::chrono::steady_clock::time_point now() {
+		return engineTime;
+	}
+
+	float nowf() {
+		return float_duration(engineTime.time_since_epoch()).count();
 	}
 
 	static void init()

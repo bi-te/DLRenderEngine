@@ -16,13 +16,14 @@ struct vs_in
 
 struct vs_out
 {
-	float3 view_pos: WorldPosition;
+	float3 world_pos: WorldPosition;
 	float4 position: Sv_Position;
 	float2 tex_coor: TexCoord0;
 	nointerpolation float frameFracTime: FrameFracTime;
 	nointerpolation float thickness: Thickness;
 	float2 tex_coor_next: TexCoord1;
 	nointerpolation  float4 tint: Tint;
+    float3x3 camera_rotation : CameraRotation;
 };
 
 vs_out main(uint index: Sv_VertexID, vs_in input)
@@ -40,13 +41,14 @@ vs_out main(uint index: Sv_VertexID, vs_in input)
 	float3 camera_right = normalize(g_frustum.right_vector).xyz;
 	float3 camera_up = normalize(g_frustum.up_vector).xyz;
 	float3 camera_front = normalize(cross(camera_right, camera_up));
-	float3x3 camera_rotation = float3x3(
-		camera_right,
-		camera_up,
-		camera_front		
-	);
 
 	vs_out res;
+    res.camera_rotation = float3x3(
+		camera_right,
+		camera_up,
+		camera_front
+	);
+	
 	res.position = float4(input.position, 1.f);
 
 	res.tex_coor = input.tex_coor;
@@ -79,9 +81,9 @@ vs_out main(uint index: Sv_VertexID, vs_in input)
 		break;
 	}
 	add_point.xy = mul(rotation, add_point.xy);
-	res.position.xyz += mul(add_point, camera_rotation);
+    res.position.xyz += mul(add_point, res.camera_rotation);
 
-	res.view_pos = res.position.xyz;
+    res.world_pos = res.position.xyz;
 	res.position = mul(g_viewProj, res.position);
 	res.tint = float4(input.tint, input.alpha);
 	res.thickness = input.thickness;
@@ -96,16 +98,16 @@ Texture2D g_depth: register(t9);
 
 void sampleUV(float frameFracTime, float2 uvThis, float2 uvNext, out float2 uv1, out float2 uv2)
 {
-	const float g_mvScale = 0.001; // find such constant that frame transition becomes correct and smooth
+	const float G_MV_SCALE = 0.001; // find such constant that frame transition becomes correct and smooth
 
 	float2 mvA = g_smoke_emva1.Sample(g_sampler, uvThis).gb * 2.f - 1.f;
 	float2 mvB = g_smoke_emva1.Sample(g_sampler, uvNext).gb * 2.f - 1.f;
 
 	uv1 = uvThis; // this frame UV
-	uv1 -= mvA * g_mvScale * frameFracTime;
+	uv1 -= mvA * G_MV_SCALE * frameFracTime;
 
 	uv2 = uvNext; // next frame UV
-	uv2 -= mvB * g_mvScale * (frameFracTime - 1.f);
+	uv2 -= mvB * G_MV_SCALE * (frameFracTime - 1.f);
 }
 
 float4 motion_sample(Texture2D tex, float2 uv1, float2 uv2, float fracTime)
@@ -132,17 +134,23 @@ float4 ps_main(vs_out input) : Sv_Target
 	for(uint lightInd = 0; lightInd < g_lighting.pointLightNum; lightInd++)
 	{
 		PointLight pLight = g_lighting.pointLights[lightInd];
-		float3 light_vec = pLight.position - input.view_pos;
-		float dist = length(light_vec);
+        float3 light_vec = pLight.position - input.world_pos;
+		float light_dist = length(light_vec);
 
 		light_vec = normalize(light_vec);
 
 		float lightMult = 0.f;
-		lightMult += light_vec.x > 0.f ? light1.x * light_vec.x :  light1.y * -light_vec.x;
-		lightMult += light_vec.y > 0.f ? light1.z * light_vec.y :  light2.x * -light_vec.y;
-		lightMult += light_vec.z > 0.f ? light2.y * light_vec.z :  light2.z * -light_vec.z;
+        float cosRight = dot(light_vec, input.camera_rotation[0].xyz);
+        float cosUp = dot(light_vec, input.camera_rotation[1].xyz);
+        float cosFront = dot(light_vec, input.camera_rotation[2].xyz);		
+        lightMult += abs(cosRight) * (cosRight > 0 ? light1.x : light1.y);
+        lightMult += abs(cosUp) * (cosUp > 0 ? light1.z : light2.x);
+        lightMult += abs(cosFront) * (cosFront > 0 ? light2.y : light2.z);
 
-		res_color.rgb += input.tint.rgb * pLight.radiance * lightMult / pow(dist, 2.f);
+        float sphereCos = sqrt(light_dist * light_dist - pLight.radius * pLight.radius) / light_dist;
+        float solidAngle = (1 - sphereCos) * 2.f * PI;
+		
+		res_color.rgb += input.tint.rgb * pLight.radiance * lightMult * solidAngle;
 	}
 
 	float sceneDepth =  - g_near * g_far / (g_depth.Load(float3(input.position.xy, 0)).r * (g_near - g_far) - g_near);

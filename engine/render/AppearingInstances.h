@@ -66,6 +66,7 @@ public:
 
 	comptr<ID3D11ShaderResourceView> noiseTexture;
 	std::shared_ptr<Shader> appearShader;
+	std::shared_ptr<Shader> pointShadowShader;
 	std::vector<PerModel> perModels;
 
 	void add_model_instance(const std::shared_ptr<Model>& model,
@@ -76,5 +77,6 @@ public:
 	void update_instance_buffer();
 
 	void render();
+	void shadow_render(uint32_t light_count);
 };
 

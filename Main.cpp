@@ -46,8 +46,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
     window.show_window(nShowCmd);
 
 	EngineClock& eclock = EngineClock::instance();
-    eclock.set_check_time(1.f / 60.f);
-    eclock.start();
+
+    Timer applicationTimer;
+    applicationTimer.set_check_time(1.f / 60.f);
+    applicationTimer.start();
 
     while(true)
     {
@@ -59,10 +61,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	    }
         if (msg.message == WM_QUIT) break;
 
-        if(eclock.frame_time_check())
+        eclock.tick();
+        if(applicationTimer.frame_time_check())
         {
-            controller.process_input(eclock.time_passed());
-            eclock.advance_current();
+            controller.process_input(applicationTimer.time_passed());
+            applicationTimer.advance_current();
 
             if (ImGuiManager::active())
             {

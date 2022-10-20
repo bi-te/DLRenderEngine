@@ -141,9 +141,6 @@
     <ClCompile Include="engine\render\ParticleSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="engine\render\SmokeEmitter.cpp">
-      <Filter>engine\render</Filter>
-    </ClCompile>
     <ClCompile Include="engine\render\AppearingInstances.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -167,6 +164,9 @@
     </ClCompile>
     <ClCompile Include="engine\math\custom_algorithms.cpp">
       <Filter>engine\math</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\render\SmokeEmitter.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -595,9 +595,6 @@
     <FxCompile Include="shaders\resolve_ms.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\omnidirectional_shadows.hlsl">
-      <Filter>shaders</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\resolve.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
@@ -617,6 +614,12 @@
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\omnidirectional_grass_shadows.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\omnidirectional_appearance_shadows.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\omnidirectional_shadows.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
