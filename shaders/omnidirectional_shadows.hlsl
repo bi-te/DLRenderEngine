@@ -56,20 +56,3 @@ void gs_main(triangle vs_out input[3], inout TriangleStream<gs_out> output)
 		output.RestartStrip();
 	}
 }
-
-//struct ps_out
-//{
-//	float3 color: Sv_Target;
-//	float depth : Sv_Depth;
-//};
-//
-//ps_out ps_main(gs_out input){
-//	float3 light_vec = g_lighting.pointLights[g_index].position - input.world_pos;
-//	float dist = length(light_vec);
-//
-//	ps_out res;
-//	res.color = float3(0.3f, 0.4f, 0.5f);
-//	res.depth = (100.f - dist) / 100.f;
-//
-//	return res;
-//}

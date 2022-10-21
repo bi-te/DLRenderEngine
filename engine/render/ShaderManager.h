@@ -1,8 +1,9 @@
 #pragma once
+#include <memory>
 #include <unordered_map>
 
 #include "wchar_algorithms.h"
-#include "Direct11/Direct3D.h"
+#include "Direct11/d3d.h"
 
 struct InputLayout
 {
@@ -17,15 +18,7 @@ struct Shader
 	comptr<ID3D11PixelShader> pixelShader;
 	InputLayout inputLayout;
 
-	void bind() const
-	{
-		Direct3D& direct = Direct3D::instance();
-
-		direct.context4->VSSetShader(vertexShader.Get(), nullptr, NULL);
-		direct.context4->GSSetShader(geometryShader.Get(), nullptr, NULL);
-		direct.context4->PSSetShader(pixelShader.Get(), nullptr, NULL);
-		direct.context4->IASetInputLayout(inputLayout.ptr.Get());
-	}
+	void bind() const;
 
 	void reset()
 	{

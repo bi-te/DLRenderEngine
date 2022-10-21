@@ -11,12 +11,12 @@ struct vs_in
 	float3x3 model_scale: Inst_ModelScale;
 };
 
-struct vs_out
+struct vs_out 
 {
 	float4 position: Sv_Position;
 	float4 world_position: Position;
 	float3x3 tbn_matrix: TBN_Matrix;
-	float2 tex_coords: TexCoord;	
+	float2 tex_coor: TexCoord;	
 };
 
 cbuffer TransformBuffer: register(b1)
@@ -27,7 +27,7 @@ cbuffer TransformBuffer: register(b1)
 vs_out main(vs_in input)
 {
 	vs_out res;
-	res.tex_coords = input.tex_coords;
+	res.tex_coor = input.tex_coords;
 
 	res.world_position = mul(g_mesh_transform, float4(input.pos, 1.f));
 	res.world_position = mul(input.model_transform, res.world_position);
@@ -72,13 +72,13 @@ Texture2D g_normals: register(t6);
 Texture2D g_roughness: register(t7);
 Texture2D g_metallic: register(t8);
 
-float3 ps_main(vs_out input) : Sv_Target
+float4 ps_main(vs_out input) : Sv_Target
 {
 	Material mat;
 
-	mat.diffuse = g_material.textures & MATERIAL_TEXTURE_DIFFUSE ? g_diffuse.Sample(g_sampler, input.tex_coords).rgb : g_material.diffuse;
-	mat.metallic = g_material.textures & MATERIAL_TEXTURE_METALLIC ? g_metallic.Sample(g_sampler, input.tex_coords).x : g_material.metallic;
-	mat.roughness = g_material.textures & MATERIAL_TEXTURE_ROUGHNESS ? g_roughness.Sample(g_sampler, input.tex_coords).x : g_material.roughness;
+	mat.diffuse = g_material.textures & MATERIAL_TEXTURE_DIFFUSE ? g_diffuse.Sample(g_sampler, input.tex_coor).rgb : g_material.diffuse;
+	mat.metallic = g_material.textures & MATERIAL_TEXTURE_METALLIC ? g_metallic.Sample(g_sampler, input.tex_coor).x : g_material.metallic;
+	mat.roughness = g_material.textures & MATERIAL_TEXTURE_ROUGHNESS ? g_roughness.Sample(g_sampler, input.tex_coor).x : g_material.roughness;
 
 	input.tbn_matrix[0].xyz = normalize(input.tbn_matrix[0].xyz);
 	input.tbn_matrix[1].xyz = normalize(input.tbn_matrix[1].xyz);
@@ -87,7 +87,7 @@ float3 ps_main(vs_out input) : Sv_Target
 	float3 normal, mesh_normal = input.tbn_matrix[2].xyz;
 	if (g_material.textures & MATERIAL_TEXTURE_NORMAL)
 	{
-		float3 texNormal = normalize(g_normals.Sample(g_sampler, input.tex_coords).xyz * 2.f - 1.f);
+		float3 texNormal = normalize(g_normals.Sample(g_sampler, input.tex_coor).xyz * 2.f - 1.f);
 		texNormal.y *= g_material.textures & REVERSED_NORMAL_Y ? -1.f: 1.f;
 
 		normal = normalize(mul(texNormal, input.tbn_matrix));
@@ -97,8 +97,8 @@ float3 ps_main(vs_out input) : Sv_Target
 	float3 view_vec = normalize(g_cameraPosition - input.world_position.xyz);
 
 	float3 res_color = calc_environment_light(view_vec, normal, mat);
-	res_color += calc_point_light_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
-	res_color += calc_spotlight_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
+	res_color += calc_point_lights_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
+	res_color += calc_spotlights_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
 
-	return res_color;
+	return float4(res_color, 1.f);
 }

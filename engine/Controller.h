@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 
+#include "EngineClock.h"
 #include "Scene.h"
 #include "PostProcess.h"
 #include "math/math.h"
@@ -24,10 +25,12 @@ struct Keyboard
 {
     const uint8_t key_number = 254;
     std::vector<bool> keys;
+    std::vector<bool> previus_key_state;
 
     Keyboard()
     {
         keys.resize(key_number + 1);
+        previus_key_state.resize(key_number + 1);
     }
 };
 
@@ -46,6 +49,7 @@ class  Controller: public IWinListener
 
     IntersectionQuery record;
 
+   
 public:
     Scene scene;
     Camera camera;
@@ -72,14 +76,17 @@ public:
         camera.add_relative_offset(offset);
         camera.update_matrices();
     }
-    
+
+    void OnSizeMoved() override {EngineClock::instance().skip();}
     void OnResize(uint32_t width, uint32_t height) override;
-    void KeyEvent(Key key, bool status) override { is.keyboard.keys[key] = status; } 
     void MouseWheelEvent(uint32_t count) override { is.mouse.wheel += count; }
     void MouseEvent(Key button, BUTTON status, uint32_t x_pos, uint32_t y_pos) override;
+	void KeyEvent(Key key, bool status) override {is.keyboard.keys[key] = status;}
 
     void process_input(float dt);
     void process_gui_input();
 
     void init_scene();
+    void start_appearance();
+    void update_appearance_instances(float dt);
 };

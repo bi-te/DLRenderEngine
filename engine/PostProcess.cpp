@@ -19,10 +19,8 @@ void PostProcess::resolve(RenderBuffer& hdrInput,
     update_buffer(hdrInput.msaa);
 
     ldrOutput.bind_rtv();
-    if (hdrInput.msaa == 1) post_process_shader->bind();
-    else post_process_shader_ms->bind();
 
-    //post_process_shader->bind();
+    postProcessShaderMS->bind();
 
     direct.context4->PSSetConstantBuffers(1, 1, postProcessBuffer.address());
     direct.context4->PSSetShaderResources(0, 1, hdrInput.srv.GetAddressOf());

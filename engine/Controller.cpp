@@ -1,8 +1,7 @@
 #include "Controller.h"
 
-#include <iostream>
-
 #include "Engine.h"
+#include "EngineClock.h"
 #include "imgui/ImGuiManager.h"
 #include "moving/TransformSystem.h"
 #include "render/LightSystem.h"
@@ -11,6 +10,7 @@
 #include "render/ModelManager.h"
 #include "render/ShaderManager.h"
 #include "render/TextureManager.h"
+#include "render/ParticleSystem.h"
 
 void Controller::render()
 {
@@ -26,7 +26,8 @@ void init_floor(uint32_t floor_width, uint32_t floor_height)
     MaterialManager& materials = MaterialManager::instance();
     TransformSystem& transforms = TransformSystem::instance();
 
-    float wmiddle = floor_width / 2, hmiddle = floor_height / 2;
+    float wmiddle = floor_width  / 2.f,
+		  hmiddle = floor_height / 2.f;
     float scale = 10.f;
     Transform floor;
     floor.set_scale(scale);
@@ -48,6 +49,7 @@ void init_floor(uint32_t floor_width, uint32_t floor_height)
 
 void Controller::init_scene()
 {
+    Direct3D& direct = Direct3D::instance();
     MeshSystem& meshes = MeshSystem::instance();
     LightSystem& lights = LightSystem::instance();
     ModelManager& models = ModelManager::instance();
@@ -55,6 +57,7 @@ void Controller::init_scene()
     MaterialManager& materials = MaterialManager::instance();
     TransformSystem& transforms = TransformSystem::instance();
     TextureManager& texture_manager = TextureManager::instance();
+    ParticleSystem& particle_system = ParticleSystem::instance();
 
     shaders.add_shader(L"shaders/opaque.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/emissive.hlsl", "main", "ps_main");
@@ -62,18 +65,42 @@ void Controller::init_scene()
     shaders.add_shader(L"shaders/resolve.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/resolve_ms.hlsl", "main", "ps_main");
     shaders.add_shader(L"shaders/omnidirectional_shadows.hlsl", "main", "gs_main", nullptr);
+	shaders.add_shader(L"shaders/omnidirectional_grass_shadows.hlsl", "main", "gs_main", "ps_main");
     shaders.add_shader(L"shaders/directional_shadows.hlsl", "main", nullptr, nullptr);
+    shaders.add_shader(L"shaders/particle.hlsl", "main", "ps_main");
+    shaders.add_shader(L"shaders/grass.hlsl", "main", "ps_main");
+    shaders.add_shader(L"shaders/omnidirectional_appearance_shadows.hlsl", "main", "gs_main", "ps_main");
 
     scene.skybox.skyshader = shaders.get_ptr(L"shaders/sky.hlsl");
-    scene.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_shadows.hlsl");
-    scene.spotShadowShader = shaders.get_ptr(L"shaders/directional_shadows.hlsl");
+    scene.grassfield.grassShader = shaders.get_ptr(L"shaders/grass.hlsl");
+    scene.grassfield.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_grass_shadows.hlsl");
     meshes.opaque_instances.opaqueShader = shaders.get_ptr(L"shaders/opaque.hlsl");
+	meshes.opaque_instances.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_shadows.hlsl");
+    meshes.opaque_instances.spotShadowShader = shaders.get_ptr(L"shaders/directional_shadows.hlsl");
     meshes.emissive_instances.emissiveShader = shaders.get_ptr(L"shaders/emissive.hlsl");
+    meshes.appearing_instances.appearShader = shaders.get_ptr(L"shaders/appearance.hlsl");
+    meshes.appearing_instances.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_appearance_shadows.hlsl");
+    particle_system.particle_shader = shaders.get_ptr(L"shaders/particle.hlsl");
+    direct.depth_resolve_shader = shaders.get_ptr(L"shaders/depth_resolve.hlsl");
 
     scene.skybox.texture = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street.dds");
     scene.skybox.irradiance_map = texture_manager.add_cubemap(L"assets/cubemaps/night_street/night_street_irradiance.dds");
     scene.skybox.load_reflection(L"assets/cubemaps/night_street/night_street_reflection.dds");
-    Direct3D::instance().reflectance_map = texture_manager.add_cubemap(L"assets/cubemaps/reflectance.dds");
+	scene.grassfield.baseColor = texture_manager.get(L"assets/textures/Grass/Grass_BaseColor.dds");
+    scene.grassfield.normal = texture_manager.get(L"assets/textures/Grass/Grass_Normal.dds");
+    scene.grassfield.roughness = texture_manager.get(L"assets/textures/Grass/Grass_Roughness.dds");
+	scene.grassfield.opacity = texture_manager.get(L"assets/textures/Grass/Grass_Opacity2.dds");
+    scene.grassfield.translucency = texture_manager.get(L"assets/textures/Grass/Grass_Translucency.dds");
+    scene.grassfield.ambient_occlusion = texture_manager.get(L"assets/textures/Grass/Grass_AO.dds");
+    direct.reflectance_map = texture_manager.add_cubemap(L"assets/cubemaps/reflectance.dds");
+    meshes.appearing_instances.noiseTexture = texture_manager.add_texture(L"assets/cloud_noise.dds");
+
+    particle_system.atlas.rows = 8u;
+    particle_system.atlas.columns = 8u;
+	particle_system.atlas.smoke_emva1 = texture_manager.add_texture(L"assets/particles/smoke/smoke_EMVA_1.dds");
+    particle_system.atlas.smoke_emission = texture_manager.add_texture(L"assets/particles/smoke/smoke_emission_scatter.dds");
+    particle_system.atlas.smoke_lightmap1 = texture_manager.add_texture(L"assets/particles/smoke/smoke_RLT_1.dds");
+    particle_system.atlas.smoke_lightmap2 = texture_manager.add_texture(L"assets/particles/smoke/smoke_BotBF_1.dds");
 
     OpaqueMaterial material;
     
@@ -113,16 +140,16 @@ void Controller::init_scene()
     material.render_data.metallic = 0.f;
     materials.add(material);
 
-   /* material = {};
+    material = {};
     material.name = "Test_mat";
-    material.render_data.roughness = 1.f;
-    material.render_data.metallic = 1.f;
+    material.render_data.roughness = 0.01f;
+    material.render_data.metallic = 0.9f;
     material.render_data.diffuse = { 0.8f, 0.3f, 0.3f };
-    materials.add(material);*/
+    materials.add(material);
 
     models.add_model("assets/models/Samurai/Samurai.fbx");
-    models.add_model("assets/models/Knight/Knight.fbx");
-    models.add_model("assets/models/KnightHorse/KnightHorse.fbx");
+    //models.add_model("assets/models/Knight/Knight.fbx");
+    //models.add_model("assets/models/KnightHorse/KnightHorse.fbx");
     models.add_model("assets/models/SunCityWall/SunCityWall.fbx");
     models.init_cube();
 	models.init_quad();
@@ -135,42 +162,42 @@ void Controller::init_scene()
 
     Transform the_sun;
     the_sun.set_scale(0.5f);
-    the_sun.set_world_offset({ 15.f, 11.f, 5.f });
+    the_sun.set_world_offset({ -5.f, 1.f, -6.f });
     PointLight minisun = {
         {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(the_sun), 0.5f, 5.f
     };
-    lights.add_point_light(minisun, "FlatCubeSphere");
+    lights.add_point_light(minisun, "Sphere");
 
-    /*Transform pbr_trans;
-    pbr_trans.set_world_offset({ 0.f, 0.f, 0.f });
+    Transform pbr_trans;
+    pbr_trans.set_world_offset({ 0.f, 0.f, -20.f });
     meshes.opaque_instances.add_model_instance(
           models.get_ptr("Sphere"),
         { materials.get_opaque("Test_mat") },
         { transforms.transforms.insert(pbr_trans) }
-    );*/
+    );
 
     the_sun.set_world_offset({ 0.f, 20.f, -5.f });
     PointLight greensun = {
     {0.2f, 0.75f, 0.4f}, transforms.transforms.insert(the_sun), 0.5f, 3.f
     };
-    lights.add_point_light(greensun, "FlatCubeSphere");
+    lights.add_point_light(greensun, "Sphere");
 
-    Transform flashlight;
-    flashlight.set_scale(0.5f);
-    flashlight.set_world_offset({ 0.f, 5.f, -5.f });
-    Spotlight flash = {
-        {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
-    	{0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
-    };
-    lights.add_spotlight(flash, "FlatCubeSphere");
+    //Transform flashlight;
+    //flashlight.set_scale(0.5f);
+    //flashlight.set_world_offset({ 0.f, 5.f, -5.f });
+    //Spotlight flash = {
+    //    {0.5f, 0.5f, 0.5f}, transforms.transforms.insert(flashlight),
+    //	{0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
+    //};
+    //lights.add_spotlight(flash, "Sphere");
 
-    flashlight.set_scale(0.5f);
-    flashlight.set_world_offset({ -5.f, 5.f, -5.f });
-    Spotlight flash2 = {
-        {0.3f, 0.1f, 0.5f}, transforms.transforms.insert(flashlight),
-        {0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
-    };
-    lights.add_spotlight(flash2, "FlatCubeSphere");
+    //flashlight.set_scale(0.5f);
+    //flashlight.set_world_offset({ -5.f, 5.f, -5.f });
+    //Spotlight flash2 = {
+    //    {0.3f, 0.1f, 0.5f}, transforms.transforms.insert(flashlight),
+    //    {0.f, 0.f, 1.f}, 0.5f, rad(12.f), rad(17.f), 10.f
+    //};
+    //lights.add_spotlight(flash2, "Sphere");
 
     Transform sphere;
     sphere.set_world_offset({ -5.f, 20.f, 5.f });
@@ -192,36 +219,36 @@ void Controller::init_scene()
         { transforms.transforms.insert(crystal_ball) }
     );
 
-    models.add_model("assets/models/InstanceTest/test.fbx");
-    Transform test;
-    test.set_world_offset({ -20.f, 15.f, 20.f });
-    test.set_scale({0.2f, 0.5f, 0.2f});
-    meshes.opaque_instances.add_model_instance(
-        models.get_ptr("assets/models/InstanceTest/test.fbx"),
-        {
-        	materials.get_opaque("assets/models/InstanceTest/Cube_mat"),
-            materials.get_opaque("assets/models/InstanceTest/Sphere_mat")
-        },
-        { transforms.transforms.insert(test) }
-    );
+    //models.add_model("assets/models/InstanceTest/test.fbx");
+    //Transform test;
+    //test.set_world_offset({ -20.f, 15.f, 20.f });
+    //test.set_scale({0.2f, 0.5f, 0.2f});
+    //meshes.opaque_instances.add_model_instance(
+    //    models.get_ptr("assets/models/InstanceTest/test.fbx"),
+    //    {
+    //    	materials.get_opaque("assets/models/InstanceTest/Cube_mat"),
+    //        materials.get_opaque("assets/models/InstanceTest/Sphere_mat")
+    //    },
+    //    { transforms.transforms.insert(test) }
+    //);
 
     Transform samurai;
     samurai.set_scale(5.f);
     samurai.set_world_offset({ 10.f, 0.f, 0.f });
-    meshes.opaque_instances.add_model_instance(
-        models.get_ptr("assets/models/Samurai/Samurai.fbx"),
-        {
-            materials.get_opaque("assets/models/Samurai/Sword_mat"),
-            materials.get_opaque("assets/models/Samurai/Head_mat"),
-            materials.get_opaque("assets/models/Samurai/Eyes_mat"),
-            materials.get_opaque("assets/models/Samurai/Helmet_mat"),
-            materials.get_opaque("assets/models/Samurai/Skirt_mat"),
-            materials.get_opaque("assets/models/Samurai/Legs_mat"),
-            materials.get_opaque("assets/models/Samurai/Hands_mat"),
-            materials.get_opaque("assets/models/Samurai/Torso_mat")
-        },
-        { transforms.transforms.insert(samurai) }
-    );
+    //meshes.opaque_instances.add_model_instance(
+    //    models.get_ptr("assets/models/Samurai/Samurai.fbx"),
+    //    {
+    //        materials.get_opaque("assets/models/Samurai/Sword_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Head_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Eyes_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Helmet_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Skirt_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Legs_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Hands_mat"),
+    //        materials.get_opaque("assets/models/Samurai/Torso_mat")
+    //    },
+    //    { transforms.transforms.insert(samurai) }
+    //);
 
     //samurai.set_scale(5.f);
     //samurai.set_world_offset({ 5.f, 0.f, 3.f });
@@ -240,24 +267,24 @@ void Controller::init_scene()
     //    { transforms.transforms.insert(samurai) }
     //);
 
-    Transform knight;
-    knight.set_scale(5.f);
-    knight.set_world_offset({ 20.f, 0.f, 0.f });
-    meshes.opaque_instances.add_model_instance(
-        models.get_ptr("assets/models/Knight/Knight.fbx"),
-        {
-            materials.get_opaque("assets/models/Knight/Fur_mat"),
-        	materials.get_opaque("assets/models/Knight/Legs_mat"),
-        	materials.get_opaque("assets/models/Knight/Torso_mat"),
-        	materials.get_opaque("assets/models/Knight/Head_mat"),
-        	materials.get_opaque("assets/models/Knight/Eyes_mat"),
-        	materials.get_opaque("assets/models/Knight/Helmet_mat"),
-        	materials.get_opaque("assets/models/Knight/Skirt_mat"),
-        	materials.get_opaque("assets/models/Knight/Cape_mat"),
-        	materials.get_opaque("assets/models/Knight/Gloves_mat")
-        },
-        { transforms.transforms.insert(knight) }
-    );
+    //Transform knight;
+    //knight.set_scale(5.f);
+    //knight.set_world_offset({ 20.f, 0.f, 0.f });
+    //meshes.opaque_instances.add_model_instance(
+    //    models.get_ptr("assets/models/Knight/Knight.fbx"),
+    //    {
+    //        materials.get_opaque("assets/models/Knight/Fur_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Legs_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Torso_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Head_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Eyes_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Helmet_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Skirt_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Cape_mat"),
+    //    	materials.get_opaque("assets/models/Knight/Gloves_mat")
+    //    },
+    //    { transforms.transforms.insert(knight) }
+    //);
 
     //knight.set_scale(5.f);
     //knight.set_world_offset({ 15.f, 0.f, 3.f });
@@ -277,18 +304,18 @@ void Controller::init_scene()
     //    { transforms.transforms.insert(knight) }
     //);
 
-    Transform horse;
-    horse.set_scale(5.f);
-    horse.set_world_offset({ 30.f, 0.f, 0.f });
-    meshes.opaque_instances.add_model_instance(
-        models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
-        {
-            materials.get_opaque("assets/models/KnightHorse/Armor_mat"),
-            materials.get_opaque("assets/models/KnightHorse/Horse_mat"),
-            materials.get_opaque("assets/models/KnightHorse/Tail_mat")
-        },
-        { transforms.transforms.insert(horse) }
-    );
+    //Transform horse;
+    //horse.set_scale(5.f);
+    //horse.set_world_offset({ 30.f, 0.f, 0.f });
+    //meshes.opaque_instances.add_model_instance(
+    //    models.get_ptr("assets/models/KnightHorse/KnightHorse.fbx"),
+    //    {
+    //        materials.get_opaque("assets/models/KnightHorse/Armor_mat"),
+    //        materials.get_opaque("assets/models/KnightHorse/Horse_mat"),
+    //        materials.get_opaque("assets/models/KnightHorse/Tail_mat")
+    //    },
+    //    { transforms.transforms.insert(horse) }
+    //);
 
     //horse.set_scale(5.f);
     //horse.set_world_offset({ 25.f, 0.f, 5.f });
@@ -331,18 +358,90 @@ void Controller::init_scene()
         { transforms.transforms.insert(wall) }
     );
 
+    SmokeEmitter emitter {vec3f{0.f, 0.f, 5.f}, 0.5f, 1.f};
+    emitter.particleLifetime = 10.f;
+    emitter.particleInitSize = {2.f, 2.f, 2.f};
+    particle_system.add_smoke_emitter( emitter );
+
+    emitter = {vec3f{-15.f, 0.f, 5.f}, 0.25f, 2.f};
+    emitter.particleInitTint = {1.f, 0.2f, 0.5f};
+	emitter.particleLifetime = 10.f;
+    emitter.particleInitSize = {2.f, 2.f, 2.f};
+    particle_system.add_smoke_emitter( emitter );
+
     init_floor(16, 16);
 
     scene.init_hdr_and_depth_buffer(window.width(), window.height(), 4);
     scene.init_depth_stencil_state();
+    scene.grassfield.grassBuffer = {3u, 4u, {2.f, 3.f}};
+    scene.grassfield.init_field({0.f, 0.f, 0.f}, 10.f, 10.f, 1.f);
     
     camera.set_world_offset({ 0.f, 15.f, -10.f });
+    camera.set_perspective(rad(55.f), float(window.width()) / window.height(), 0.1f, 400.f);
 
-    postProcess.post_process_shader = shaders.get_ptr(L"shaders/resolve.hlsl");
-    postProcess.post_process_shader_ms = shaders.get_ptr(L"shaders/resolve_ms.hlsl");
+    postProcess.postProcessShader = shaders.get_ptr(L"shaders/resolve.hlsl");
+    postProcess.postProcessShaderMS = shaders.get_ptr(L"shaders/resolve_ms.hlsl");
     postProcess.ev100 = 0.f;
 
-    lights.init_depth_buffers(512);
+    lights.init_depth_buffers(1024);
+}
+
+void Controller::start_appearance()
+{
+    MeshSystem& mesh_system = MeshSystem::instance();
+    ModelManager& model_manager = ModelManager::instance();
+    MaterialManager& material_manager = MaterialManager::instance();
+    TransformSystem& transform_system = TransformSystem::instance();
+
+    Transform subsamurai;
+    subsamurai.set_scale(5.f);
+    subsamurai.add_world_offset({ -10.f, 0.f, 0.f });
+     mesh_system.appearing_instances.add_model_instance(
+        model_manager.get_ptr("assets/models/Samurai/Samurai.fbx"),
+        {
+            material_manager.get_opaque("assets/models/Samurai/Sword_mat"),
+            material_manager.get_opaque("assets/models/Samurai/Head_mat"),
+            material_manager.get_opaque("assets/models/Samurai/Eyes_mat"),
+            material_manager.get_opaque("assets/models/Samurai/Helmet_mat"),
+            material_manager.get_opaque("assets/models/Samurai/Skirt_mat"),
+            material_manager.get_opaque("assets/models/Samurai/Legs_mat"),
+            material_manager.get_opaque("assets/models/Samurai/Hands_mat"),
+            material_manager.get_opaque("assets/models/Samurai/Torso_mat")
+		},
+        {
+            transform_system.transforms.insert(subsamurai), vec3f{0.7f, 15.f, 5.f}, 5.f
+        }
+    );
+}
+
+void Controller::update_appearance_instances(float dt)
+{
+	AppearingInstances& appearingInstances = MeshSystem::instance().appearing_instances;
+
+	for (uint32_t modelInd = 0; modelInd < appearingInstances.perModels.size(); modelInd++)
+	{
+		auto& model = appearingInstances.perModels.at(modelInd);
+		for(uint32_t instanceInd = model.instances.size(); instanceInd > 0; instanceInd--)
+		{
+			AppearingInstances::Instance& instance = model.instances.at(instanceInd - 1);
+			instance.animationPassed += dt;
+			if(instance.animationPassed > instance.animationTime)
+			{
+                {
+	                std::vector<OpaqueMaterial> materials{model.perMeshes.size()};
+
+	                for(uint32_t meshInd = 0; meshInd < model.perMeshes.size(); meshInd++)
+						materials[meshInd] = model.perMeshes[meshInd].perMaterials[instance.materials[meshInd]].material;
+
+                    MeshSystem::instance().opaque_instances.add_model_instance( 
+                        model.model, std::move(materials), {instance.model_world}
+					);
+                }
+
+				appearingInstances.remove_model_instance(modelInd, instanceInd);
+			}
+		}
+	}
 }
 
 void Controller::process_gui_input()
@@ -384,7 +483,7 @@ void Controller::process_gui_input()
         Direct3D::instance().init_sampler_state(filters[index], manisotropy);
     
     static int msaa = 2;
-    if (ImGui::SliderInt("MSAA", &msaa, 0, 3))
+    if (ImGui::SliderInt("MSAA", &msaa, 1, 3))
         scene.init_hdr_and_depth_buffer(scene.hdr_buffer.width, scene.hdr_buffer.height, 1 << msaa);
 
     ImGui::SameLine();
@@ -444,6 +543,11 @@ void Controller::process_input(float dt)
     if (is.keyboard.keys[A]) move.x() -= dist;
     if (is.keyboard.keys[SPACE] || is.keyboard.keys[E]) move.y() += dist;
     if (is.keyboard.keys[C] || is.keyboard.keys[CTRL] ||is.keyboard.keys[Q]) move.y() -= dist;
+    if (is.keyboard.keys[N] && !is.keyboard.previus_key_state[N])
+    {
+	    start_appearance();
+        is.keyboard.previus_key_state[N] = true;
+    } else if(!is.keyboard.keys[N]) is.keyboard.previus_key_state[N] = false;
 
     float rspeed = rotation_speed * dt;
     if (is.keyboard.keys[LEFT]) rot.yaw += rspeed;
@@ -554,16 +658,11 @@ void Controller::process_input(float dt)
         break;
     }
 
-    if(camera_update)
-    {
-        move_camera(move, rot);
-    }
-
-    //if( move.x() != 0.f || move.y() != 0.f  || move.z() != 0.f ||
-    //    rot.yaw != 0.f  || rot.pitch != 0.f || rot.roll != 0.f ||
-    //    offset.x() != 0.f || offset.y() != 0.f || offset.z() != 0.f )
-    //    im.gi_frame = 0;
+    if(camera_update) move_camera(move, rot);
 
     is.mouse.prev_x = is.mouse.x;
     is.mouse.prev_y = is.mouse.y;
+
+    ParticleSystem::instance().update(dt);
+    update_appearance_instances(dt);
 }

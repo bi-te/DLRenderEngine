@@ -4,6 +4,9 @@
 static const float PI = 3.14159265f;
 static const float OFFSET = 0.02f;
 
+static const float3 X_VEC = float3(1.f, 0.f, 0.f);
+static const float3 Y_VEC = float3(0.f, 1.f, 0.f);
+static const float3 Z_VEC = float3(0.f, 0.f, 1.f);
 struct Frustum
 {
 	float4 bottom_left;
@@ -89,5 +92,8 @@ cbuffer perFrame: register(b0)
 	uint g_max_reflection_mip;
 
 	LightBuffer g_lighting;
+
+	float g_near, g_far;
+	float g_time;
 }
 #endif
