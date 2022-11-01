@@ -58,11 +58,22 @@ void Direct3D::init_rasterizer_states()
     two_face.FrontCounterClockwise = false;
     two_face.MultisampleEnable = true;
     result = device5->CreateRasterizerState(&two_face, &two_face_rasterizer_state);
-    assert(SUCCEEDED(result) && "CreateRasterizerState");
+    assert(SUCCEEDED(result) && "CreateRasterizerState Two-Face");
+
+    D3D11_RASTERIZER_DESC back_face{};
+    back_face.FillMode = D3D11_FILL_SOLID;
+    back_face.CullMode = D3D11_CULL_FRONT;
+    back_face.DepthClipEnable = true;
+    back_face.FrontCounterClockwise = false;
+    back_face.MultisampleEnable = true;
+    result = device5->CreateRasterizerState(&back_face, &back_face_rasterizer_state);
+    assert(SUCCEEDED(result) && "CreateRasterizerState Back-Face");
 }
 
 void Direct3D::init_blend_state()
 {
+    HRESULT result;
+
     D3D11_BLEND_DESC blend_desc{};
     blend_desc.AlphaToCoverageEnable = FALSE;
     blend_desc.IndependentBlendEnable = FALSE;
@@ -74,8 +85,21 @@ void Direct3D::init_blend_state()
     blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
     blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
     blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    HRESULT result = device5->CreateBlendState(&blend_desc, &blend_state);
+    result = device5->CreateBlendState(&blend_desc, &blend_state);
     assert(SUCCEEDED(result) && "CreateBlendState");
+
+    blend_desc.AlphaToCoverageEnable = FALSE;
+    blend_desc.IndependentBlendEnable = FALSE;
+    blend_desc.RenderTarget[0].BlendEnable = TRUE;
+    blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+    blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+    blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+    blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    result = device5->CreateBlendState(&blend_desc, &additive_blend_state);
+    assert(SUCCEEDED(result) && "CreateBlendState Additive");
 }
 
 void Direct3D::init_alpha_to_coverage()
@@ -150,7 +174,7 @@ void Direct3D::bind_globals(const Camera& camera, uint32_t max_reflection_mip)
     context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
     context4->PSSetSamplers(1, 1, linear_clamp_sampler_state.GetAddressOf());
     context4->PSSetSamplers(2, 1, comparison_sampler_state.GetAddressOf());
-    context4->PSSetShaderResources(0, 1, reflectance_map.GetAddressOf());
+    context4->PSSetShaderResources(0, 1, reflectance_map->srv.GetAddressOf());
 }
 
 void Direct3D::init() 
@@ -178,13 +202,15 @@ void Direct3D::reset()
 
     direct3d->rasterizer_state.Reset();
     direct3d->two_face_rasterizer_state.Reset();
+    direct3d->back_face_rasterizer_state.Reset();
+    direct3d->additive_blend_state.Reset();
     direct3d->atc_blend_state.Reset();
     direct3d->blend_state.Reset();
     direct3d->sampler_state.Reset();
     direct3d->linear_clamp_sampler_state.Reset();
     direct3d->comparison_sampler_state.Reset();
 
-    direct3d->reflectance_map.Reset();
+    direct3d->reflectance_map.reset();
 
     direct3d->context4->ClearState();
     direct3d->context4->Flush();

@@ -9,6 +9,7 @@
 #include "render/ShaderManager.h"
 #include "render/TextureManager.h"
 #include "render/ParticleSystem.h"
+#include <render/DecalSystem.h>
 
 Engine* Engine::s_engine;
 
@@ -27,6 +28,7 @@ void Engine::init()
 	ParticleSystem::init();
 	EngineClock::init();
 	RandomGenerator::init();
+	DecalSystem::init();
 
 	s_engine = new Engine;
 }
@@ -34,9 +36,10 @@ void Engine::init()
 void Engine::reset()
 {
 	assert(s_engine && "Engine not initialized");
-	
+
 	delete s_engine;
 
+	DecalSystem::reset();
 	RandomGenerator::reset();
 	EngineClock::reset();
 	ParticleSystem::reset();

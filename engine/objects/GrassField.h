@@ -4,6 +4,7 @@
 
 #include "render/Direct11/Direct3D.h"
 #include "render/Direct11/DynamicBuffer.h"
+#include "render/Direct11/Texture.h"
 
 struct GrassInstanceBuffer {
 	vec3f position;
@@ -30,23 +31,24 @@ public:
 	GrassBuffer grassBuffer;
 
 	std::shared_ptr<Shader> grassShader;
+	std::shared_ptr<Shader> grassDeferredShader;
 	std::shared_ptr<Shader> pointShadowShader;
 	std::shared_ptr<Shader> spotShadowShader;
-	comptr<ID3D11ShaderResourceView> baseColor, normal, roughness, opacity, translucency, ambient_occlusion;
+	std::shared_ptr<Texture> baseColor, normal, roughness, opacity, translucency, ambient_occlusion;
 
 	void init_field(vec3f world_offset, float field_width, float field_height, float object_radius);
 	void update_instance_buffer();
-	void render();
+	void render(bool forward_rendering);
 	void shadow_render(uint32_t light_count);
 
 	void reset()
 	{
-		baseColor.Reset();
-		normal.Reset();
-		roughness.Reset();
-		opacity.Reset();
-		translucency.Reset();
-		ambient_occlusion.Reset();
+		baseColor.reset();
+		normal.reset();
+		roughness.reset();
+		opacity.reset();
+		translucency.reset();
+		ambient_occlusion.reset();
 		instanceBuffer.free();
 		constantGrassBuffer.free();
 	}

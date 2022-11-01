@@ -36,10 +36,10 @@ class ParticleSystem
 	struct ParticleAtlas
 	{
 		uint32_t rows, columns;
-		comptr<ID3D11ShaderResourceView> smoke_emva1;
-		comptr<ID3D11ShaderResourceView> smoke_emission;
-		comptr<ID3D11ShaderResourceView> smoke_lightmap1;
-		comptr<ID3D11ShaderResourceView> smoke_lightmap2;
+		std::shared_ptr<Texture> smoke_emva1;
+		std::shared_ptr<Texture> smoke_emission;
+		std::shared_ptr<Texture> smoke_lightmap1;
+		std::shared_ptr<Texture> smoke_lightmap2;
 	};
 	
 	static ParticleSystem* s_system;

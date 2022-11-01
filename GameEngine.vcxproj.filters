@@ -168,6 +168,9 @@
     <ClCompile Include="engine\render\SmokeEmitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="engine\render\DecalSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
@@ -581,6 +584,12 @@
     <ClInclude Include="engine\math\custom_algorithms.h">
       <Filter>engine\math</Filter>
     </ClInclude>
+    <ClInclude Include="engine\render\Direct11\Texture.h">
+      <Filter>engine\render\Direct11</Filter>
+    </ClInclude>
+    <ClInclude Include="engine\render\DecalSystem.h">
+      <Filter>engine\render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\opaque.hlsl">
@@ -620,6 +629,27 @@
       <Filter>shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\omnidirectional_shadows.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\appearance_deferred.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\decal_deferred.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\emissive_deferred.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\grass_deferred.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\opaque_deferred.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\resolve_deferred.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\resolve_deferred_plights.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -670,6 +700,9 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\grass_helpers.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\octahedron_pack.hlsli">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

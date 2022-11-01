@@ -154,18 +154,12 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 
 Shader& ShaderManager::get_shader(LPCWSTR shader)
 {
-	if (shaders.find(shader) == shaders.end())
-		add_shader(shader, "main", "ps_main");
-
 	assert(shaders.find(shader) != shaders.end() && "Shader is not loaded");
 	return *shaders.at(shader);
 }
 
 std::shared_ptr<Shader> ShaderManager::get_ptr(LPCWSTR shader)
 {
-	if(shaders.find(shader) == shaders.end())
-		add_shader(shader, "main", "ps_main");
-
 	assert(shaders.find(shader) != shaders.end() && "Shader is not loaded");
 	return shaders.at(shader);
 }

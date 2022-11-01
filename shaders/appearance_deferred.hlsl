@@ -1,4 +1,5 @@
 #include "light_calculation.hlsli"
+#include "octahedron_pack.hlsli"
 
 struct vs_in
 {
@@ -70,24 +71,41 @@ Texture2D g_roughness : register(t7);
 Texture2D g_metallic : register(t8);
 Texture2D g_noise : register(t9);
 
-float calcMipLevel(float2 tex_coor)
+struct ps_out
 {
-    float2 dx = ddx(tex_coor);
-    float2 dy = ddy(tex_coor);
-    float delta_max_sqr = max(dot(dx, dx), dot(dy, dy));
+    float4 emissive : SV_Target0;
+    float4 normals : SV_Target1;
+    float4 albedo : SV_Target2;
+    float2 rm : SV_Target3;
+};
 
-    return max(0.f, 0.5f * log2(delta_max_sqr));
-}
-
-float4 ps_main(vs_out input) : Sv_Target
+ps_out ps_main(vs_out input)
 {
     const float APPEARANCE_OFFSET = 0.03f;
-    Material mat;
 
-    mat.diffuse = g_material.textures & MATERIAL_TEXTURE_DIFFUSE ? g_diffuse.Sample(g_sampler, input.tex_coor).rgb : g_material.diffuse;
-    mat.metallic = g_material.textures & MATERIAL_TEXTURE_METALLIC ? g_metallic.Sample(g_sampler, input.tex_coor).x : g_material.metallic;
-    mat.roughness = g_material.textures & MATERIAL_TEXTURE_ROUGHNESS ? g_roughness.Sample(g_sampler, input.tex_coor).x : g_material.roughness;
-
+    ps_out res;
+	
+    float noise_time = g_noise.Sample(g_sampler, input.tex_coor).r;
+	
+    if (noise_time > input.animationFract + APPEARANCE_OFFSET)
+    {
+        discard;
+        return res;
+    }
+    else if (noise_time > input.animationFract)
+    {
+        res.rm = 0.f;
+        res.albedo = 0.f;
+        res.normals = 0.f;
+        res.emissive = float4(1.f, 5.f, 10.f, 1.f);
+        return res;
+    }
+	
+    res.albedo.rgb = g_material.textures & MATERIAL_TEXTURE_DIFFUSE ? g_diffuse.Sample(g_sampler, input.tex_coor).rgb : g_material.diffuse;
+    res.rm.g = g_material.textures & MATERIAL_TEXTURE_METALLIC ? g_metallic.Sample(g_sampler, input.tex_coor).x : g_material.metallic;
+    res.rm.r = g_material.textures & MATERIAL_TEXTURE_ROUGHNESS ? g_roughness.Sample(g_sampler, input.tex_coor).x : g_material.roughness;
+    res.emissive = 0.f;
+	
     input.tbn_matrix[0].xyz = normalize(input.tbn_matrix[0].xyz);
     input.tbn_matrix[1].xyz = normalize(input.tbn_matrix[1].xyz);
     input.tbn_matrix[2].xyz = normalize(input.tbn_matrix[2].xyz);
@@ -102,30 +120,11 @@ float4 ps_main(vs_out input) : Sv_Target
     }
     else
         normal = mesh_normal;
-
-	//if (g_noise.Sample(g_sampler, input.tex_coor).r < input.animationFract)
-	//{
-	//	discard;
-	//	return float4(0.f, 0.f, 0.f, 0.0f);
-	//}
-
-    float noise_time = g_noise.Sample(g_sampler, input.tex_coor).r;
 	
-    if (noise_time > input.animationFract + APPEARANCE_OFFSET)
-    {
-        return float4(0.f, 0.f, 0.f, 0.f);
-    }
-    else if (noise_time > input.animationFract)
-    {
-        return float4(input.appearance_color, 0.5f);
-    }
-
-    float3 view_vec = normalize(g_cameraPosition - input.world_position.xyz);
-
-    float3 res_color = calc_environment_light(view_vec, normal, mat);
-    res_color += calc_point_lights_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
-    res_color += calc_spotlights_pbr(input.world_position.xyz, view_vec, mesh_normal, normal, mat);
-
-    return float4(res_color, 1.f);
+	//res.normals.xyz = res.normals.xyz / 2.f + 0.5f;
+    res.normals.xy = packOctahedron(normal);
+    res.normals.zw = packOctahedron(mesh_normal);
+	
+    return res;
 }
 	

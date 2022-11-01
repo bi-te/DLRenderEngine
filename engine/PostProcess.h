@@ -28,6 +28,7 @@ public:
 
 	void update_buffer(uint32_t msaa);
 	void resolve(RenderBuffer& hdrInput, RenderBuffer& ldrOutput);
+	void resolve_msaa(RenderBuffer& hdrInput, RenderBuffer& ldrOutput);
 
 	void render_reset()
 	{

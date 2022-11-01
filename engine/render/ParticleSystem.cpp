@@ -71,10 +71,10 @@ void ParticleSystem::render(const Camera& camera, comptr<ID3D11ShaderResourceVie
 	direct.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	particle_shader->bind();
-	direct.context4->PSSetShaderResources(5, 1, atlas.smoke_emva1.GetAddressOf());
-	direct.context4->PSSetShaderResources(6, 1, atlas.smoke_emission.GetAddressOf());
-	direct.context4->PSSetShaderResources(7, 1, atlas.smoke_lightmap1.GetAddressOf());
-	direct.context4->PSSetShaderResources(8, 1, atlas.smoke_lightmap2.GetAddressOf());
+	direct.context4->PSSetShaderResources(5, 1, atlas.smoke_emva1->srv.GetAddressOf());
+	direct.context4->PSSetShaderResources(6, 1, atlas.smoke_emission->srv.GetAddressOf());
+	direct.context4->PSSetShaderResources(7, 1, atlas.smoke_lightmap1->srv.GetAddressOf());
+	direct.context4->PSSetShaderResources(8, 1, atlas.smoke_lightmap2->srv.GetAddressOf()); 
 	direct.context4->PSSetShaderResources(9, 1, depth_texture.GetAddressOf());
 
 	direct.context4->DrawInstanced(6u, pBuffer.size(), 0u, 0u);

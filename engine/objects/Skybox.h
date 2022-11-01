@@ -2,6 +2,7 @@
 
 #include "math/math.h"
 #include "render/Direct11/d3d.h"
+#include "render/Direct11/Texture.h"
 
 struct Shader;
 
@@ -9,12 +10,12 @@ class Skybox
 {
 	struct Reflection
 	{
-		comptr<ID3D11ShaderResourceView> map;
+		std::shared_ptr<Texture> map;
 		uint32_t mip_levels;
 	};
 public:
-	comptr<ID3D11ShaderResourceView> texture;
-	comptr<ID3D11ShaderResourceView> irradiance_map;
+	std::shared_ptr<Texture> texture;
+	std::shared_ptr<Texture> irradiance_map;
 	Reflection reflection;
 	std::shared_ptr<Shader> skyshader;
 
@@ -23,9 +24,9 @@ public:
 
 	void reset()
 	{
-		texture.Reset();
-		irradiance_map.Reset();
-		reflection.map.Reset();
+		texture.reset();
+		irradiance_map.reset();
+		reflection.map.reset();
 	}
 };
 

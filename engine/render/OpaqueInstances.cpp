@@ -8,14 +8,14 @@
 #include "moving/TransformSystem.h"
 
 void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
-                                         const std::vector<OpaqueMaterial>& materials,
-                                         const Instance& instance)
+	const std::vector<OpaqueMaterial>& materials,
+	const Instance& instance)
 {
 	assert(model->meshes.size() == materials.size() && "Number of Meshes and materials not equal");
 
-	for (auto & perModel : perModels)
+	for (auto& perModel : perModels)
 	{
-		if(perModel.model.get() == model.get())
+		if (perModel.model.get() == model.get())
 		{
 			uint32_t new_instance = perModel.instances.size();
 			perModel.instances.push_back(instance);
@@ -36,11 +36,11 @@ void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
 				if (new_material)
 					per_mesh.perMaterials.push_back({
 							materials.at(mesh_ind),{new_instance}
-						});					
+						});
 			}
 
 			return;
-		} 
+		}
 	}
 
 	PerModel perModel;
@@ -76,13 +76,13 @@ void OpaqueInstances::update_instance_buffer()
 		for (auto& mesh : model.perMeshes)
 			for (auto& material : mesh.perMaterials)
 				num_instances += material.instances.size() * mesh.mesh_model_matrices.size();
-					
+
 
 	if (!num_instances) return;
 
 	instanceBuffer.allocate(num_instances * sizeof(OpaqueInstanceRender));
 
-	OpaqueInstanceRender* matrices = static_cast<OpaqueInstanceRender*>(instanceBuffer.map().pData);
+	OpaqueInstanceRender* instances = static_cast<OpaqueInstanceRender*>(instanceBuffer.map().pData);
 
 	for (auto& model : perModels)
 		for (auto& mesh : model.perMeshes)
@@ -92,34 +92,42 @@ void OpaqueInstances::update_instance_buffer()
 					if (mesh.mesh_model_matrices.size() > 1) {
 						for (auto& mesh_node : mesh.mesh_model_matrices)
 						{
-							matrices[num_copied].model_transform = model.model.get()->tree[mesh_node].mesh_matrix *
+							instances[num_copied].model_transform = model.model.get()->tree[mesh_node].mesh_matrix *
 								transforms[model.instances[instance].model_world].matrix();
-							matrices[num_copied++].scale = model.model.get()->tree[mesh_node].mesh_matrix.topLeftCorner<3,3>() *
+							instances[num_copied].scale = model.model.get()->tree[mesh_node].mesh_matrix.topLeftCorner<3, 3>() *
 								transforms[model.instances[instance].model_world].normal_matrix;
+							instances[num_copied].id = model.instances[instance].model_world;
+							num_copied++;
 						}
 					}
 					else {
-						matrices[num_copied].model_transform = transforms[model.instances[instance].model_world].matrix();
-						matrices[num_copied++].scale = transforms[model.instances[instance].model_world].normal_matrix;
+						instances[num_copied].model_transform = transforms[model.instances[instance].model_world].matrix();
+						instances[num_copied].id = model.instances[instance].model_world;
+						instances[num_copied++].scale = transforms[model.instances[instance].model_world].normal_matrix;
+
 					}
 				}
 
 	instanceBuffer.unmap();
 }
 
-void OpaqueInstances::render()
+void OpaqueInstances::render(bool forward_rendering)
 {
 	Direct3D& direct = Direct3D::instance();
 
-	opaqueShader->bind();
+	if (forward_rendering)
+		opaqueShader->bind();
+	else
+		opaqueDeferredShader->bind();
+
 	update_instance_buffer();
 	bind_instance_buffer();
 
 	uint32_t renderedInstances = 0;
-	for (const auto& per_model: perModels)
+	for (const auto& per_model : perModels)
 	{
 		Model& model = *per_model.model;
-		
+
 		uint32_t stride = sizeof(AssimpVertex), pOffset = 0;
 		direct.context4->IASetVertexBuffers(0, 1, model.vertexBuffer.address(), &stride, &pOffset);
 		direct.context4->IASetIndexBuffer(model.indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
@@ -130,15 +138,15 @@ void OpaqueInstances::render()
 			Mesh::Range& mrange = model.meshes[mesh_ind].m_range;
 
 			mat4f* matrices = (mat4f*)meshModel.map().pData;
-			if (mesh.mesh_model_matrices.size() > 1) 
-				*matrices = mat4f::Identity();				
-			else 
+			if (mesh.mesh_model_matrices.size() > 1)
+				*matrices = mat4f::Identity();
+			else
 				*matrices = model.tree[mesh.mesh_model_matrices.at(0)].mesh_matrix;
 
 			meshModel.unmap();
 			direct.context4->VSSetConstantBuffers(1, 1, meshModel.address());
 
-			for (const auto& perMaterial: mesh.perMaterials)
+			for (const auto& perMaterial : mesh.perMaterials)
 			{
 				const OpaqueMaterial& material = perMaterial.material;
 				uint32_t instances = perMaterial.instances.size() * mesh.mesh_model_matrices.size();
@@ -147,17 +155,17 @@ void OpaqueInstances::render()
 
 				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
 
-				if(material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
-					direct.context4->PSSetShaderResources(5, 1, material.diffuse.GetAddressOf());
+				if (material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
+					direct.context4->PSSetShaderResources(5, 1, material.diffuse->srv.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
-					direct.context4->PSSetShaderResources(6, 1,	material.normals.GetAddressOf());
+					direct.context4->PSSetShaderResources(6, 1, material.normals->srv.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
-					direct.context4->PSSetShaderResources(7, 1, material.roughness.GetAddressOf());
+					direct.context4->PSSetShaderResources(7, 1, material.roughness->srv.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
-					direct.context4->PSSetShaderResources(8, 1, material.metallic.GetAddressOf());
+					direct.context4->PSSetShaderResources(8, 1, material.metallic->srv.GetAddressOf());
 
 				direct.context4->DrawIndexedInstanced(mrange.numIndices,
 					instances, mrange.indicesOffset,
@@ -205,7 +213,7 @@ void OpaqueInstances::shadow_render(uint32_t light_count)
 				instances += perMaterial.instances.size();
 			instances *= mesh.mesh_model_matrices.size();
 
-			for(uint32_t light = 0; light < light_count; light ++ )
+			for (uint32_t light = 0; light < light_count; light++)
 			{
 				light_system.bind_light_shadow_buffer(light);
 

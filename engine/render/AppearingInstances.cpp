@@ -182,7 +182,7 @@ void AppearingInstances::update_instance_buffer()
 	instanceBuffer.unmap();
 }
 
-void AppearingInstances::render()
+void AppearingInstances::render(bool forward_rendering)
 {
 	Direct3D& direct = Direct3D::instance();
 
@@ -190,7 +190,12 @@ void AppearingInstances::render()
 	update_instance_buffer();
 	bind_instance_buffer();
 
-	direct.context4->PSSetShaderResources(9, 1, noiseTexture.GetAddressOf());
+	if (forward_rendering)
+		appearShader->bind();
+	else
+		appearDeferredShader->bind();
+
+	direct.context4->PSSetShaderResources(9, 1, noiseTexture->srv.GetAddressOf());
 
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model : perModels)
@@ -225,16 +230,16 @@ void AppearingInstances::render()
 				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_DIFFUSE)
-					direct.context4->PSSetShaderResources(5, 1, material.diffuse.GetAddressOf());
+					direct.context4->PSSetShaderResources(5, 1, material.diffuse->srv.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_NORMAL)
-					direct.context4->PSSetShaderResources(6, 1, material.normals.GetAddressOf());
+					direct.context4->PSSetShaderResources(6, 1, material.normals->srv.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_ROUGHNESS)
-					direct.context4->PSSetShaderResources(7, 1, material.roughness.GetAddressOf());
+					direct.context4->PSSetShaderResources(7, 1, material.roughness->srv.GetAddressOf());
 
 				if (material.render_data.textures & MATERIAL_TEXTURE_METALLIC)
-					direct.context4->PSSetShaderResources(8, 1, material.metallic.GetAddressOf());
+					direct.context4->PSSetShaderResources(8, 1, material.metallic->srv.GetAddressOf());
 
 				direct.context4->DrawIndexedInstanced(mrange.numIndices,
 					instances, mrange.indicesOffset,
@@ -254,7 +259,7 @@ void AppearingInstances::shadow_render(uint32_t light_count)
 	update_instance_buffer();
 	bind_instance_buffer();
 
-	direct.context4->PSSetShaderResources(9, 1, noiseTexture.GetAddressOf());
+	direct.context4->PSSetShaderResources(9, 1, noiseTexture->srv.GetAddressOf());
 
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model : perModels)

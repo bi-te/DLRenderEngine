@@ -2,6 +2,7 @@
 
 #include "d3d.h"
 #include "DynamicBuffer.h"
+#include "Texture.h"
 #include "math/math.h"
 #include "math/Camera.h"
 #include "render/Lighting.h"
@@ -113,10 +114,12 @@ public:
 
 	comptr<ID3D11BlendState> blend_state;
 	comptr<ID3D11BlendState> atc_blend_state;
+	comptr<ID3D11BlendState> additive_blend_state;
 
 	comptr<ID3D11RasterizerState> rasterizer_state;
 	comptr<ID3D11RasterizerState> two_face_rasterizer_state;
-	comptr<ID3D11ShaderResourceView> reflectance_map;
+	comptr<ID3D11RasterizerState> back_face_rasterizer_state;
+	std::shared_ptr<Texture> reflectance_map;
 
 	std::shared_ptr<Shader> depth_resolve_shader;
 

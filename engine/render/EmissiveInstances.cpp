@@ -42,25 +42,36 @@ void EmissiveInstances::update_instance_buffer()
 
 	for (auto& model : perModels)
 		for (auto& mesh : model.perMeshes)
-				for (auto& instance : model.instances)
+			for (auto& instance : model.instances)
+			{
+				if (mesh.mesh_model_matrices.size() > 1)
 				{
-					if (mesh.mesh_model_matrices.size() > 1)
-						for (auto& mesh_node : mesh.mesh_model_matrices)
-							emissive_instances[num_copied].model_world = model.model.get()->tree[mesh_node].mesh_matrix *
+					for (auto& mesh_node : mesh.mesh_model_matrices) {
+						emissive_instances[num_copied].model_world = model.model.get()->tree[mesh_node].mesh_matrix *
 							transforms[instance.model_world].matrix();
-					else
-						emissive_instances[num_copied].model_world = transforms[instance.model_world].matrix();
+						emissive_instances[num_copied].id = instance.model_world;
+						emissive_instances[num_copied++].emissive_light = instance.emissive_light;
+					}
+				}
+				else
+				{
+					emissive_instances[num_copied].model_world = transforms[instance.model_world].matrix();
+					emissive_instances[num_copied].id = instance.model_world;
 					emissive_instances[num_copied++].emissive_light = instance.emissive_light;
 				}
+			}
 
 	instanceBuffer.unmap();
 }
 
-void EmissiveInstances::render()
+void EmissiveInstances::render(bool forward_rendering)
 {
 	Direct3D& direct = Direct3D::instance();
 
-	emissiveShader->bind();
+	if (forward_rendering)
+		emissiveShader->bind();
+	else
+		emissiveDeferredShader->bind();
 
 	update_instance_buffer();
 	uint32_t instance_stride = sizeof(EmissiveInstanceBuffer), ioffset = 0;

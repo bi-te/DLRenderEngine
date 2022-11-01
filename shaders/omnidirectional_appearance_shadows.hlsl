@@ -44,7 +44,7 @@ struct gs_out
 {
     float4 pos : Sv_Position;
     float2 texcoord : TexCoord;
-    float animationFract: AnimationFract;
+    float animationFract : AnimationFract;
     uint face_slice : Sv_RenderTargetArrayIndex;
 };
 

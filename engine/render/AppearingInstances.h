@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Direct11/DynamicBuffer.h"
+#include "Direct11/Texture.h"
 #include "math/math.h"
 #include "Material.h"
 #include "data_structures/solid_vector.h"
@@ -64,8 +65,9 @@ public:
 	DynamicBuffer meshModel{ D3D11_BIND_CONSTANT_BUFFER };
 	DynamicBuffer materialBuffer{ D3D11_BIND_CONSTANT_BUFFER };
 
-	comptr<ID3D11ShaderResourceView> noiseTexture;
+	std::shared_ptr<Texture> noiseTexture;
 	std::shared_ptr<Shader> appearShader;
+	std::shared_ptr<Shader> appearDeferredShader;
 	std::shared_ptr<Shader> pointShadowShader;
 	std::vector<PerModel> perModels;
 
@@ -76,7 +78,7 @@ public:
 	void bind_instance_buffer();
 	void update_instance_buffer();
 
-	void render();
+	void render(bool forward_rendering);
 	void shadow_render(uint32_t light_count);
 };
 
