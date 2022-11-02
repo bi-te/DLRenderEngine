@@ -10,6 +10,7 @@ bool MeshSystem::mesh_intersection(const Ray& ray, IntersectionQuery& record, co
 	TransformSystem& transform_system = TransformSystem::instance();
 	Ray transformed_ray;
 	Ray tray;
+	bool intersected = false;
 
 	Transform& to_model = transform_system.transforms[transformId];
 	transformed_ray.origin = (vec4f{ ray.origin.x(), ray.origin.y(), ray.origin.z(), 1.f } *to_model.matrix_inv()).head<3>();
@@ -31,12 +32,12 @@ bool MeshSystem::mesh_intersection(const Ray& ray, IntersectionQuery& record, co
 				record.intersection.point = ray.position(record.intersection.t);
 				record.intersection.norm = record.intersection.norm * mesh_mat.topLeftCorner<3, 3>() * to_model.normal_matrix;
 				record.intersection.norm.normalize();
-				return true;
+				intersected = true;
 			}
 		}
 	}
 
-	return false;
+	return intersected;
 }
 
 bool MeshSystem::select_mesh(const Ray& ray, IntersectionQuery& record)
@@ -54,6 +55,16 @@ bool MeshSystem::select_mesh(const Ray& ray, IntersectionQuery& record)
 	for (const auto& appearing_model : appearing_instances.perModels)
 		for (const auto& instance : appearing_model.instances)
 			intersected |= mesh_intersection(ray, record, *appearing_model.model.get(), instance.model_world);
+
+	return intersected;
+}
+
+bool MeshSystem::select_opaque(const Ray& ray, IntersectionQuery& record) {
+	bool intersected = false;
+
+	for (const auto& opaque_model : opaque_instances.perModels)
+		for (const auto& instance : opaque_model.instances)
+			intersected |= mesh_intersection(ray, record, *opaque_model.model.get(), instance.model_world);
 
 	return intersected;
 }

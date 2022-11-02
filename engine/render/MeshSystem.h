@@ -23,6 +23,7 @@ public:
 	AppearingInstances appearing_instances;
 
 	bool select_mesh(const Ray& ray, IntersectionQuery& record);
+	bool select_opaque(const Ray& ray, IntersectionQuery& record);
 
 	void render(bool forward_rendering)
 	{

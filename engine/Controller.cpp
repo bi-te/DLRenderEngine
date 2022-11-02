@@ -205,13 +205,13 @@ void Controller::init_scene()
 
 		additional_light.add_world_offset(defLightY * vec3f{ 0.f, 0.f, 5.f });
 
-		for (uint32_t defLightX = 0; defLightX < 10u; defLightX++) {
+		for (uint32_t defLightX = 0; defLightX < 5u; defLightX++) {
 
 			additional_light.add_world_offset(vec3f{ 1.f, 0.f, 0.f });
 
 			miniLight.irradiance = vec3f{ random.get_real(), random.get_real(), random.get_real() };
 			miniLight.position = transforms.transforms.insert(additional_light);
-
+			
 			lights.add_point_light(miniLight, std::string("Sphere"), false);
 		}
 	}
@@ -274,9 +274,9 @@ void Controller::init_scene()
 	//    { transforms.transforms.insert(test) }
 	//);
 
-	Transform samurai;
-	samurai.set_scale(5.f);
-	samurai.set_world_offset({ 10.f, 0.f, 0.f });
+	//Transform samurai;
+	//samurai.set_scale(5.f);
+	//samurai.set_world_offset({ 10.f, 0.f, 0.f });
 	//meshes.opaque_instances.add_model_instance(
 	//    models.get_ptr("assets/models/Samurai/Samurai.fbx"),
 	//    {
@@ -492,12 +492,15 @@ void Controller::spawn_decal()
 	RandomGenerator& generator = RandomGenerator::generator();
 	Ray ray{};
 
+	float dx = (is.mouse.x + 0.5f) / window.width();
+	float dy = 1.f - (is.mouse.y + 0.5f) / window.height();
+
 	ray.origin = camera.position();
-	ray.direction = ((camera.blnear_fpoint + camera.frustrum_right * 0.5f + camera.frustrum_up * 0.5f).head<3>() - ray.origin).normalized();
+	ray.direction = ((camera.blnear_fpoint + camera.frustrum_right * dx + camera.frustrum_up * dy).head<3>() - ray.origin).normalized();
 
 	IntersectionQuery recordQuery;
 	recordQuery.intersection.reset(camera.zn, camera.zf);
-	MeshSystem::instance().select_mesh(ray, recordQuery);
+	MeshSystem::instance().select_opaque(ray, recordQuery);
 	if (!recordQuery.intersection.valid()) return;
 
 	float dotNV = recordQuery.intersection.norm.dot(-ray.direction);
@@ -505,6 +508,7 @@ void Controller::spawn_decal()
 	DecalSystem& decal_system = DecalSystem::instance();
 	Decal decal{};
 	decal.objectId = recordQuery.transformId;
+	decal.roughness = 0.8f;
 	decal.size = { 1.f, 1.f, 0.5f };
 	decal.size.z() /= dotNV;
 

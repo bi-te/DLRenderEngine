@@ -5,6 +5,7 @@ struct vs_in
 {
     float3x3 decal_to_world : Inst_WorldToDecal;
     float3 world_position : Inst_WorldPosition;
+    float roughness : Inst_Roughness;
     float3 size : Inst_Size;
     float rotation_angle : Inst_RotationAngle;
     float3 color : Inst_Color;
@@ -16,37 +17,37 @@ struct vs_out
     nointerpolation float4x4 worldToDecal : WorldToDecalMatrix;
     float4 position : SV_Position;
     float3 view_dir : ViewDir;
-    uint id : MeshId;
+    nointerpolation uint id : MeshId;
     nointerpolation float3 color : Color;
-    uint index : Index;
+    nointerpolation float roughness : Roughness;
+};
+
+static const float3 g_cube_vertices[8] =
+{
+    { -1.f, -1.f, -1.f }, //0
+    { -1.f,  1.f, -1.f }, //1
+    {  1.f,  1.f, -1.f }, //2
+    {  1.f, -1.f, -1.f }, //3
+    { -1.f, -1.f,  1.f }, //4
+    { -1.f,  1.f,  1.f }, //5
+    {  1.f,  1.f,  1.f }, //6
+    {  1.f, -1.f,  1.f } //7
+};
+
+//back_faces
+static const uint g_cube_indices[36] =
+{
+    3, 2, 1, 3, 1, 0, //z-
+	4, 5, 6, 4, 6, 7, //z+
+	0, 1, 5, 0, 5, 4, //x-
+	7, 6, 2, 7, 2, 3, //x+
+	7, 3, 0, 7, 0, 4, //y-
+	2, 6, 5, 2, 5, 1  //y+
 };
 
 vs_out main(vs_in input, uint index : SV_VertexID)
 {
     vs_out res;
-	
-    float3 cube_vertices[8] =
-    {
-        { -1.f, -1.f, -1.f }, //0
-        { -1.f, 1.f, -1.f }, //1
-        { 1.f, 1.f, -1.f }, //2
-        { 1.f, -1.f, -1.f }, //3
-        { -1.f, -1.f, 1.f }, //4
-        { -1.f, 1.f, 1.f }, //5
-        { 1.f, 1.f, 1.f }, //6
-        { 1.f, -1.f, 1.f } //7
-    };
-	
-	//back_faces
-    uint cube_indices[36] =
-    {
-        3, 2, 1, 3, 1, 0, //z-
-		4, 5, 6, 4, 6, 7, //z+
-		0, 1, 5, 0, 5, 4, //x-
-		7, 6, 2, 7, 2, 3, //x+
-		7, 3, 0, 7, 0, 4, //y-
-		2, 6, 5, 2, 5, 1 //y+
-    };
 	
 	
     float sinA, cosA;
@@ -77,21 +78,22 @@ vs_out main(vs_in input, uint index : SV_VertexID)
 		1.f
 	);
 	
-    res.index = index;
-	
-    res.position.xyz += mul(input.decal_to_world, cube_vertices[cube_indices[index]]);
+    res.position.xyz += mul(input.decal_to_world, g_cube_vertices[g_cube_indices[index]]);
     res.view_dir = res.position.xyz - g_cameraPosition;
     res.position = mul(g_viewProj, res.position);
 	
     res.color = input.color;
     res.id = input.objectId;
+    res.roughness = input.roughness;
     return res;
 }
 
 struct ps_out
 {
+    float4 emission : SV_Target0;
     float4 normals : SV_Target1;
     float4 albedo : SV_Target2;
+    float4 rmt : SV_Target3;
 };
 
 Texture2D g_decal : register(t5);
@@ -110,7 +112,7 @@ ps_out ps_main(vs_out input)
 	normalize(input.view_dir)
 	);
 	
-    float sample_depth = -g_near * g_far / (g_depth.Load(float3(input.position.xy, 0)).r * (g_near - g_far) - g_near);
+    float sample_depth = world_depth_from_buffer(g_depth.Load(float3(input.position.xy, 0)).r);
 	
     float3 sample_world_pos = g_cameraPosition + normalize(input.view_dir) * sample_depth / dotViewCam;
     float3 sample_decal_pos = mul(input.worldToDecal, float4(sample_world_pos, 1.f));
@@ -123,39 +125,15 @@ ps_out ps_main(vs_out input)
     if (sample_decal_pos.x < -1 || sample_decal_pos.x > 1 ||
 		sample_decal_pos.y < -1 || sample_decal_pos.y > 1 ||
 		sample_decal_pos.z < -1 || sample_decal_pos.z > 1)
-    {
-        switch (input.index / 6)
-        {
-            case 0:
-                res.albedo = float4(10.f, 0.f, 0.f, 1.f);
-                break;
-            case 1:
-                res.albedo = float4(10.f, 10.f, 0.f, 1.f);
-                break;
-            case 2:
-                res.albedo = float4(0.f, 10.f, 0.f, 1.f);
-                break;
-            case 3:
-                res.albedo = float4(10.f, 10.f, 10.f, 1.f);
-                break;
-            case 4:
-                res.albedo = float4(0.f, 0.f, 10.f, 1.f);
-                break;
-            case 5:
-                res.albedo = float4(10.f, 0.f, 10.f, 1.f);
-                break;
-        }
-		
+    {		
         discard;
         return res;
     }
     else if (decal_sample.a < 0.9 || objectId != input.id)
     {
         discard;
-		//res.albedo = float4(0.f, 0.f, 0.f, 1.f);
         return res;
-    }
-	
+    }	
 	
     float4 normal_sample = g_normals.Load(float3(input.position.xy, 0));
     float3 normal = unpackOctahedron(normal_sample.xy);
@@ -166,5 +144,8 @@ ps_out ps_main(vs_out input)
     res.albedo = float4(input.color, 1.f);
     res.normals.xy = packOctahedron(normalize(res_normal + normal));
     res.normals.zw = normal_sample.zw;
+    res.emission = 0.f;
+    res.rmt = float4(input.roughness, 0.f, 0.f, 0.f);
+    
     return res;
 }

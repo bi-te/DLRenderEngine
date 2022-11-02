@@ -153,7 +153,7 @@ float4 ps_main(vs_out input) : Sv_Target
         res_color.rgb += input.tint.rgb * pLight.radiance * lightMult * solidAngle;
     }
 
-    float sceneDepth = -g_near * g_far / (g_depth.Load(float3(input.position.xy, 0)).r * (g_near - g_far) - g_near);
+    float sceneDepth = world_depth_from_buffer(g_depth.Load(float3(input.position.xy, 0)).r);
     res_color.a *= saturate((sceneDepth - input.position.w) / input.thickness);
     return res_color;
 }

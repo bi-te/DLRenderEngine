@@ -19,8 +19,8 @@ struct vs_out
 {
     float4 position : SV_Position;
     float3 view_vec : ViewVector;
-    uint lightId : LightId;
-    PointLight plight : PointLight;
+    nointerpolation uint lightId : LightId;
+    nointerpolation PointLight plight : PointLight;
 };
 
 vs_out main(vs_in input)
@@ -75,16 +75,13 @@ float4 ps_main(vs_out input) : SV_Target
 	-input.view_vec
 	);
 	
-    float sample_depth = -g_near * g_far / (g_depth.Load(float3(input.position.xy, 0)).r * (g_near - g_far) - g_near);
+    float sample_depth = world_depth_from_buffer(g_depth.Load(float3(input.position.xy, 0)).r);
     float3 world_pos = g_cameraPosition + -input.view_vec * sample_depth / dotViewCam;
-	
-    if (dot(mat.diffuse, float3(1, 1, 1)) > 0.f)
-    {
-        float depth = 1;
-        if (input.lightId < g_lighting.pointLightNum) 
-            depth = point_shadow_calc(world_pos, input.plight.position, normal, input.lightId);
-        res.rgb += depth * calc_point_light_pbr(input.plight, world_pos, input.view_vec, mesh_normal, normal, mat);
-    }
+	    
+    float depth = 1;
+    if (input.lightId < g_lighting.pointLightNum) 
+        depth = point_shadow_calc(world_pos, input.plight.position, normal, input.lightId);
+    res.rgb += depth * calc_point_light_pbr(input.plight, world_pos, input.view_vec, mesh_normal, normal, mat);
     
     float3 light_vec = normalize(input.plight.position - world_pos);
 	

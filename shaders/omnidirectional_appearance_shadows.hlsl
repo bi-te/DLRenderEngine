@@ -17,7 +17,7 @@ struct vs_out
 {
     float4 world_pos : Position;
     float2 texcoord : TexCoord;
-    float animationFract : AnimationFract;
+    nointerpolation float animationFract : AnimationFract;
 };
 
 cbuffer TransformBuffer : register(b1)

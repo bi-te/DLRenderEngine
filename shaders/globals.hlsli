@@ -96,4 +96,9 @@ cbuffer perFrame: register(b0)
 	float g_near, g_far;
 	float g_time;
 }
+
+float world_depth_from_buffer(float buffer_data)
+{
+    return -g_near * g_far / (buffer_data * (g_near - g_far) - g_near);
+}
 #endif

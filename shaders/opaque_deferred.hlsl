@@ -19,7 +19,7 @@ struct vs_out
     float4 world_position : Position;
     float3x3 tbn_matrix : TBN_Matrix;
     float2 tex_coor : TexCoord;
-    uint instance_id : Inst_InstanceId;
+    nointerpolation uint instance_id : Inst_InstanceId;
 };
 
 cbuffer TransformBuffer : register(b1)

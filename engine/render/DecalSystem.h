@@ -9,6 +9,7 @@
 struct Decal {
 	mat3f decalToWorld;
 	vec3f position;
+	float roughness;
 	vec3f size;
 	float rotation_angle;
 	vec3f color;

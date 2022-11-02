@@ -1,4 +1,5 @@
 #include "globals.hlsli"
+#include "octahedron_pack.hlsli"
 
 struct vs_in
 {
@@ -50,9 +51,8 @@ struct ps_out
 ps_out ps_main(vs_out input)
 {
     ps_out res;
-    res.normals = 0.f;
     res.albedo = 0.f;
-    res.rmt = 0.f;
+    res.rmt = float4(1.f, 0.f, 0.f, 0.f);
     res.id = input.object_id;
     
     float3 normal = normalize(input.normal);
@@ -61,6 +61,9 @@ ps_out ps_main(vs_out input)
     float3 normedEmission = input.emissive_color / max(input.emissive_color.x, max(input.emissive_color.y, max(input.emissive_color.z, 1.0)));
 
     float NoV = dot(cameraDir, normal);
+    
+    res.normals.xy = packOctahedron(normal);
+    res.normals.zw = res.normals.xy;
     res.emission = float4(lerp(normedEmission * 0.33, input.emissive_color, pow(max(0.0, NoV), 4)), 1.f);
 
     return res;

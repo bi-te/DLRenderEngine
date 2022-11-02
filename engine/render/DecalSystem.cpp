@@ -24,6 +24,7 @@ void DecalSystem::updateInstanceBuffer()
 		decalBuffer[numCopied].decalToWorld = decal.decalToWorld;
 		decalBuffer[numCopied].color = decal.color;
 		decalBuffer[numCopied].rotation_angle = decal.rotation_angle;
+		decalBuffer[numCopied].roughness = decal.roughness;
 		numCopied++;
 	}
 
