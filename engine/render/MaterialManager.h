@@ -32,8 +32,8 @@ public:
 
 	void add(const OpaqueMaterial& material);
 
-	void add_opaque_material(const std::string& name, 
-		const std::vector<std::pair<TextureType, comptr<ID3D11ShaderResourceView>>>& textures);
+	void add_opaque_material(const std::string& name,
+		const std::vector<std::pair<TextureType, std::shared_ptr<Texture>>>& textures);
 
 	OpaqueMaterial& get_opaque(const std::string& name);
 

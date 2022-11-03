@@ -1,4 +1,16 @@
 #include "ShaderManager.h"
+#include "Direct11/Direct3D.h"
+
+
+void Shader::bind() const
+{
+	Direct3D& direct = Direct3D::instance();
+
+	direct.context4->VSSetShader(vertexShader.Get(), nullptr, NULL);
+	direct.context4->GSSetShader(geometryShader.Get(), nullptr, NULL);
+	direct.context4->PSSetShader(pixelShader.Get(), nullptr, NULL);
+	direct.context4->IASetInputLayout(inputLayout.ptr.Get());
+}
 
 ShaderManager* ShaderManager::s_manager;
 
@@ -142,18 +154,12 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 
 Shader& ShaderManager::get_shader(LPCWSTR shader)
 {
-	if (shaders.find(shader) == shaders.end())
-		add_shader(shader, "main", "ps_main");
-
 	assert(shaders.find(shader) != shaders.end() && "Shader is not loaded");
 	return *shaders.at(shader);
 }
 
 std::shared_ptr<Shader> ShaderManager::get_ptr(LPCWSTR shader)
 {
-	if(shaders.find(shader) == shaders.end())
-		add_shader(shader, "main", "ps_main");
-
 	assert(shaders.find(shader) != shaders.end() && "Shader is not loaded");
 	return shaders.at(shader);
 }

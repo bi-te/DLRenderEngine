@@ -11,7 +11,7 @@ struct EmissiveInstanceBuffer
 	mat4f model_world;
 
 	vec3f emissive_light;
-	float padding0;
+	uint32_t id;
 };
 
 class EmissiveInstances
@@ -44,11 +44,12 @@ public:
 	DynamicBuffer instanceBuffer{ D3D11_BIND_VERTEX_BUFFER };
 	DynamicBuffer meshModel{ D3D11_BIND_CONSTANT_BUFFER };
 	std::shared_ptr<Shader> emissiveShader;
+	std::shared_ptr<Shader> emissiveDeferredShader;
 	std::vector<PerModel> perModels;
 
 	void add_model_instance(const std::shared_ptr<Model>& model, const Instance& instance);
 
 	void update_instance_buffer();
-	void render();
+	void render(bool forward_rendering);
 };
 

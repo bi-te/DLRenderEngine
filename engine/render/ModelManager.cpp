@@ -383,7 +383,7 @@ void ModelManager::init_flat_cube_sphere(uint32_t grid_size)
 				{
 					vec3f AB = vertex[1].coor - vertex[0].coor;
 					vec3f AC = vertex[2].coor - vertex[0].coor;
-					vertex[0].normal = vertex[1].normal = vertex[2].normal = AC.cross(AB).normalized();
+					vertex[0].normal = vertex[1].normal = vertex[2].normal = AB.cross(AC).normalized();
 				}
 
 				vertex += 3;
@@ -395,7 +395,7 @@ void ModelManager::init_flat_cube_sphere(uint32_t grid_size)
 				{
 					vec3f AB = vertex[1].coor - vertex[0].coor;
 					vec3f AC = vertex[2].coor - vertex[0].coor;
-					vertex[0].normal = vertex[1].normal = vertex[2].normal = AC.cross(AB).normalized();
+					vertex[0].normal = vertex[1].normal = vertex[2].normal = AB.cross(AC).normalized();
 				}
 
 				vertex += 3;

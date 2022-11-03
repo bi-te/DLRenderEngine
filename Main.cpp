@@ -7,6 +7,7 @@
 #include "engine/Controller.h"
 #include "engine/Timer.h"
 #include "engine/Engine.h"
+#include "engine/EngineClock.h"
 #include "win32/Window.h"
 #include "imgui/ImGuiManager.h"
 
@@ -25,9 +26,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
     LPSTR lpCmdLine,
     int nShowCmd)
 {
-    //initConsole();
+    initConsole();
 
-    Timer timer(1.f / 60.f);
     uint32_t width = 1366, height = 768;
 
     ImGuiManager::init_context();
@@ -37,7 +37,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
     window.create_window(L"Test21", width, height);
 
     Controller controller{window};
-    controller.camera.set_perspective(rad(55.f), float(width) / height, 0.1f, 400.f);
     controller.init_scene();
     window.listeners.push_back(&controller);
 
@@ -45,7 +44,13 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
     MSG msg;
     window.show_window(nShowCmd);
-    timer.start();
+
+	EngineClock& eclock = EngineClock::instance();
+
+    Timer applicationTimer;
+    applicationTimer.set_check_time(1.f / 60.f);
+    applicationTimer.start();
+
     while(true)
     {
 	    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -55,11 +60,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
             if (msg.message == WM_QUIT) break;
 	    }
         if (msg.message == WM_QUIT) break;
-        
-        if(timer.frame_time_check())
+
+        eclock.tick();
+        if(applicationTimer.frame_time_check())
         {
-            controller.process_input(timer.time_passed());
-            timer.advance_current();
+            controller.process_input(applicationTimer.time_passed());
+            applicationTimer.advance_current();
 
             if (ImGuiManager::active())
             {

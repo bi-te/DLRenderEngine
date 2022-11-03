@@ -5,8 +5,7 @@
 #include "wchar_algorithms.h"
 #include "Direct11/Direct3D.h"
 #include "Direct11/DDSTextureLoader11.h"
-
-enum TextureType{TextureDiffuse, TextureNormals, TextureMetallic, TextureRoughness};
+#include "Direct11/Texture.h"
 
 class TextureManager
 {
@@ -18,7 +17,7 @@ class TextureManager
 	TextureManager& operator=(const TextureManager& other) = delete;
 	TextureManager& operator=(TextureManager&& other) noexcept = delete;
 
-	std::unordered_map<std::wstring, comptr<ID3D11ShaderResourceView>> textures2d;
+	std::unordered_map<std::wstring, std::shared_ptr<Texture>> textures2d;
 public:
 
 	static void init()
@@ -37,13 +36,14 @@ public:
 	static void reset()
 	{
 		for (auto texture : s_manager->textures2d)
-			texture.second.Reset();
+			texture.second.reset();
 		delete s_manager;
 	}
 
-	comptr<ID3D11ShaderResourceView>& get(LPCWSTR filename);
+	Texture& get(LPCWSTR filename);
+	std::shared_ptr<Texture> get_ptr(LPCWSTR filename);
 
-	comptr<ID3D11ShaderResourceView> add_texture(LPCWSTR filename);
-	comptr<ID3D11ShaderResourceView> add_cubemap(LPCWSTR filename);
+	std::shared_ptr<Texture> add_texture(LPCWSTR filename);
+	std::shared_ptr<Texture> add_cubemap(LPCWSTR filename);
 };
 

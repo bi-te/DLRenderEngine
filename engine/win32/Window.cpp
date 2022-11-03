@@ -34,8 +34,6 @@ LRESULT Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 void Window::create_window(LPCWSTR name, LONG width, LONG height)
 {
-    width_ = width;
-    height_ = height;
     RECT rect{ 0, 0, width, height };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
@@ -55,11 +53,11 @@ void Window::init_swap_chain()
     RECT winrect;
     GetClientRect(window, &winrect);
 
-    width_ = winrect.right - winrect.left;
-    height_ = winrect.bottom - winrect.top;
+    buffer.viewport.Width = winrect.right - winrect.left;
+    buffer.viewport.Height = winrect.bottom - winrect.top;
 
-    desc.Width = width_;
-    desc.Height = height_;
+    desc.Width = buffer.viewport.Width;
+    desc.Height = buffer.viewport.Height;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
     desc.SampleDesc.Quality = 0;
@@ -75,8 +73,6 @@ void Window::init_swap_chain()
         NULL, NULL, &swap_chain);
     assert(SUCCEEDED(result) && "CreateSwapChainForHwnd");
 
-    buffer.width = width_;
-    buffer.height = height_;
     init_render_target_view();
 }
 
@@ -88,7 +84,7 @@ void Window::init_render_target_view()
     HRESULT result = swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), &back_buffer);
     assert(SUCCEEDED(result) && "GetBuffer");
 
-    result = Direct3D::instance().device5->CreateRenderTargetView(back_buffer.Get(), NULL, &buffer.rtv);
+    result = Direct3D::instance().device5->CreateRenderTargetView(back_buffer.Get(), NULL, &buffer.texture.rtv);
     assert(SUCCEEDED(result) && "CreateRenderTargetView");
 }
 
@@ -98,14 +94,11 @@ void Window::resize_buffer(uint32_t new_width, uint32_t new_height)
     if (!swap_chain.Get())
         return;
 
-    buffer.width = new_width;
-    buffer.height = new_height;
-    buffer.rtv.Reset();
+    buffer.viewport.Width = new_width;
+    buffer.viewport.Height = new_height;
+    buffer.texture.reset();
     HRESULT result = swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
     assert(SUCCEEDED(result) && "ResizeBuffers");
-
-    width_ = new_width;
-    height_ = new_height;
 
     init_render_target_view();
 }
@@ -135,7 +128,7 @@ LRESULT Window::classWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         for (auto listener : listeners) { listener->MouseEvent(RMOUSE, (BUTTON)((message + 1) % 3), x, y); }
         break;
     case WM_LBUTTONDOWN:
-    	if (io.WantCaptureMouse) break;
+        if (io.WantCaptureMouse) break;
         for (auto listener : listeners) { listener->MouseEvent(LMOUSE, (BUTTON)((message + 1) % 3), x, y); }
         break;
     case WM_RBUTTONUP:
@@ -155,9 +148,12 @@ LRESULT Window::classWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
     case WM_KEYDOWN:
     case WM_KEYUP:
         if (io.WantCaptureKeyboard)break;
-        for (auto listener : listeners) { listener->KeyEvent((Key)wParam , !(bool)((1u<<31) & lParam)); }
+        for (auto listener : listeners) { listener->KeyEvent((Key)wParam, !(bool)((1u << 31) & lParam)); }
         break;
 
+    case WM_EXITSIZEMOVE:
+        for (auto listener : listeners) { listener->OnSizeMoved(); }
+        break;
     case WM_SIZE:
         if (LOWORD(lParam) && HIWORD(lParam))
         {
