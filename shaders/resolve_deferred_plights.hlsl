@@ -30,13 +30,13 @@ vs_out main(vs_in input)
     float phi = 0.05f / max(input.radiance.x, max(input.radiance.y, input.radiance.z));
     float k = phi * 0.5f / PI;
     float rd = input.radius / sqrt(k * (2.f - k));
-    
     res.position = mul(g_viewProj, float4((input.coor * rd + input.position), 1.f));
     res.view_vec = (g_cameraPosition - input.coor * rd - input.position);
     res.lightId = input.lightId;
     res.plight.position = input.position;
     res.plight.radiance = input.radiance;
     res.plight.radius = input.radius;
+    res.plight.padding = rd;
     
     return res;
 }
@@ -78,6 +78,12 @@ float4 ps_main(vs_out input) : SV_Target
     float sample_depth = world_depth_from_buffer(g_depth.Load(float3(input.position.xy, 0)).r);
     float3 world_pos = g_cameraPosition + -input.view_vec * sample_depth / dotViewCam;
 	    
+    if (length(world_pos - input.plight.position) > input.plight.padding)
+    {
+        discard;
+        return 0.f;
+    }
+    
     float depth = 1;
     if (input.lightId < g_lighting.pointLightNum) 
         depth = point_shadow_calc(world_pos, input.plight.position, normal, input.lightId);

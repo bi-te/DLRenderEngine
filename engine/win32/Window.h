@@ -16,7 +16,6 @@ class Window
     WNDCLASSEX wc;
     HWND window;
 
-    uint32_t width_, height_;
 public:
     comptr<IDXGISwapChain1> swap_chain;
     RenderBuffer buffer;
@@ -30,8 +29,8 @@ public:
 
     HWND handle() const { return window; }
 
-    uint32_t width() const { return width_; }
-    uint32_t height() const { return height_; }
+    uint32_t width() const { return buffer.viewport.Width; }
+    uint32_t height() const { return buffer.viewport.Height; }
 
     void create_window(LPCWSTR name, LONG width, LONG height);
     void init_swap_chain();

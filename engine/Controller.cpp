@@ -174,10 +174,10 @@ void Controller::init_scene()
 	models.init_cube();
 	models.init_quad();
 	models.init_sphere(30, 20);
-	models.init_flat_sphere(30, 20);
+	models.init_flat_sphere(7, 6);
 	models.init_flat_cube_sphere(20);
 
-	lights.pointLightRenderVolume = models.get_ptr("Sphere");
+	lights.pointLightRenderVolume = models.get_ptr("FlatSphere");
 
 	Transform the_sun;
 	the_sun.set_scale(0.5f);
@@ -194,7 +194,7 @@ void Controller::init_scene()
 	lights.add_point_light(greensun, std::string("Sphere"));
 
 	Transform additional_light_offset;
-	additional_light_offset.set_world_offset({ -13.5f, 1.f, 7.f });
+	additional_light_offset.set_world_offset({ -11.5f, 1.f, 7.f });
 	additional_light_offset.set_scale(0.5f);
 	PointLight miniLight;
 	miniLight.radius = additional_light_offset.scale().x();
@@ -205,7 +205,7 @@ void Controller::init_scene()
 
 		additional_light.add_world_offset(defLightY * vec3f{ 0.f, 0.f, 5.f });
 
-		for (uint32_t defLightX = 0; defLightX < 5u; defLightX++) {
+		for (uint32_t defLightX = 0; defLightX < 7u; defLightX++) {
 
 			additional_light.add_world_offset(vec3f{ 1.f, 0.f, 0.f });
 

@@ -34,8 +34,6 @@ LRESULT Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 
 void Window::create_window(LPCWSTR name, LONG width, LONG height)
 {
-    width_ = width;
-    height_ = height;
     RECT rect{ 0, 0, width, height };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
@@ -55,11 +53,11 @@ void Window::init_swap_chain()
     RECT winrect;
     GetClientRect(window, &winrect);
 
-    width_ = winrect.right - winrect.left;
-    height_ = winrect.bottom - winrect.top;
+    buffer.viewport.Width = winrect.right - winrect.left;
+    buffer.viewport.Height = winrect.bottom - winrect.top;
 
-    desc.Width = width_;
-    desc.Height = height_;
+    desc.Width = buffer.viewport.Width;
+    desc.Height = buffer.viewport.Height;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
     desc.SampleDesc.Quality = 0;
@@ -75,8 +73,6 @@ void Window::init_swap_chain()
         NULL, NULL, &swap_chain);
     assert(SUCCEEDED(result) && "CreateSwapChainForHwnd");
 
-    buffer.viewport.Width = width_;
-    buffer.viewport.Height = height_;
     init_render_target_view();
 }
 
@@ -98,14 +94,11 @@ void Window::resize_buffer(uint32_t new_width, uint32_t new_height)
     if (!swap_chain.Get())
         return;
 
-    buffer.viewport.Width = width_;
-    buffer.viewport.Height = height_;
+    buffer.viewport.Width = new_width;
+    buffer.viewport.Height = new_height;
     buffer.texture.reset();
     HRESULT result = swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
     assert(SUCCEEDED(result) && "ResizeBuffers");
-
-    width_ = new_width;
-    height_ = new_height;
 
     init_render_target_view();
 }
