@@ -25,22 +25,34 @@ void LightSystem::set_direct_light(const DirectLight& dirLight)
 	this->dirLight = dirLight;
 }
 
-void LightSystem::add_point_light(const PointLight & pointLight)
+void LightSystem::add_point_light(const PointLight& pointLight, bool main)
 {
-	pointLights.push_back(pointLight);
-	pointLights.back().radiance = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
+	if (main) {
+		pointLights.push_back(pointLight);
+		pointLights.back().radiance = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
+	}
+	else {
+		additionalPointLights.push_back(pointLight);
+		additionalPointLights.back().radiance = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
+	}
 }
 
-void LightSystem::add_point_light(const PointLight& pointLight, const std::string& model)
+void LightSystem::add_point_light(const PointLight& pointLight, const std::string& model, bool main)
 {
 	vec3f emissive_light = irradianceAtDistanceToRadiance(pointLight.irradiance, pointLight.light_range, pointLight.radius);
 
-	pointLights.push_back(pointLight);
-	pointLights.back().radiance = emissive_light;
+	if (main) {
+		pointLights.push_back(pointLight);
+		pointLights.back().radiance = emissive_light;
+	}
+	else {
+		additionalPointLights.push_back(pointLight);
+		additionalPointLights.back().radiance = emissive_light;
+	}
 
 	MeshSystem::instance().emissive_instances.add_model_instance(
-		ModelManager::instance().get_ptr(model), 
-		{emissive_light, pointLight.position}
+		ModelManager::instance().get_ptr(model),
+		{ emissive_light, pointLight.position }
 	);
 }
 
@@ -148,6 +160,46 @@ void LightSystem::bind_depth_state()
 	direct.context4->OMSetDepthStencilState(depthBuffer.state.Get(), 1);
 }
 
+void LightSystem::update_instance_buffer()
+{
+	TransformSystem& transform_system = TransformSystem::instance();
+	lightInstanceBuffer.allocate((pointLights.size() + additionalPointLights.size()) * sizeof(LightInstance));
+
+	LightInstance* instanceBuffer = static_cast<LightInstance*>(lightInstanceBuffer.map().pData);
+
+	uint32_t copiedLight = 0;
+
+	for (auto& light : pointLights) {
+		instanceBuffer[copiedLight].position = transform_system.transforms[light.position].position();
+		instanceBuffer[copiedLight].index = copiedLight;
+		instanceBuffer[copiedLight].radiance = light.radiance;
+		instanceBuffer[copiedLight].radius = light.radius;
+		copiedLight++;
+	}
+
+	for (auto& light : additionalPointLights) {
+		instanceBuffer[copiedLight].position = transform_system.transforms[light.position].position();
+		instanceBuffer[copiedLight].index = copiedLight;
+		instanceBuffer[copiedLight].radiance = light.radiance;
+		instanceBuffer[copiedLight].radius = light.radius;
+		copiedLight++;
+	}
+
+	lightInstanceBuffer.unmap();
+}
+
+void LightSystem::bind_instance_buffer()
+{
+	Direct3D& direct = Direct3D::instance();
+	update_instance_buffer();
+
+	uint32_t istride = sizeof(LightInstance), ioffset = 0;
+	uint32_t vstride = sizeof(AssimpVertex), voffset = 0;
+	direct.context4->IASetVertexBuffers(0, 1, pointLightRenderVolume->vertexBuffer.address(), &vstride, &voffset);
+	direct.context4->IASetVertexBuffers(1, 1, lightInstanceBuffer.address(), &istride, &ioffset);
+	direct.context4->IASetIndexBuffer(pointLightRenderVolume->indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
+}
+
 void LightSystem::init_depth_buffers(uint32_t side_size)
 {
 	Direct3D& direct = Direct3D::instance();
@@ -172,13 +224,13 @@ void LightSystem::init_depth_buffers(uint32_t side_size)
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 	srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-	
+
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthViewDesc{};
 	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	depthViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 	depthViewDesc.Texture2DArray.MipSlice = 0u;
 
-	if(pLightsNum)
+	if (pLightsNum)
 	{
 		texture_desc.ArraySize = pLightsNum * 6u;
 		texture_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
@@ -198,7 +250,7 @@ void LightSystem::init_depth_buffers(uint32_t side_size)
 		assert(SUCCEEDED(res) && "CreateDepthStencilView LightDepthBuffer");
 	}
 
-	if(sLightsNum)
+	if (sLightsNum)
 	{
 		texture_desc.ArraySize = sLightsNum;
 		texture_desc.MiscFlags = 0;
@@ -217,7 +269,7 @@ void LightSystem::init_depth_buffers(uint32_t side_size)
 		res = direct.device5->CreateDepthStencilView(depthTexture.Get(), &depthViewDesc, &depthBuffer.spot_view);
 		assert(SUCCEEDED(res) && "CreateDepthStencilView LightDepthBuffer");
 	}
-	
+
 	D3D11_DEPTH_STENCIL_DESC depthDesc{};
 	depthDesc.DepthEnable = true;
 	depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;

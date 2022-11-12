@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Scene.h"
+#include "Timer.h"
 
 class Engine
 {
 	static Engine* s_engine;
-
 public:
+	Timer applicationTimer;
 
 	static void init();
 

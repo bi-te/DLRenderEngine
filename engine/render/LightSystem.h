@@ -1,17 +1,25 @@
 #pragma once
 
 #include "Lighting.h"
+#include "objects/Model.h"
 #include "Direct11/Direct3D.h"
 #include "Direct11/DynamicBuffer.h"
 
-struct ShadowBuffer
-{
-	uint32_t index;
-	float padding[3];
-};
-
 class LightSystem
 {
+	struct ShadowBuffer
+	{
+		uint32_t index;
+		float padding[3];
+	};
+
+	struct LightInstance {
+		vec3f radiance;
+		float radius;
+		vec3f position;
+		uint32_t index;
+	};
+
 	struct DepthBuffer
 	{
 		D3D11_VIEWPORT viewport;
@@ -36,19 +44,22 @@ class LightSystem
 
 	DynamicBuffer lightBuffer{ D3D11_BIND_CONSTANT_BUFFER };
 	DynamicBuffer lightTransformBuffer{ D3D11_BIND_CONSTANT_BUFFER };
+	DynamicBuffer lightInstanceBuffer{ D3D11_BIND_VERTEX_BUFFER };
 
 	DirectLight dirLight;
 	std::vector<PointLight> pointLights;
+	std::vector<PointLight> additionalPointLights;
 	std::vector<Spotlight> spotlights;
 	vec3f ambient;
 public:
 	float shadow_near = 0.1f, shadow_far = 100.f;
 	DepthBuffer depthBuffer;
+	std::shared_ptr<Model> pointLightRenderVolume;
 
 	void set_ambient(const vec3f& ambient_color);
 	void set_direct_light(const DirectLight& dirLight);
-	void add_point_light(const PointLight& pointLight);
-	void add_point_light(const PointLight& pointLight, const std::string& model);
+	void add_point_light(const PointLight& pointLight, bool main = true);
+	void add_point_light(const PointLight& pointLight, const std::string& model, bool main = true);
 	void add_spotlight(const Spotlight& spotlight);
 	void add_spotlight(const Spotlight& spotlight, const std::string& model);
 
@@ -56,12 +67,16 @@ public:
 
 	const std::vector<Spotlight>& slights() const { return spotlights; }
 	const std::vector<PointLight>& plights() const { return pointLights; }
+	const std::vector<PointLight>& dlights() const { return additionalPointLights; }
 
 	void bind_point_dsv();
 	void bind_light_shadow_buffer(uint32_t index);
 	void bind_spot_dsv();
 	void bind_lights(LightBuffer* lBuffer);
 	void bind_depth_state();
+
+	void update_instance_buffer();
+	void bind_instance_buffer();
 
 	static void init()
 	{

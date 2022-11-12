@@ -4,8 +4,7 @@ const vec4f RenderBuffer::default_color { 0.f, 0.f, 0.f, 0.f };
 
 void RenderBuffer::create(uint32_t buffer_width, uint32_t buffer_height, DXGI_FORMAT format, uint32_t buffer_msaa, UINT bind_flags)
 {
-	width = buffer_width;
-	height = buffer_height;
+	viewport = { 0.f, 0.f, FLOAT(buffer_width), FLOAT(buffer_height), 0.f, 1.f };
 	msaa = buffer_msaa;
 
 	comptr<ID3D11Texture2D> hdr;
@@ -26,60 +25,54 @@ void RenderBuffer::create(uint32_t buffer_width, uint32_t buffer_height, DXGI_FO
 	D3D11_RENDER_TARGET_VIEW_DESC rtv_desc{};
 	rtv_desc.Format = desc.Format;
 	rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
-	result = Direct3D::instance().device5->CreateRenderTargetView(hdr.Get(), &rtv_desc, &rtv);
+	result = Direct3D::instance().device5->CreateRenderTargetView(hdr.Get(), &rtv_desc, &texture.rtv);
 	assert(SUCCEEDED(result) && "HDR Texture as RendreTargetView");
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 	srv_desc.Format = desc.Format;
 	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-	result = Direct3D::instance().device5->CreateShaderResourceView(hdr.Get(), nullptr, &srv);
+	result = Direct3D::instance().device5->CreateShaderResourceView(hdr.Get(), nullptr, &texture.srv);
 	assert(SUCCEEDED(result) && "HDR Texture as ShaderResourceView");
 }
 
 void RenderBuffer::create(const D3D11_TEXTURE2D_DESC& desc)
 {
-	width = desc.Width;
-	height = desc.Height;
+	viewport = { 0.f, 0.f, FLOAT(desc.Width), FLOAT(desc.Height), 0.f, 1.f };
 
 	comptr<ID3D11Texture2D> hdr;
 	HRESULT result = Direct3D::instance().device5->CreateTexture2D(&desc, nullptr, &hdr);
 	assert(SUCCEEDED(result) && "CreateTexture2D hdr texture");
 
-	result = Direct3D::instance().device5->CreateRenderTargetView(hdr.Get(), nullptr, &rtv);
+	result = Direct3D::instance().device5->CreateRenderTargetView(hdr.Get(), nullptr, &texture.rtv);
 	assert(SUCCEEDED(result) && "HDR Texture as RendreTargetView");
 
-	result = Direct3D::instance().device5->CreateShaderResourceView(hdr.Get(), nullptr, &srv);
+	result = Direct3D::instance().device5->CreateShaderResourceView(hdr.Get(), nullptr, &texture.srv);
 	assert(SUCCEEDED(result) && "HDR Texture as ShaderResourceView");
 }
 
 void RenderBuffer::bind_rtv(const comptr<ID3D11DepthStencilView>& dsView)
 {
-    D3D11_VIEWPORT viewport = { 0.f, 0.f,FLOAT(width), FLOAT(height),0.f, 1.f };
-
-    Direct3D::instance().context4->OMSetRenderTargets(1, rtv.GetAddressOf(), dsView.Get());
-    Direct3D::instance().context4->RSSetViewports(1, &viewport);
+	Direct3D::instance().context4->OMSetRenderTargets(1, texture.rtv.GetAddressOf(), dsView.Get());
+	Direct3D::instance().context4->RSSetViewports(1, &viewport);
 }
 
 void RenderBuffer::bind_rtv()
 {
-    D3D11_VIEWPORT viewport = { 0.f, 0.f,FLOAT(width), FLOAT(height),0.f, 1.f };
-
-    Direct3D::instance().context4->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
-    Direct3D::instance().context4->RSSetViewports(1, &viewport);
+	Direct3D::instance().context4->OMSetRenderTargets(1, texture.rtv.GetAddressOf(), nullptr);
+	Direct3D::instance().context4->RSSetViewports(1, &viewport);
 }
 
 void RenderBuffer::clear()
 {
-	Direct3D::instance().context4->ClearRenderTargetView(rtv.Get(), default_color.data());
+	Direct3D::instance().context4->ClearRenderTargetView(texture.rtv.Get(), default_color.data());
 }
 
 void RenderBuffer::clear(const float color[4])
 {
-	Direct3D::instance().context4->ClearRenderTargetView(rtv.Get(), color);
+	Direct3D::instance().context4->ClearRenderTargetView(texture.rtv.Get(), color);
 }
 
 void RenderBuffer::reset()
 {
-    rtv.Reset();
-    srv.Reset();
+	texture.reset();
 }

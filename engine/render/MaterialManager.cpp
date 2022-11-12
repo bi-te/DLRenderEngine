@@ -10,7 +10,7 @@ void MaterialManager::add(const OpaqueMaterial& material)
 }
 
 void MaterialManager::add_opaque_material(const std::string& name,
-                                          const std::vector<std::pair<TextureType, comptr<ID3D11ShaderResourceView>>>& textures)
+	const std::vector<std::pair<TextureType, std::shared_ptr<Texture>>>& textures)
 {
 	if (op_materials.find(name) != op_materials.end()) return;
 	

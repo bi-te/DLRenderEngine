@@ -48,6 +48,7 @@ struct Model
 	std::vector<AssimpVertex> vertices;
 
 	std::vector<TriangleOctree> octrees;
+	BoundingBox bbox;
 	ImmutableBuffer vertexBuffer{ D3D11_BIND_VERTEX_BUFFER };
 	ImmutableBuffer indexBuffer{ D3D11_BIND_INDEX_BUFFER };
 };

@@ -1,28 +1,42 @@
 #pragma once
-#include <chrono>
 
-using uint32_t = unsigned int;
+#include "EngineClock.h"
 
 class Timer
 {
+protected:
 	std::chrono::steady_clock::time_point previous, current;
-	float frame_time;
+	float check_time, last_check_time;
 
 public:
-	Timer(float frame_time): frame_time(frame_time)
+	Timer(){}
+
+	Timer(float frame_time): check_time(frame_time)
 	{
 	}
 
-	float get_frame_time() const { return frame_time; }
-	float time_passed() const { return std::chrono::duration<float>(current - previous).count(); }
+	void set_check_time(float frame_time){check_time = frame_time;}
 
-	void start() { previous = std::chrono::steady_clock::now(); }
-	void advance_current() { previous = current; }
+	float get_check_time() const { return check_time; }
+	float time_passed() const { return float_duration(current - previous).count(); }
+	float get_last_check_time() const { return last_check_time; }
+
+	void start() { previous = EngineClock::instance().now(); }
+	void advance_current() {
+		last_check_time = float_duration(current - previous).count();
+		previous = current; 
+	}
+
+	void restart()
+	{
+		current = EngineClock::instance().now();
+		previous = current;
+	}
 
 	bool frame_time_check()
 	{
-		current = std::chrono::steady_clock::now();
-		return std::chrono::duration<float>(current - previous).count() > frame_time;
+		current = EngineClock::instance().now();
+		return float_duration(current - previous).count() > check_time;
 	}
 
 };
