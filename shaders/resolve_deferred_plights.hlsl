@@ -94,6 +94,7 @@ float4 ps_main(vs_out input) : SV_Target
     float cosVL = saturate(dot(input.view_vec, -light_vec));
     float cosNL = dot(normal, light_vec);
     if (cosNL < 0)
+    
     {
         res.rgb += mat.diffuse * g_rmt.Load(tex_coor).b * pow(-cosNL, POWER) * cosVL * input.plight.radiance;
     }

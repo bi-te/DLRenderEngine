@@ -82,6 +82,12 @@ void Controller::init_scene()
 	shaders.add_shader(L"shaders/resolve_deferred.hlsl", "main", "ps_main");
 	shaders.add_shader(L"shaders/resolve_deferred_plights.hlsl", "main", "ps_main");
 	shaders.add_shader(L"shaders/decal_deferred.hlsl", "main", "ps_main");
+	shaders.add_shader(L"shaders/dissolution_deferred.hlsl", "main", "ps_main");
+	shaders.add_shader(L"shaders/dissolve_particles_spawn.hlsl", "main", "gs_main", "ps_main");
+	shaders.add_shader(L"shaders/omnidirectional_dissolution_shadows.hlsl", "main", "gs_main", "ps_main");
+	shaders.add_shader(L"shaders/dissolve_particles.hlsl", "main", "ps_main");
+	shaders.add_compute_shader(L"shaders/dissolve_particles_update.hlsl", "cs_main");
+	shaders.add_compute_shader(L"shaders/dissolve_particles_range_update.hlsl", "cs_main");
 
 	scene.deferredResolveShader = shaders.get_ptr(L"shaders/resolve_deferred.hlsl");
 	scene.deferredResolvePointLightsShader = shaders.get_ptr(L"shaders/resolve_deferred_plights.hlsl");
@@ -89,6 +95,7 @@ void Controller::init_scene()
 	scene.grassfield.grassShader = shaders.get_ptr(L"shaders/grass.hlsl");
 	scene.grassfield.grassDeferredShader = shaders.get_ptr(L"shaders/grass_deferred.hlsl");
 	scene.grassfield.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_grass_shadows.hlsl");
+	meshes.dissolution_instances.particleSpawnShader = shaders.get_ptr(L"shaders/dissolve_particles_spawn.hlsl");
 	meshes.opaque_instances.opaqueShader = shaders.get_ptr(L"shaders/opaque.hlsl");
 	meshes.opaque_instances.opaqueDeferredShader = shaders.get_ptr(L"shaders/opaque_deferred.hlsl");
 	meshes.opaque_instances.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_shadows.hlsl");
@@ -98,6 +105,11 @@ void Controller::init_scene()
 	meshes.appearing_instances.appearShader = shaders.get_ptr(L"shaders/appearance.hlsl");
 	meshes.appearing_instances.appearDeferredShader = shaders.get_ptr(L"shaders/appearance_deferred.hlsl");
 	meshes.appearing_instances.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_appearance_shadows.hlsl");
+	meshes.dissolution_instances.appearDeferredShader = shaders.get_ptr(L"shaders/dissolution_deferred.hlsl");
+	meshes.dissolution_instances.pointShadowShader = shaders.get_ptr(L"shaders/omnidirectional_dissolution_shadows.hlsl");
+	particle_system.dissolutionParticlesUpdateShader = shaders.get_compute_ptr(L"shaders/dissolve_particles_update.hlsl");
+	particle_system.dissolutionParticlesArgsUpdateShader = shaders.get_compute_ptr(L"shaders/dissolve_particles_range_update.hlsl");
+	particle_system.dissolveParticleShader = shaders.get_ptr(L"shaders/dissolve_particles.hlsl");
 	particle_system.particle_shader = shaders.get_ptr(L"shaders/particle.hlsl");
 	direct.depth_resolve_shader = shaders.get_ptr(L"shaders/depth_resolve.hlsl");
 	decal_system.decalShader = shaders.get_ptr(L"shaders/decal_deferred.hlsl");
@@ -254,17 +266,20 @@ void Controller::init_scene()
 	);
 
 	Transform pbr_trans;
-	pbr_trans.set_world_offset({ 0.f, 0.f, -20.f });
+	pbr_trans.set_world_offset({ 0.f, 15.f, 2.f });
+	pbr_trans.set_scale(5.f);
 	meshes.opaque_instances.add_model_instance(
-		models.get_ptr("Sphere"),
+		models.get_ptr("Cube"),
 		{ materials.get_opaque("Test_mat") },
 		{ transforms.transforms.insert(pbr_trans) }
 	);
 
+
+
 	//models.add_model("assets/models/InstanceTest/test.fbx");
 	//Transform test;
-	//test.set_world_offset({ -20.f, 15.f, 20.f });
-	//test.set_scale({0.2f, 0.5f, 0.2f});
+	//test.set_world_offset({ -20.f, 15.f, -20.f });
+	//test.set_scale({0.2f, 0.2f, 0.2f});
 	//meshes.opaque_instances.add_model_instance(
 	//    models.get_ptr("assets/models/InstanceTest/test.fbx"),
 	//    {
@@ -426,6 +441,8 @@ void Controller::init_scene()
 	postProcess.postProcessShaderMS = shaders.get_ptr(L"shaders/resolve_ms.hlsl");
 	postProcess.ev100 = 0.f;
 
+	particle_system.init_dissolve_buffers(4096);
+
 	lights.init_depth_buffers(1024);
 }
 
@@ -457,7 +474,7 @@ void Controller::start_appearance()
 		);
 }
 
-void Controller::update_appearance_instances(float dt)
+void Controller::update_animated_instances(float dt)
 {
 	AppearingInstances& appearingInstances = MeshSystem::instance().appearing_instances;
 
@@ -480,8 +497,83 @@ void Controller::update_appearance_instances(float dt)
 						model.model, std::move(materials), { instance.model_world }
 					);
 				}
+				appearingInstances.remove_model_instance(modelInd, instanceInd - 1);
+			}
+		}
+	}
 
-				appearingInstances.remove_model_instance(modelInd, instanceInd);
+	DissolutionInstances& dissolutionInstances = MeshSystem::instance().dissolution_instances;
+
+	for (uint32_t modelInd = 0; modelInd < dissolutionInstances.perModels.size(); modelInd++)
+	{
+		auto& model = dissolutionInstances.perModels.at(modelInd);
+		for (uint32_t instanceInd = model.instances.size(); instanceInd > 0; instanceInd--)
+		{
+			DissolutionInstances::Instance& instance = model.instances.at(instanceInd - 1);
+			if (EngineClock::instance().nowf() - instance.animationStartTime > instance.animationTime) {
+				dissolutionInstances.remove_model_instance(modelInd, instanceInd-1);
+			}
+				
+		}
+	}
+}
+
+void Controller::dissolve_object()
+{
+	solid_vector<Transform>& transforms = TransformSystem::instance().transforms;
+	RandomGenerator& generator = RandomGenerator::generator();
+	Ray ray{};
+
+	float dx = (is.mouse.x + 0.5f) / window.width();
+	float dy = 1.f - (is.mouse.y + 0.5f) / window.height();
+
+	ray.origin = camera.position();
+	ray.direction = ((camera.blnear_fpoint + camera.frustrum_right * dx + camera.frustrum_up * dy).head<3>() - ray.origin).normalized();
+
+	IntersectionQuery recordQuery;
+	recordQuery.intersection.reset(camera.zn, camera.zf);
+	if (!MeshSystem::instance().select_opaque(ray, recordQuery)) return;
+
+	OpaqueInstances& opaqueInstances = MeshSystem::instance().opaque_instances;
+
+	for (uint32_t modelInd = 0; modelInd < opaqueInstances.perModels.size(); modelInd++)
+	{
+		auto& model = opaqueInstances.perModels.at(modelInd);
+		for (uint32_t instanceInd = model.instances.size(); instanceInd > 0; instanceInd--)
+		{
+			OpaqueInstances::Instance& instance = model.instances.at(instanceInd - 1);
+			if (instance.model_world == recordQuery.transformId)
+			{
+				{
+					Transform& instTrans = transforms[instance.model_world];
+					std::vector<OpaqueMaterial> materials{ model.perMeshes.size() };
+
+					for (uint32_t meshInd = 0; meshInd < model.perMeshes.size(); meshInd++)
+						materials[meshInd] = model.perMeshes[meshInd].perMaterials[instance.materials[meshInd]].material;
+
+					vec3f sphereCenter = recordQuery.intersection.point *
+						instTrans.matrix_inv().topLeftCorner<3, 3>() +
+						instTrans.matrix_inv().row(3).head<3>();
+
+					BoundingBox maabb = model.model->bbox;
+					maabb.min = maabb.min.cwiseProduct(instTrans.scale());
+					maabb.max = maabb.max.cwiseProduct(instTrans.scale());
+
+					float radius = (sphereCenter - maabb.center()).norm() + maabb.radius();
+
+					DissolutionInstances::Instance newInstance{};
+					newInstance.animationTime = 5.f;
+					newInstance.model_world = instance.model_world;
+					newInstance.spherePosition = sphereCenter;
+					newInstance.appearanceColor = vec3f{ 12.f, 1.f, 0.f };
+					newInstance.sphereRadiusPerSecond = radius / newInstance.animationTime;
+					newInstance.animationStartTime = EngineClock::instance().nowf();
+					MeshSystem::instance().dissolution_instances.add_model_instance(
+						model.model, std::move(materials), newInstance
+					);
+				}
+
+				opaqueInstances.remove_model_instance(modelInd, instanceInd - 1);
 			}
 		}
 	}
@@ -500,8 +592,7 @@ void Controller::spawn_decal()
 
 	IntersectionQuery recordQuery;
 	recordQuery.intersection.reset(camera.zn, camera.zf);
-	MeshSystem::instance().select_opaque(ray, recordQuery);
-	if (!recordQuery.intersection.valid()) return;
+	if (!MeshSystem::instance().select_opaque(ray, recordQuery)) return;
 
 	float dotNV = recordQuery.intersection.norm.dot(-ray.direction);
 
@@ -617,6 +708,7 @@ void Controller::process_input(float dt)
 	if (is.keyboard.keys[C] || is.keyboard.keys[CTRL] || is.keyboard.keys[Q]) move.y() -= dist;
 	if (is.keyboard.once_pressed(N)) start_appearance();
 	if (is.keyboard.once_pressed(F)) spawn_decal();
+	if (is.keyboard.once_pressed(M)) dissolve_object();
 
 
 	float rspeed = rotation_speed * dt;
@@ -731,7 +823,7 @@ void Controller::process_input(float dt)
 	is.mouse.prev_y = is.mouse.y;
 
 	ParticleSystem::instance().update(dt);
-	update_appearance_instances(dt);
+	update_animated_instances(dt);
 }
 
 bool Keyboard::once_pressed(Key key)

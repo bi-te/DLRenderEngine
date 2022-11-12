@@ -31,6 +31,15 @@ struct ParticleBuffer
 	vec2f image_size;
 };
 
+struct DissolveParticle {
+	vec3f position;
+	float spawnTime;
+	vec3f dir;
+	float alpha;
+	vec3f size;
+	vec3f color;
+};
+
 class ParticleSystem
 {
 	struct ParticleAtlas
@@ -51,11 +60,31 @@ class ParticleSystem
 	ParticleSystem& operator=(ParticleSystem&& other) noexcept = delete;
 
 	DynamicBuffer instanceBuffer{D3D11_BIND_VERTEX_BUFFER};
+
+	void updateInstanceBuffer(const Camera& camera);
+	void update_dissolving_particles(comptr<ID3D11ShaderResourceView> normals, comptr<ID3D11ShaderResourceView> depth);
 public:
+	struct DissolveParticleBuffers {
+		uint32_t size;
+		DynamicBuffer sizeBuffer{ D3D11_BIND_CONSTANT_BUFFER };
+		comptr<ID3D11Buffer> particles;
+		comptr<ID3D11UnorderedAccessView> uav;
+		comptr<ID3D11ShaderResourceView> srv;
+		comptr<ID3D11Buffer> range;
+		comptr<ID3D11UnorderedAccessView> rangeUAV;
+		comptr<ID3D11ShaderResourceView> rangeSRV;
+		comptr<ID3D11Buffer> indirectArgs;
+		comptr<ID3D11UnorderedAccessView> indirectArgsUAV;
+	};
+	DissolveParticleBuffers dissolveParticleBuffer;
+
 	ParticleAtlas atlas;
 	std::vector<SmokeEmitter> emitters;
 	std::vector<ParticleBuffer> pBuffer;
 	std::shared_ptr<Shader> particle_shader;
+	std::shared_ptr<Shader> dissolveParticleShader;
+	std::shared_ptr<ComputeShader> dissolutionParticlesUpdateShader;
+	std::shared_ptr<ComputeShader> dissolutionParticlesArgsUpdateShader;
 
 	void add_smoke_emitter(const SmokeEmitter& emitter)
 	{
@@ -63,8 +92,9 @@ public:
 	}
 
 	void update(float dt);
-	void updateInstanceBuffer(const Camera& camera);
-	void render(const Camera& camera, comptr<ID3D11ShaderResourceView> depth_texture);
+	void render(const Camera& camera, comptr<ID3D11ShaderResourceView> normals, comptr<ID3D11ShaderResourceView> depth);
+
+	void init_dissolve_buffers(uint32_t size);
 
 	static void init()
 	{

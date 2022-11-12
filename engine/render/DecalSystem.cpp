@@ -41,6 +41,7 @@ void DecalSystem::render(comptr<ID3D11ShaderResourceView> depth,
 	decalShader->bind();
 
 	uint32_t istride = sizeof(Decal), ioffset = 0;
+	direct.context4->IASetVertexBuffers(0, 1, &NULL_BUFFER, &istride, &ioffset);
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &istride, &ioffset);
 	direct.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

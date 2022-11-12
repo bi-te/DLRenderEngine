@@ -6,7 +6,7 @@ class Timer
 {
 protected:
 	std::chrono::steady_clock::time_point previous, current;
-	float check_time;
+	float check_time, last_check_time;
 
 public:
 	Timer(){}
@@ -19,9 +19,13 @@ public:
 
 	float get_check_time() const { return check_time; }
 	float time_passed() const { return float_duration(current - previous).count(); }
+	float get_last_check_time() const { return last_check_time; }
 
 	void start() { previous = EngineClock::instance().now(); }
-	void advance_current() { previous = current; }
+	void advance_current() {
+		last_check_time = float_duration(current - previous).count();
+		previous = current; 
+	}
 
 	void restart()
 	{

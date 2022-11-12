@@ -208,6 +208,8 @@ void Scene::shadow_pass()
 		mesh_system.opaque_instances.shadow_render(light_system.plights().size());
 		mesh_system.appearing_instances.pointShadowShader->bind();
 		mesh_system.appearing_instances.shadow_render(light_system.plights().size());
+		mesh_system.dissolution_instances.pointShadowShader->bind();
+		mesh_system.dissolution_instances.shadow_render(light_system.plights().size());
 		grassfield.pointShadowShader->bind();
 		grassfield.shadow_render(light_system.plights().size());
 	}
@@ -307,7 +309,7 @@ void Scene::render(RenderBuffer& target_buffer, PostProcess& post_process, const
 		// Render semi-transparent objects;
 		direct.context4->OMSetDepthStencilState(depth_stencil.read_only_state.Get(), 1);
 		direct.context4->OMSetBlendState(direct.blend_state.Get(), 0, 0xffffffff);
-		particle_system.render(camera, depth_stencil.srv);
+		particle_system.render(camera, g_buffer.normals.srv, depth_stencil.srv);
 
 		// Resolving hdr-buffer to output
 		post_process.resolve(hdr_buffer, target_buffer);
@@ -337,10 +339,14 @@ void Scene::render(RenderBuffer& target_buffer, PostProcess& post_process, const
 		g_buffer.bind(depth_stencil.msaa_view);
 		meshes.render(forward_rendering);
 		meshes.appearing_instances.render(forward_rendering);
+		meshes.dissolution_instances.render(forward_rendering);
 		grassfield.render(forward_rendering);
 
 		direct.context4->CopyResource(g_buffer.normalsTextureCopy.Get(), g_buffer.normalsTexture.Get());
 		direct.context4->CopyResource(depth_stencil.buffer.Get(), depth_stencil.msaa_buffer.Get());
+
+		meshes.dissolution_instances.spawn_particles(ParticleSystem::instance().dissolveParticleBuffer);
+
 		direct.context4->OMSetRenderTargets(4, g_buffer.rtvs.data(), nullptr);
 		decals.render(depth_stencil.srv, g_buffer.normalsCopy.srv, g_buffer.id.srv);
 
@@ -353,7 +359,7 @@ void Scene::render(RenderBuffer& target_buffer, PostProcess& post_process, const
 		skybox.render();
 
 		direct.context4->OMSetBlendState(direct.blend_state.Get(), 0, 0xffffffff);
-		particle_system.render(camera, depth_stencil.srv);
+		particle_system.render(camera, g_buffer.normalsCopy.srv, depth_stencil.srv);
 
 		post_process.resolve(hdr_buffer, target_buffer);
 	}

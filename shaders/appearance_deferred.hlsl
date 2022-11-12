@@ -121,7 +121,6 @@ ps_out ps_main(vs_out input)
     else
         normal = mesh_normal;
 	
-	//res.normals.xyz = res.normals.xyz / 2.f + 0.5f;
     res.normals.xy = packOctahedron(normal);
     res.normals.zw = packOctahedron(mesh_normal);
 	

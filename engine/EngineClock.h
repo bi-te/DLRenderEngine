@@ -29,6 +29,10 @@ public:
 		engineTime += (current - previous);
 	}
 
+	float get_tick() {
+		return float_duration(current - previous).count();
+	}
+
 	void skip() {
 		previous = current = std::chrono::steady_clock::now();
 	}

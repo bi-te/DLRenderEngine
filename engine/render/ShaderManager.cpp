@@ -12,6 +12,10 @@ void Shader::bind() const
 	direct.context4->IASetInputLayout(inputLayout.ptr.Get());
 }
 
+void ComputeShader::bind() const {
+	Direct3D::instance().context4->CSSetShader(computeShader.Get(), nullptr, NULL);
+}
+
 ShaderManager* ShaderManager::s_manager;
 
 void ShaderManager::compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader)
@@ -87,6 +91,28 @@ void ShaderManager::compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, S
 	assert(SUCCEEDED(res) && "CreatePixelShader");
 }
 
+void ShaderManager::compile_compute_shader(LPCWSTR filename, LPCSTR entry_point, ComputeShader& shader)
+{
+	HRESULT result;
+	comptr<ID3DBlob> csBlob, errBlob;
+
+	result = D3DCompileFromFile(filename, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point,
+		"cs_5_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, NULL, &csBlob, &errBlob);
+	if (FAILED(result)) {
+		if (errBlob) {
+			OutputDebugStringA((char*)errBlob->GetBufferPointer());
+			errBlob.Reset();
+		}
+		if (csBlob) csBlob.Reset();
+		assert(false && "CompileFromFile Compute Shader");
+	}
+
+	result = Direct3D::instance().device5->CreateComputeShader(csBlob->GetBufferPointer(),
+		csBlob->GetBufferSize(), nullptr, &shader.computeShader
+	);
+	assert(SUCCEEDED(result) && "CreateComputeShader");
+}
+
 void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shader& shader)
 {
 	comptr<ID3D11ShaderReflection> vertexShaderReflection;
@@ -107,6 +133,7 @@ void ShaderManager::generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shade
 		elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 		if (strncmp(paramDesc.SemanticName, PER_INSTANCE_PREFIX, ARRAYSIZE(PER_INSTANCE_PREFIX)- 1) == 0)
 		{
+			int inputSlot = 
 			elementDesc.InputSlot = 1;
 			elementDesc.InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 			elementDesc.InstanceDataStepRate = 1;
@@ -164,6 +191,18 @@ std::shared_ptr<Shader> ShaderManager::get_ptr(LPCWSTR shader)
 	return shaders.at(shader);
 }
 
+ComputeShader& ShaderManager::get_compute_shader(LPCWSTR shader)
+{
+	assert(computeShaders.find(shader) != computeShaders.end() && "ComputeShader is not loaded");
+	return *computeShaders.at(shader);
+}
+
+std::shared_ptr<ComputeShader> ShaderManager::get_compute_ptr(LPCWSTR shader)
+{
+	assert(computeShaders.find(shader) != computeShaders.end() && "ComputeShader is not loaded");
+	return computeShaders.at(shader);
+}
+
 void ShaderManager::add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry)
 {
 	if (shaders.find(filename) != shaders.end()) return;
@@ -186,4 +225,13 @@ void ShaderManager::add_shader(LPCWSTR filename, LPCSTR vs_entry, LPCSTR gs_entr
 	if(ps_entry)
 		compile_pixel_shader(filename, ps_entry, *shader);
 	shaders.insert({ filename, shader });
+}
+
+void ShaderManager::add_compute_shader(LPCWSTR filename, LPCSTR entry_point)
+{
+	if (computeShaders.find(filename) != computeShaders.end()) return;
+
+	std::shared_ptr<ComputeShader> shader{new ComputeShader};
+	compile_compute_shader(filename, entry_point, *shader);
+	computeShaders.insert({ filename, shader });
 }

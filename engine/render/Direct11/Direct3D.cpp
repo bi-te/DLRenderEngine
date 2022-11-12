@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "Engine.h"
 #include "EngineClock.h"
 #include "render/LightSystem.h"
 
@@ -164,6 +165,7 @@ void Direct3D::bind_globals(const Camera& camera, uint32_t max_reflection_mip)
     per_frame->near = camera.zn;
     per_frame->far = camera.zf;
     per_frame->time = EngineClock::instance().nowf();
+    per_frame->frame_time = Engine::instance().applicationTimer.get_last_check_time();
 
     LightSystem::instance().bind_lights(&per_frame->light_buffer);
 
@@ -171,9 +173,13 @@ void Direct3D::bind_globals(const Camera& camera, uint32_t max_reflection_mip)
     context4->VSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->GSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetConstantBuffers(0, 1, per_frame_buffer.address());
+    context4->CSSetConstantBuffers(0, 1, per_frame_buffer.address());
     context4->PSSetSamplers(0, 1, sampler_state.GetAddressOf());
     context4->PSSetSamplers(1, 1, linear_clamp_sampler_state.GetAddressOf());
     context4->PSSetSamplers(2, 1, comparison_sampler_state.GetAddressOf());
+    context4->CSSetSamplers(0, 1, sampler_state.GetAddressOf());
+    context4->CSSetSamplers(1, 1, linear_clamp_sampler_state.GetAddressOf());
+    context4->CSSetSamplers(2, 1, comparison_sampler_state.GetAddressOf());
     context4->PSSetShaderResources(0, 1, reflectance_map->srv.GetAddressOf());
 }
 

@@ -1,13 +1,17 @@
-#include "OpaqueInstances.h"
+#include "DissolutionInstances.h"
 
+#include <iostream>
+
+#include "EngineClock.h"
 #include "LightSystem.h"
 #include "ModelManager.h"
 #include "ShaderManager.h"
 #include "TextureManager.h"
 #include "Material.h"
+#include "MeshSystem.h"
 #include "moving/TransformSystem.h"
 
-void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
+void DissolutionInstances::add_model_instance(const std::shared_ptr<Model>& model,
 	const std::vector<OpaqueMaterial>& materials,
 	const Instance& instance)
 {
@@ -30,16 +34,17 @@ void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
 					PerMaterial& per_material = per_mesh.perMaterials.at(mat_ind);
 					if (per_material.material.name == materials.at(mesh_ind).name)
 					{
-						per_material.instances.push_back(new_instance);
-						perModel.instances.back().materials[mesh_ind] = mat_ind;
 						new_material = false;
+						per_material.instances.push_back(new_instance);
+						perModel.instances.back().materials.at(mesh_ind) = mat_ind;
 					}
 				}
-				if (new_material) {
-					perModel.instances.back().materials[mesh_ind] = per_mesh.perMaterials.size();
-					per_mesh.perMaterials.push_back({materials.at(mesh_ind),{new_instance}});
+				if (new_material)
+				{
+					perModel.instances.back().materials.at(mesh_ind) = per_mesh.perMaterials.size();
+					per_mesh.perMaterials.push_back({ materials.at(mesh_ind),{new_instance} });
 				}
-					
+
 			}
 
 			return;
@@ -49,7 +54,7 @@ void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
 	PerModel perModel;
 	perModel.model = model;
 	perModel.perMeshes.resize(model->meshes.size());
-	perModel.instances.push_back(instance);
+	perModel.instances.push_back(std::move(instance));
 	perModel.instances.back().materials.resize(model->meshes.size());
 
 	for (int ind = 0; ind < model->meshes.size(); ++ind)
@@ -61,7 +66,7 @@ void OpaqueInstances::add_model_instance(const std::shared_ptr<Model>& model,
 	perModels.push_back(std::move(perModel));
 }
 
-void OpaqueInstances::remove_model_instance(uint32_t modelInd, uint32_t instanceInd)
+void DissolutionInstances::remove_model_instance(uint32_t modelInd, uint32_t instanceInd)
 {
 	PerModel& perModel = perModels.at(modelInd);
 
@@ -112,24 +117,22 @@ void OpaqueInstances::remove_model_instance(uint32_t modelInd, uint32_t instance
 					}
 					perMesh.perMaterials.at(instance.materials.at(meshInd)) = perMesh.perMaterials.back();
 				}
-				 
+
 				perMesh.perMaterials.pop_back();
 			}
 		}
 	}
 }
 
-
-void OpaqueInstances::bind_instance_buffer()
+void DissolutionInstances::bind_instance_buffer()
 {
 	Direct3D& direct = Direct3D::instance();
 
-	uint32_t instance_stride = sizeof(OpaqueInstanceRender), ioffset = 0;
+	uint32_t instance_stride = sizeof(DissolutionInstanceRender), ioffset = 0;
 	direct.context4->IASetVertexBuffers(1, 1, instanceBuffer.address(), &instance_stride, &ioffset);
-	direct.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void OpaqueInstances::update_instance_buffer()
+void DissolutionInstances::update_instance_buffer()
 {
 	solid_vector<Transform>& transforms = TransformSystem::instance().transforms;
 	uint32_t num_instances = 0, num_copied = 0;
@@ -142,9 +145,9 @@ void OpaqueInstances::update_instance_buffer()
 
 	if (!num_instances) return;
 
-	instanceBuffer.allocate(num_instances * sizeof(OpaqueInstanceRender));
+	instanceBuffer.allocate(num_instances * sizeof(DissolutionInstanceRender));
 
-	OpaqueInstanceRender* instances = static_cast<OpaqueInstanceRender*>(instanceBuffer.map().pData);
+	DissolutionInstanceRender* instances = static_cast<DissolutionInstanceRender*>(instanceBuffer.map().pData);
 
 	for (auto& model : perModels)
 		for (auto& mesh : model.perMeshes)
@@ -152,38 +155,53 @@ void OpaqueInstances::update_instance_buffer()
 				for (auto& instance : material.instances)
 				{
 					if (mesh.mesh_model_matrices.size() > 1) {
+						
 						for (auto& mesh_node : mesh.mesh_model_matrices)
 						{
 							instances[num_copied].model_transform = model.model.get()->tree[mesh_node].mesh_matrix *
 								transforms[model.instances[instance].model_world].matrix();
 							instances[num_copied].scale = model.model.get()->tree[mesh_node].mesh_matrix.topLeftCorner<3, 3>() *
 								transforms[model.instances[instance].model_world].normal_matrix;
-							instances[num_copied].id = model.instances[instance].model_world;
+							instances[num_copied].appearanceColor = model.instances[instance].appearanceColor;
+							instances[num_copied].spherePosition = model.instances[instance].spherePosition * 
+								transforms[model.instances[instance].model_world].matrix().topLeftCorner<3, 3>() +
+								transforms[model.instances[instance].model_world].matrix().row(3).head<3>();
+							instances[num_copied].animationStart = model.instances[instance].animationStartTime;
+							instances[num_copied].sphereRadiusPerSecond = model.instances[instance].sphereRadiusPerSecond;
 							num_copied++;
 						}
 					}
 					else {
 						instances[num_copied].model_transform = transforms[model.instances[instance].model_world].matrix();
-						instances[num_copied].id = model.instances[instance].model_world;
-						instances[num_copied++].scale = transforms[model.instances[instance].model_world].normal_matrix;
+						instances[num_copied].scale = transforms[model.instances[instance].model_world].normal_matrix;
+						instances[num_copied].appearanceColor = model.instances[instance].appearanceColor;
+						instances[num_copied].spherePosition = model.instances[instance].spherePosition * 
+							transforms[model.instances[instance].model_world].matrix().topLeftCorner<3, 3>() + 
+							transforms[model.instances[instance].model_world].matrix().row(3).head<3>();
+						instances[num_copied].animationStart = model.instances[instance].animationStartTime;
+						instances[num_copied].sphereRadiusPerSecond = model.instances[instance].sphereRadiusPerSecond;
+						num_copied++;
 					}
+
 				}
 
 	instanceBuffer.unmap();
 }
 
-void OpaqueInstances::render(bool forward_rendering)
+void DissolutionInstances::render(bool forward_rendering)
 {
 	Direct3D& direct = Direct3D::instance();
-
-	if (forward_rendering)
-		opaqueShader->bind();
-	else
-		opaqueDeferredShader->bind();
-
+	
 	update_instance_buffer();
 	bind_instance_buffer();
 
+	if (forward_rendering)
+		appearShader->bind();
+	else
+		appearDeferredShader->bind();
+
+	direct.context4->RSSetState(direct.two_face_rasterizer_state.Get());
+	direct.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model : perModels)
 	{
@@ -235,16 +253,33 @@ void OpaqueInstances::render(bool forward_rendering)
 			}
 		}
 	}
-
 }
 
-void OpaqueInstances::shadow_render(uint32_t light_count)
+void DissolutionInstances::spawn_particles(ParticleSystem::DissolveParticleBuffers& particlesBuffer)
 {
 	Direct3D& direct = Direct3D::instance();
-	LightSystem& light_system = LightSystem::instance();
+
+	ID3D11UnorderedAccessView* uavs[3] = {
+		particlesBuffer.rangeUAV.Get(),
+		particlesBuffer.uav.Get(),
+		particlesBuffer.indirectArgsUAV.Get()
+	};
+
+	ID3D11UnorderedAccessView* null_uavs[3] = {
+		NULL_UAV,
+		NULL_UAV,
+		NULL_UAV
+	};
+
+	uint32_t offsets[3] = { -1, -1, -1};
+	direct.context4->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 3, uavs, offsets);
 
 	update_instance_buffer();
 	bind_instance_buffer();
+
+	particleSpawnShader->bind();
+
+	direct.context4->PSSetConstantBuffers(2, 1, particlesBuffer.sizeBuffer.address());
 
 	uint32_t renderedInstances = 0;
 	for (const auto& per_model : perModels)
@@ -269,20 +304,73 @@ void OpaqueInstances::shadow_render(uint32_t light_count)
 			meshModel.unmap();
 			direct.context4->VSSetConstantBuffers(1, 1, meshModel.address());
 
-			uint32_t instances = 0;
 			for (const auto& perMaterial : mesh.perMaterials)
-				instances += perMaterial.instances.size();
-			instances *= mesh.mesh_model_matrices.size();
-
-			for (uint32_t light = 0; light < light_count; light++)
 			{
-				light_system.bind_light_shadow_buffer(light);
+				const OpaqueMaterial& material = perMaterial.material;
+				uint32_t instances = perMaterial.instances.size() * mesh.mesh_model_matrices.size();
 
 				direct.context4->DrawIndexedInstanced(mrange.numIndices,
 					instances, mrange.indicesOffset,
 					mrange.verticesOffset, renderedInstances);
+				renderedInstances += instances;
 			}
-			renderedInstances += instances;
+		}
+	}
+
+	direct.context4->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 3, null_uavs, nullptr);
+}
+
+void DissolutionInstances::shadow_render(uint32_t light_count)
+{
+	Direct3D& direct = Direct3D::instance();
+	LightSystem& light_system = LightSystem::instance();
+
+	update_instance_buffer();
+	bind_instance_buffer();
+
+	direct.context4->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	uint32_t renderedInstances = 0;
+	for (const auto& per_model : perModels)
+	{
+		Model& model = *per_model.model;
+
+		uint32_t stride = sizeof(AssimpVertex), pOffset = 0;
+		direct.context4->IASetVertexBuffers(0, 1, model.vertexBuffer.address(), &stride, &pOffset);
+		direct.context4->IASetIndexBuffer(model.indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
+
+		for (uint32_t mesh_ind = 0; mesh_ind < per_model.perMeshes.size(); ++mesh_ind)
+		{
+			const PerMesh& mesh = per_model.perMeshes[mesh_ind];
+			Mesh::Range& mrange = model.meshes[mesh_ind].m_range;
+
+			mat4f* matrices = (mat4f*)meshModel.map().pData;
+			if (mesh.mesh_model_matrices.size() > 1)
+				*matrices = mat4f::Identity();
+			else
+				*matrices = model.tree[mesh.mesh_model_matrices.at(0)].mesh_matrix;
+
+			meshModel.unmap();
+			direct.context4->VSSetConstantBuffers(1, 1, meshModel.address());
+
+			for (const auto& perMaterial : mesh.perMaterials)
+			{
+				const OpaqueMaterial& material = perMaterial.material;
+				uint32_t instances = perMaterial.instances.size() * mesh.mesh_model_matrices.size();
+
+				materialBuffer.write(&material.render_data);
+
+				direct.context4->PSSetConstantBuffers(2, 1, materialBuffer.address());
+
+				for (uint32_t lightInd = 0; lightInd < light_count; lightInd++) {
+					light_system.bind_light_shadow_buffer(lightInd);
+					direct.context4->DrawIndexedInstanced(mrange.numIndices,
+						instances, mrange.indicesOffset,
+						mrange.verticesOffset, renderedInstances);
+				}
+
+				renderedInstances += instances;
+			}
 		}
 	}
 }
+

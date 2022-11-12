@@ -2,6 +2,7 @@
 #define _GLOBALS_
 
 static const float PI = 3.14159265f;
+static const float SMALL_G = 9.81f;
 static const float OFFSET = 0.02f;
 
 static const float3 X_VEC = float3(1.f, 0.f, 0.f);
@@ -94,7 +95,7 @@ cbuffer perFrame: register(b0)
 	LightBuffer g_lighting;
 
 	float g_near, g_far;
-	float g_time;
+	float g_time, g_frame_time;
 }
 
 float world_depth_from_buffer(float buffer_data)

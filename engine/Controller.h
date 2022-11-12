@@ -88,7 +88,9 @@ public:
 
 	void init_scene();
 	void start_appearance();
-	void update_appearance_instances(float dt);
+	void update_animated_instances(float dt);
+
+	void dissolve_object();
 
 	void spawn_decal();
 };

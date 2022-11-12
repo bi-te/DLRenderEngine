@@ -42,6 +42,7 @@ void ModelManager::add_model(const std::string& path)
 		| aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded | aiProcess_JoinIdenticalVertices);
 
 	model.name = path;
+	model.bbox = BoundingBox::empty();
 	model.meshes.resize(scene->mNumMeshes);
 	model.octrees.resize(scene->mNumMeshes);
 
@@ -178,8 +179,17 @@ void ModelManager::parse_tree(const aiScene& scene, Model& model)
 		tree_node.mesh_matrix *= reinterpret_cast<mat4f&>(node.mTransformation.Transpose());
 		tree_node.mesh_matrix_inv = tree_node.mesh_matrix.inverse();
 
-		for (int i = 0; i < node.mNumMeshes; ++i)
+
+		for (int i = 0; i < node.mNumMeshes; ++i) {
+			BoundingBox maabb = reinterpret_cast<BoundingBox&>(scene.mMeshes[node.mMeshes[i]]->mAABB);
+			maabb.min = maabb.min * tree_node.mesh_matrix.topLeftCorner<3, 3>() + tree_node.mesh_matrix.row(3).head<3>();
+			maabb.max = maabb.max * tree_node.mesh_matrix.topLeftCorner<3, 3>() + tree_node.mesh_matrix.row(3).head<3>();
+			vec3f temp_max = maabb.min.cwiseMax(maabb.max);
+			maabb.min = maabb.min.cwiseMin(maabb.max);
+			maabb.max = temp_max;
+			model.bbox.expand(maabb);
 			model.meshes[node.mMeshes[i]].mesh_matrices.push_back(ind);
+		}
 					
 		for (uint32_t child_ind = 0; child_ind < node.mNumChildren; ++child_ind)
 		{
@@ -209,6 +219,7 @@ void ModelManager::init_cube()
 	cube.meshes = {
 		{ &cube, {0}, {24, 36, 0, 0}, {{-0.5f, -0.5f, -0.5f}, {0.5f,  0.5f,  0.5f}} }
 	};
+	cube.bbox = { {-0.5f, -0.5f, -0.5f}, {0.5f,  0.5f,  0.5f} };
 
 	cube.vertices = {
 	{{ 0.5f, -0.5f,  0.5f},   {0.f,  1.f}, { 0.f,  0.f,  1.f}, {-1.f, 0.f,  0.f}, {0.f, -1.f,  0.f}},
@@ -274,8 +285,9 @@ void ModelManager::init_quad()
 	};
 
 	quad.meshes = {
-		{ &quad, {0}, {4, 6, 0, 0}, {{-0.5f, -0.5f, -0.5f}, {0.5f,  0.5f,  0.5f}} }
+		{ &quad, {0}, {4, 6, 0, 0}, {{-0.5f, -0.f, -0.5f}, {0.5f,  0.f,  0.5f}} }
 	};
+	quad.bbox = { {-0.5f, -0.f, -0.5f}, {0.5f,  0.f,  0.5f} };
 
 	quad.vertices = {
 	{{-0.5f,  0.0f, -0.5f},   {0.f,  1.f}, { 0.f,  1.f,  0.f}, { 1.f, 0.f,  0.f}, {0.f,  0.f,  -1.f}},
@@ -320,6 +332,7 @@ void ModelManager::init_flat_cube_sphere(uint32_t grid_size)
 	cube_sphere.meshes = {
 		{ &cube_sphere, {0}, {num_vertices, num_indices, 0, 0}, {{-1.f, -1.f, -1.f}, {1.f,  1.f,  1.f}} }
 	};
+	cube_sphere.bbox = { {-1.f, -1.f, -1.f}, {1.f,  1.f,  1.f} };
 
 	cube_sphere.vertices.resize(num_vertices);
 	cube_sphere.indices.resize(num_indices);
@@ -436,6 +449,7 @@ void ModelManager::init_sphere(uint32_t sectors, uint32_t stacks)
 	sphere.meshes = {
 		{ &sphere, {0}, {num_vertices, num_indices, 0, 0}, {{-1.f, -1.f, -1.f}, {1.f,  1.f,  1.f}} }
 	};
+	sphere.bbox = { {-1.f, -1.f, -1.f}, {1.f,  1.f,  1.f} };
 
 	sphere.vertices.resize(num_vertices);
 	sphere.indices.resize(num_indices);
@@ -531,6 +545,8 @@ void ModelManager::init_flat_sphere(uint32_t sectors, uint32_t stacks)
 	sphere.meshes = {
 		{ &sphere, {0}, {num_vertices, num_indices, 0, 0}, {{-1.f, -1.f, -1.f}, {1.f,  1.f,  1.f}} }
 	};
+
+	sphere.bbox = { {-1.f, -1.f, -1.f}, {1.f,  1.f,  1.f} };
 
 
 	sphere.vertices.resize(num_vertices);

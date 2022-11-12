@@ -29,6 +29,16 @@ struct Shader
 	}
 };
 
+struct ComputeShader {
+	comptr<ID3D11ComputeShader> computeShader;
+
+	void bind() const;
+
+	void reset() {
+		computeShader.Reset();
+	}
+};
+
 const char PER_INSTANCE_PREFIX[] = "Inst_";
 
 
@@ -43,10 +53,12 @@ class ShaderManager
 	ShaderManager& operator=(ShaderManager&& other) noexcept = delete;
 
 	std::unordered_map<LPCWSTR, std::shared_ptr<Shader>, pwchar_hash, pwchar_comparator> shaders;
+	std::unordered_map< LPCWSTR, std::shared_ptr<ComputeShader>, pwchar_hash, pwchar_comparator> computeShaders;
 
 	void compile_vertex_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
 	void compile_geometry_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
 	void compile_pixel_shader(LPCWSTR filename, LPCSTR entry_point, Shader& shader);
+	void compile_compute_shader(LPCWSTR filename, LPCSTR entry_point, ComputeShader& shader);
 	void generate_input_layout(const comptr<ID3DBlob>& vs_blob, Shader& shader);
 public:
 
@@ -72,8 +84,11 @@ public:
 
 	Shader& get_shader(LPCWSTR shader);
 	std::shared_ptr<Shader> get_ptr(LPCWSTR shader);
+	ComputeShader& get_compute_shader(LPCWSTR shader);
+	std::shared_ptr<ComputeShader> get_compute_ptr(LPCWSTR shader);
 
 	void add_shader(LPCWSTR filename, LPCSTR vertex_shader_entry, LPCSTR pixel_shader_entry);
 	void add_shader(LPCWSTR filename, LPCSTR vs_entry, LPCSTR gs_entry, LPCSTR ps_entry);
+	void add_compute_shader(LPCWSTR filename, LPCSTR entry_point);
 };
 

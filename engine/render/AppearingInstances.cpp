@@ -41,8 +41,8 @@ void AppearingInstances::add_model_instance(const std::shared_ptr<Model>& model,
 				}
 				if (new_material)
 				{
-					per_mesh.perMaterials.push_back({ materials.at(mesh_ind),{new_instance}});
 					perModel.instances.back().materials.at(mesh_ind) = per_mesh.perMaterials.size();
+					per_mesh.perMaterials.push_back({ materials.at(mesh_ind),{new_instance}});
 				}
 					
 			}
@@ -68,57 +68,55 @@ void AppearingInstances::add_model_instance(const std::shared_ptr<Model>& model,
 
 void AppearingInstances::remove_model_instance(uint32_t modelInd, uint32_t instanceInd)
 {
-	PerModel& model = perModels.at(modelInd);
+	PerModel& perModel = perModels.at(modelInd);
 
-	if(model.instances.size() == 1)
+	if(perModel.instances.size() == 1)
 	{
 		perModels.at(modelInd) = perModels.back();
 		perModels.pop_back();
 	} else
 	{
-		Instance instance = model.instances.at(instanceInd - 1);
+		Instance instance = perModel.instances.at(instanceInd);
+		perModel.instances.at(instanceInd) = perModel.instances.back();
+		perModel.instances.pop_back();
 
-		model.instances.at(instanceInd - 1) = model.instances.back();
-		model.instances.pop_back();
-
-		if(instanceInd - 1 != model.instances.size())
+		if(instanceInd != perModel.instances.size())
 		{
-			for(uint32_t meshInd = 0; meshInd < model.perMeshes.size(); meshInd++)
+			for(uint32_t meshInd = 0; meshInd < perModel.perMeshes.size(); meshInd++)
 			{
-				PerMesh& perMesh = model.perMeshes.at(meshInd);
-				PerMaterial& perMaterial = perMesh.perMaterials.at(model.instances.at(instanceInd - 1).materials.at(meshInd));
+				PerMesh& perMesh = perModel.perMeshes.at(meshInd);
+				PerMaterial& perMaterial = perMesh.perMaterials.at(perModel.instances.at(instanceInd).materials.at(meshInd));
 
 				for(uint32_t materialInstanceInd = 0; materialInstanceInd < perMaterial.instances.size(); materialInstanceInd++)
-				{
-					if(perMaterial.instances.at(materialInstanceInd) == model.instances.size())
-					{
-						perMaterial.instances.at(materialInstanceInd) = instanceInd - 1;
-					}
-				}
+					if (perMaterial.instances.at(materialInstanceInd) == perModel.instances.size())
+						perMaterial.instances.at(materialInstanceInd) = instanceInd;
 			}
 		}
-		
-		for(uint32_t meshInd = 0; meshInd < model.perMeshes.size(); meshInd++)
+
+		for(uint32_t meshInd = 0; meshInd < perModel.perMeshes.size(); meshInd++)
 		{
-			PerMesh& perMesh = model.perMeshes.at(meshInd);
+			PerMesh& perMesh = perModel.perMeshes.at(meshInd);
 			PerMaterial& perMaterial = perMesh.perMaterials.at(instance.materials.at(meshInd));
+
 			if(perMaterial.instances.size() != 1)
 			{
 				for(uint32_t materialInstanceInd = 0; materialInstanceInd < perMaterial.instances.size(); materialInstanceInd++){
-					if(perMaterial.instances.at(materialInstanceInd) == instanceInd - 1)
-					{
+					if(perMaterial.instances.at(materialInstanceInd) == instanceInd){
 						perMaterial.instances.at(materialInstanceInd) = perMaterial.instances.back();
 						perMaterial.instances.pop_back();
 					}
 				}
-			}else 
+			}else
 			{
-				perMesh.perMaterials.at(instance.materials.at(meshInd)) = perMesh.perMaterials.back();
-				perMesh.perMaterials.pop_back();
-				for(uint32_t matInstance: perMesh.perMaterials.at(instance.materials.at(meshInd)).instances)
-				{
-					model.instances.at(matInstance).materials.at(meshInd) = instance.materials.at(meshInd);
+				if (instance.materials[meshInd] != perMesh.perMaterials.size() - 1) {
+					for (uint32_t matInstance : perMesh.perMaterials.back().instances)
+					{
+						perModel.instances.at(matInstance).materials.at(meshInd) = instance.materials.at(meshInd);
+					}
+					perMesh.perMaterials.at(instance.materials.at(meshInd)) = perMesh.perMaterials.back();
 				}
+
+				perMesh.perMaterials.pop_back();
 			}
 		}	
 	}
@@ -186,7 +184,6 @@ void AppearingInstances::render(bool forward_rendering)
 {
 	Direct3D& direct = Direct3D::instance();
 
-	appearShader->bind();
 	update_instance_buffer();
 	bind_instance_buffer();
 

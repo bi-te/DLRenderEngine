@@ -47,7 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	EngineClock& eclock = EngineClock::instance();
 
-    Timer applicationTimer;
+    Timer& applicationTimer = Engine::instance().applicationTimer;
     applicationTimer.set_check_time(1.f / 60.f);
     applicationTimer.start();
 

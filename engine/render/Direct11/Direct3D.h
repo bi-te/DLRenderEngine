@@ -79,7 +79,7 @@ struct PerFrame
 	LightBuffer light_buffer;
 
 	float near, far;
-	float time;
+	float time, frame_time;
 };
 
 struct ResolveBuffer
@@ -90,6 +90,7 @@ struct ResolveBuffer
 
 constexpr ID3D11RenderTargetView* NULL_RTV = nullptr;
 constexpr ID3D11ShaderResourceView* NULL_SRV = nullptr;
+constexpr ID3D11UnorderedAccessView* NULL_UAV = nullptr;
 constexpr ID3D11Buffer* NULL_BUFFER = nullptr;
 
 class Direct3D

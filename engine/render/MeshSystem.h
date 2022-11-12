@@ -4,6 +4,7 @@
 #include "EmissiveInstances.h"
 #include "OpaqueInstances.h"
 #include "IntersectionQuery.h"
+#include "DissolutionInstances.h"
 
 class MeshSystem
 {
@@ -21,6 +22,7 @@ public:
 	OpaqueInstances opaque_instances;
 	EmissiveInstances emissive_instances;
 	AppearingInstances appearing_instances;
+	DissolutionInstances dissolution_instances;
 
 	bool select_mesh(const Ray& ray, IntersectionQuery& record);
 	bool select_opaque(const Ray& ray, IntersectionQuery& record);

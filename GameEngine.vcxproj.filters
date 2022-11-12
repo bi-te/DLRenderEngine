@@ -171,6 +171,9 @@
     <ClCompile Include="engine\render\DecalSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="engine\render\DissolutionInstances.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine\Engine.h">
@@ -590,6 +593,9 @@
     <ClInclude Include="engine\render\DecalSystem.h">
       <Filter>engine\render</Filter>
     </ClInclude>
+    <ClInclude Include="engine\render\DissolutionInstances.h">
+      <Filter>engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\opaque.hlsl">
@@ -652,6 +658,24 @@
     <FxCompile Include="shaders\resolve_deferred_plights.hlsl">
       <Filter>shaders</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\dissolve_particles_spawn.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\dissolution_deferred.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\omnidirectional_dissolution_shadows.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\dissolve_particles_update.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\dissolve_particles_range_update.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\dissolve_particles.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\globals.hlsli">
@@ -703,6 +727,9 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\octahedron_pack.hlsli">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\dissolution_particle.hlsli">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

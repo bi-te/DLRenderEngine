@@ -56,6 +56,10 @@ bool MeshSystem::select_mesh(const Ray& ray, IntersectionQuery& record)
 		for (const auto& instance : appearing_model.instances)
 			intersected |= mesh_intersection(ray, record, *appearing_model.model.get(), instance.model_world);
 
+	for (const auto& dissolution_model : dissolution_instances.perModels)
+		for (const auto& instance : dissolution_model.instances)
+			intersected |= mesh_intersection(ray, record, *dissolution_model.model.get(), instance.model_world);
+
 	return intersected;
 }
 
